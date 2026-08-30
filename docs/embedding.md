@@ -44,6 +44,7 @@ function EditExpression({ value, onChange }: { value: string; onChange: (v: stri
 | `initialExpression` | `string`                       | The expression the editor loads.                     |
 | `fieldLabel`        | `string`                       | Shown in the dialog title.                           |
 | `shape`             | `JqInputShapeDescriptor`       | What `.` is (context chip + Test-panel sample).      |
+| `sampleInput`       | `SampleInputProvider`          | Live Test-panel sample; overrides `shape.sample`.    |
 | `serverValidate`    | `ServerValidateHook`           | Host validator for the Test panel.                   |
 | `onSave`            | `(expression: string) => void` | Called when the user saves.                          |
 | `onClose`           | `() => void`                   | Called on cancel / Escape / overlay (dirty-guarded). |

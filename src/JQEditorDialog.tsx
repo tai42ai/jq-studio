@@ -20,7 +20,11 @@ import { TransformerEditor } from './transformer-editor';
 import { JqLegendDialog } from './JqLegendDialog';
 import { LOGIC_LESS_SAVE_MESSAGE } from './TransformerCanvas';
 import { useJQEditorState } from './editor-context';
-import type { JqInputShapeDescriptor, ServerValidateHook } from './declaration';
+import type {
+  JqInputShapeDescriptor,
+  SampleInputProvider,
+  ServerValidateHook,
+} from './declaration';
 
 /** Library root scoping class + the editor's full-screen layout class. */
 const JQ_EDITOR_CONTENT_CLASS = 'jq-studio-root jqs-jq-fullscreen';
@@ -33,6 +37,10 @@ export interface JQEditorDialogProps {
    *  panel's seeded sample, and (host-agnostic) any shape-aware surface. Absent =
    *  today's behaviour (no chip, blank Test input). */
   shape?: JqInputShapeDescriptor;
+  /** A live sample-input provider for the Test panel. Takes precedence over the
+   *  static `shape.sample` skeleton when it yields a defined value (the
+   *  declaration's dynamic-sample contract). Absent = seed from `shape.sample`. */
+  sampleInput?: SampleInputProvider;
   /** Pluggable server-validate hook surfaced in the Test panel when a host wires
    *  one (a consumer's `serverValidate` hook). */
   serverValidate?: ServerValidateHook;
@@ -80,6 +88,7 @@ export const JQEditorDialog = ({
   initialExpression,
   fieldLabel,
   shape,
+  sampleInput,
   serverValidate,
   onSave,
   onClose,
@@ -221,6 +230,7 @@ export const JQEditorDialog = ({
           onHasLogicNodeChange={readOnly ? undefined : setHasLogicNode}
           onLogicLessSave={readOnly ? undefined : refuseLogicLessSave}
           shape={shape}
+          sampleInput={sampleInput}
           serverValidate={serverValidate}
           onRequestClose={requestClose}
           readOnly={readOnly}

@@ -19,6 +19,7 @@ export const TransformerEditor = ({
   onHasLogicNodeChange,
   onLogicLessSave,
   shape,
+  sampleInput,
   serverValidate,
   onRequestClose,
   initialExpression,
@@ -57,6 +58,7 @@ export const TransformerEditor = ({
             onHasLogicNodeChange={onHasLogicNodeChange}
             onLogicLessSave={onLogicLessSave}
             shape={shape}
+            sampleInput={sampleInput}
             serverValidate={serverValidate}
             onRequestClose={onRequestClose}
             readOnly={readOnly}
