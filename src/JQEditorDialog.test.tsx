@@ -143,3 +143,56 @@ describe('JQEditorDialog shell', () => {
     expect(screen.getByRole('button', { name: /Close/ })).toBeInTheDocument();
   });
 });
+
+// The dirty guard, exercised against the REAL canvas — the case dirty.test.tsx
+// cannot reach because it mocks the canvas away. Regression cover for the baseline
+// bug: the canvas mounts empty and emits the `# Error: cannot convert empty graph`
+// placeholder BEFORE the real graph loads; if the dialog pinned THAT as baseline,
+// every freshly-opened valid expression read dirty and prompted a spurious
+// discard-confirm on close. The baseline must be the graph's first REAL emission.
+describe('JQEditorDialog dirty guard (real canvas)', () => {
+  /** Deletes the loaded logic node to force a genuine, serialization-changing
+   *  edit through the real canvas. */
+  const deleteLogicNode = async (): Promise<void> => {
+    const before = document.querySelectorAll('.react-flow__node').length;
+    const logicNode = Array.from(document.querySelectorAll('.react-flow__node')).find(
+      (node) => !node.className.includes('jqStart'),
+    );
+    if (!logicNode) throw new Error('expected a non-Start logic node to delete');
+    const pane = document.querySelector('.react-flow');
+    if (!pane) throw new Error('expected the react-flow pane');
+    fireEvent.click(logicNode);
+    fireEvent.keyDown(pane, { key: 'Backspace' });
+    await waitFor(() => {
+      expect(document.querySelectorAll('.react-flow__node').length).toBeLessThan(before);
+    });
+  };
+
+  it('closes a freshly-opened valid expression straight through — no spurious confirm', async () => {
+    const onClose = vi.fn();
+    render(<JQEditorDialog open initialExpression=".foo" onSave={vi.fn()} onClose={onClose} />);
+
+    await canvasLoaded();
+    // A pure round-trip is NOT an unsaved change: Escape must close straight
+    // through, never raising the discard-confirm.
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.queryByText('Discard unsaved changes?')).not.toBeInTheDocument();
+  });
+
+  it('raises the discard-confirm on close once the graph is genuinely edited', async () => {
+    const onClose = vi.fn();
+    render(<JQEditorDialog open initialExpression=".foo" onSave={vi.fn()} onClose={onClose} />);
+
+    await canvasLoaded();
+    await deleteLogicNode();
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    // The real edit is guarded: the confirm appears and onClose is withheld.
+    await screen.findByText('Discard unsaved changes?');
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});

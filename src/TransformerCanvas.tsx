@@ -234,11 +234,28 @@ export const TransformerCanvas = ({
   // fallback panel; nothing is overwritten unless they choose "Start empty".
   const [parseFailed, setParseFailed] = useState(false);
 
+  // The initial-load handshake. The canvas mounts with an EMPTY graph, which
+  // `convertFlowToJQ` refuses (`# Error: Cannot convert empty graph …`), so the
+  // very first `onChange` would emit that placeholder BEFORE the async initial
+  // load adopts the real graph — and the surrounding dialog would capture the
+  // placeholder as its dirty BASELINE, making every freshly-opened valid
+  // expression read as an unsaved change (a spurious discard-confirm on close).
+  // Holding emissions until the load has SETTLED (graph adopted, a fallback
+  // reached, or there was nothing to load) means the first expression the dialog
+  // ever sees — and pins as baseline — is the graph's first REAL serialization.
+  const [initialLoadSettled, setInitialLoadSettled] = useState(false);
+
   // Load the initial expression once on mount (the dialog remounts the canvas
   // on each open, so this runs fresh per open). Adoption waits on the faithfulness
   // guard: the graph is taken only once proven to round-trip to the same behaviour.
   useEffect(() => {
-    if (!initialExpression?.trim()) return;
+    // An empty field has no graph to load: settle at once so a from-scratch
+    // canvas still emits (its empty-graph state IS the honest baseline — a first
+    // node the author then adds is a real edit that SHOULD prompt on close).
+    if (!initialExpression?.trim()) {
+      setInitialLoadSettled(true);
+      return;
+    }
     let loaded: { nodes: JQNode[]; edges: JQEdge[] };
     try {
       loaded = convertJQToFlow(initialExpression);
@@ -248,20 +265,33 @@ export const TransformerCanvas = ({
       // author's expression). Surface the non-destructive fallback instead.
       console.error('[TransformerCanvas] Failed to load initial expression:', e);
       setParseFailed(true);
+      setInitialLoadSettled(true);
       return;
     }
     let cancelled = false;
-    void roundTripVerdict(initialExpression).then((verdict) => {
-      if (cancelled) return;
-      if (verdict === 'unfaithful') {
-        setEntryUnfaithful(true);
-        return;
-      }
-      setNodes(loaded.nodes);
-      setEdges(loaded.edges);
-      nodeCountersRef.current = {};
-      scheduleFit();
-    });
+    void roundTripVerdict(initialExpression)
+      .then((verdict) => {
+        if (cancelled) return;
+        if (verdict === 'unfaithful') {
+          setEntryUnfaithful(true);
+          setInitialLoadSettled(true);
+          return;
+        }
+        setNodes(loaded.nodes);
+        setEdges(loaded.edges);
+        nodeCountersRef.current = {};
+        scheduleFit();
+        // Settle only now the real graph is committed, so the FIRST emission the
+        // dialog captures as baseline is this graph's serialization, not the
+        // pre-load empty-graph placeholder.
+        setInitialLoadSettled(true);
+      })
+      .catch(() => {
+        // The verdict path is rejection-safe today (every executor call is caught
+        // upstream), but the settle invariant — the flag ALWAYS settles, or the
+        // editor would never report a change — must not hinge on that staying true.
+        if (!cancelled) setInitialLoadSettled(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -291,8 +321,11 @@ export const TransformerCanvas = ({
   }, [nodes, edges]);
 
   useEffect(() => {
+    // Suppress the pre-load empty-graph placeholder emission (see the
+    // initial-load handshake above); emit only once the load has settled.
+    if (!initialLoadSettled) return;
     onChange?.(expression);
-  }, [expression, onChange]);
+  }, [expression, onChange, initialLoadSettled]);
 
   const validationErrors = useMemo(() => validateFlow(nodes, edges), [nodes, edges]);
 
