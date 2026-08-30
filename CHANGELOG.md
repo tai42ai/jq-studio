@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/tai42ai/jq-studio/compare/v0.1.0...v0.1.1) (2026-08-30)
+
+
+### Features
+
+* JqField notifies editor open-state; the dirty guard baselines the loaded graph ([d606377](https://github.com/tai42ai/jq-studio/commit/d606377f6206a23f999f656d017bb4e8660bcc1d))
+
 ## 0.1.0 (2026-08-30)
 
 
