@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/tai42ai/jq-studio/compare/v0.1.1...v0.1.2) (2026-08-30)
+
+
+### Features
+
+* JqField gains a compact density variant for dense host rows ([8e7ab84](https://github.com/tai42ai/jq-studio/commit/8e7ab84c9668a65dd57656098da56cb15861915b))
+
 ## [0.1.1](https://github.com/tai42ai/jq-studio/compare/v0.1.0...v0.1.1) (2026-08-30)
 
 
