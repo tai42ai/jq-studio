@@ -7,7 +7,8 @@
   "packages": {
     ".": {
       "skip-changelog": false,
-      "package-name": "@tai42/jq-studio"
+      "package-name": "@tai42/jq-studio",
+      "release-as": "0.1.0"
     }
   }
 }
