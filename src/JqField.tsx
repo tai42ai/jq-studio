@@ -52,6 +52,13 @@ export interface JqFieldProps {
   readonly serverValidate?: ServerValidateHook;
   /** Render a textarea instead of a single-line input for the resting control. */
   readonly multiline?: boolean;
+  /** Density variant for dense host rows (the density variant every design system
+   *  ships): the visible label is rendered visually-hidden — its accessible name
+   *  and `<label htmlFor>` association are preserved, so screen readers and label
+   *  clicks still work — and the door button collapses to icon-only (the Pencil),
+   *  keeping its full per-field aria-label. The field's vertical rhythm tightens;
+   *  the `description` and `error` slots still render if provided. */
+  readonly compact?: boolean;
   /** Show the expression read-only (the visual editor opens as a viewer). */
   readonly readOnly?: boolean;
   readonly placeholder?: string;
@@ -90,6 +97,7 @@ export function JqField({
   sampleInput,
   serverValidate,
   multiline = false,
+  compact = false,
   readOnly = false,
   placeholder,
   id,
@@ -190,8 +198,13 @@ export function JqField({
   );
 
   return (
-    <div className="jq-studio-root jqs-field">
-      <label htmlFor={controlId} className="jqs-field__label">
+    <div className={`jq-studio-root jqs-field${compact ? ' jqs-field--compact' : ''}`}>
+      {/* Compact keeps the <label htmlFor> in the DOM (accessible name + label-click
+          association preserved) and only hides it visually. */}
+      <label
+        htmlFor={controlId}
+        className={`jqs-field__label${compact ? ' jqs-visually-hidden' : ''}`}
+      >
         {label}
       </label>
       <div className="jqs-field__row">
@@ -207,7 +220,9 @@ export function JqField({
           }}
         >
           <Pencil className="jqs-icon" aria-hidden />
-          {readOnly ? 'Visual view' : 'Visual editor'}
+          {/* Compact collapses the door to icon-only; the full aria-label above still
+              names it, so a screen reader loses nothing. */}
+          {compact ? null : readOnly ? 'Visual view' : 'Visual editor'}
         </Button>
       </div>
       {description != null && (

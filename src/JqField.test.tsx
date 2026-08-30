@@ -228,6 +228,53 @@ describe('JqField', () => {
     });
   });
 
+  // The density variant for dense host rows: the label goes visually-hidden (its
+  // accessible name + htmlFor association preserved) and the door collapses to
+  // icon-only (its full per-field aria-label preserved). Non-compact rendering is
+  // the regression floor — it must stay exactly as it is today.
+  describe('compact (density variant)', () => {
+    it('visually-hides the label but keeps its accessible name and htmlFor association', () => {
+      render(<JqField id="expr" label="Transform" value=".a" onChange={vi.fn()} compact />);
+      // Accessible name preserved: the control is still reachable by its label text,
+      // and the label→control association survives (label points at the control id).
+      const control = screen.getByLabelText('Transform');
+      expect(control).toHaveAttribute('id', 'expr');
+      const label = document.querySelector('.jqs-field__label')!;
+      expect(label).toHaveTextContent('Transform');
+      expect(label).toHaveClass('jqs-visually-hidden');
+      expect(label.getAttribute('for')).toBe('expr');
+      // The field carries the density modifier that tightens the vertical rhythm.
+      expect(document.querySelector('.jqs-field')).toHaveClass('jqs-field--compact');
+    });
+
+    it('renders the door icon-only while keeping the full per-field aria-label', () => {
+      render(<JqField label="Transform" value=".a" onChange={vi.fn()} compact />);
+      const door = screen.getByRole('button', {
+        name: 'Open the visual editor for Transform',
+      });
+      // Icon-only: no visible "Visual editor" text label on the button.
+      expect(door).not.toHaveTextContent('Visual editor');
+      expect(door.querySelector('.jqs-icon')).toBeInTheDocument();
+    });
+
+    it('keeps the read-only door aria-label full when icon-only', () => {
+      render(<JqField label="Expr" value=".a" onChange={vi.fn()} readOnly compact />);
+      const door = screen.getByRole('button', { name: 'Open the visual view for Expr' });
+      expect(door).not.toHaveTextContent('Visual view');
+    });
+
+    it('non-compact (default) renders the visible label and a text button — the regression floor', () => {
+      render(<JqField label="Transform" value=".a" onChange={vi.fn()} />);
+      const label = document.querySelector('.jqs-field__label')!;
+      expect(label).toHaveTextContent('Transform');
+      expect(label).not.toHaveClass('jqs-visually-hidden');
+      expect(document.querySelector('.jqs-field')).not.toHaveClass('jqs-field--compact');
+      expect(
+        screen.getByRole('button', { name: 'Open the visual editor for Transform' }),
+      ).toHaveTextContent('Visual editor');
+    });
+  });
+
   // The open-state notify a host uses to MUTE its global keyboard shortcuts
   // (window-level keydown for undo/redo/save/delete) while the editor is open —
   // a keydown bubbles to `window` even from the editor's focus-trapped modal, so

@@ -40,3 +40,25 @@
   font: var(--jq-text-sm) var(--jq-font-sans);
   color: var(--jq-color-danger);
 }
+/* Classic clip-rect visually-hidden: removes the node from the visual layout while
+ * keeping it in the accessibility tree, so a compact field's `<label>` still gives
+ * the control its accessible name and stays a label-click target. */
+/* Byte-identical twin of .jqp-visually-hidden (primitives.css) — the jqp-/jqs-
+   namespaces stay self-contained; edit BOTH together. */
+.jqs-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* Density variant for dense host rows: the label is visually-hidden (above) and the
+ * door is icon-only, so tighten the field's vertical rhythm. Description/error slots
+ * still render when provided. */
+.jqs-field--compact {
+  gap: 0.125rem; /* 2px — half of --jq-space-1, below the token scale's floor */
+}

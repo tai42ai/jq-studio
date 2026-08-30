@@ -271,6 +271,7 @@
     transform: rotate(360deg);
   }
 }
+/* Byte-identical twin of .jqs-visually-hidden (field.css) — edit BOTH together. */
 .jqp-visually-hidden {
   position: absolute;
   width: 1px;
