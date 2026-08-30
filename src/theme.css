@@ -7,10 +7,29 @@
  * of these tokens on `:root` or on the `.jq-studio-root` element and jq-studio
  * follows it; a host that ships no theme keeps this one.
  *
- * Dark mode: `prefers-color-scheme` is the DEFAULT, and a `data-theme="light|dark"`
- * pin on the root (either `:root` or the `.jq-studio-root` element) overrides the
- * OS in both directions. Tokens are declared on BOTH `:root` and `.jq-studio-root`
- * so they resolve whether a host themes the document or only the editor subtree.
+ * LIGHT / DARK PRECEDENCE (highest wins) — the resolution is deterministic:
+ *
+ *   1. `data-theme` on the element ITSELF (`:root`, or the `.jq-studio-root`
+ *      element) — a viewer's explicit pin.
+ *   2. `data-theme` on an ANCESTOR `:root` (`document.documentElement`). This is
+ *      the common host pattern: the app stamps the theme on `<html>` while the
+ *      editor is portalled to `document.body` (Radix Dialog). The portalled
+ *      `.jq-studio-root` carries no stamp of its own, so it must inherit the
+ *      governing stamp from its ancestor rather than fall through to the OS.
+ *   3. `prefers-color-scheme` (the OS preference) when no `data-theme` governs.
+ *   4. The light default (the base block) when the OS states no preference.
+ *
+ * The order is enforced by selector specificity, not source order:
+ *   - own attribute        `.jq-studio-root[data-theme='dark']`               (0,2,0)
+ *   - ancestor attribute   `:root[data-theme='dark'] .jq-studio-root:not([data-theme])` (0,4,0)
+ *   - media default        `.jq-studio-root:not([data-theme='light'])`        (0,2,0)
+ * The ancestor rules only match a `.jq-studio-root` that has NO own `data-theme`
+ * (`:not([data-theme])`), so an own attribute always wins over an ancestor even
+ * though the ancestor selector is more specific; the ancestor rules out-specify
+ * the media default, so an ancestor stamp always wins over the OS preference.
+ *
+ * Tokens are declared on BOTH `:root` and `.jq-studio-root` so they resolve
+ * whether a host themes the document or only the editor subtree.
  */
 
 :root,
@@ -74,8 +93,10 @@
   --jq-z-dialog: 40;
 }
 
-/* THE DARK HALF. `prefers-color-scheme` is the default; a `data-theme="light"`
-   pin stands the media query down so a viewer's choice wins over the OS. */
+/* THE DARK HALF — precedence rung 3 (OS default). `prefers-color-scheme` is the
+   default; it stands down whenever a governing `data-theme` says light, whether
+   that stamp is on the element itself (`:not([data-theme='light'])`) or on an
+   ancestor `:root` (the light re-assertion below out-specifies this block). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']),
   .jq-studio-root:not([data-theme='light']) {
@@ -96,7 +117,52 @@
   }
 }
 
-/* The viewer's explicit toggle wins over the system preference, both directions. */
+/* THE ANCESTOR RUNG — precedence rung 2. A host that stamps `data-theme` on
+   `document.documentElement` governs a portalled `.jq-studio-root` that carries
+   no stamp of its own. The `:not([data-theme])` guard keeps rung 1 (own
+   attribute) authoritative; the (0,4,0) specificity beats the media default so
+   the ancestor stamp wins over the OS preference in BOTH directions. */
+:root[data-theme='dark'] .jq-studio-root:not([data-theme]) {
+  color-scheme: dark;
+  --jq-color-bg: #0c0e12;
+  --jq-color-surface: #12151b;
+  --jq-color-surface-raised: #171c24;
+  --jq-color-surface-sunken: #0d1016;
+  --jq-color-code-bg: #10131a;
+  --jq-color-border: #262c36;
+  --jq-color-text: #e6e8ec;
+  --jq-color-text-muted: rgba(230, 232, 236, 0.64);
+  --jq-color-primary: #ed4c67;
+  --jq-color-primary-text: #0c0e12;
+  --jq-color-danger: #f87171;
+  --jq-color-danger-text: #0c0e12;
+  --jq-color-success: #34d399;
+  --jq-color-warning: #fbbf24;
+}
+
+:root[data-theme='light'] .jq-studio-root:not([data-theme]) {
+  color-scheme: light;
+  --jq-color-bg: #ffffff;
+  --jq-color-surface: #f9fafb;
+  --jq-color-surface-raised: #ffffff;
+  --jq-color-surface-sunken: #eef0f3;
+  --jq-color-code-bg: #f3f4f6;
+  --jq-color-border: #e5e7eb;
+  --jq-color-text: #111827;
+  --jq-color-text-muted: rgba(17, 24, 39, 0.62);
+  --jq-color-primary: #dc143c;
+  --jq-color-primary-text: #ffffff;
+  --jq-color-danger: #b91c1c;
+  --jq-color-danger-text: #ffffff;
+  --jq-color-success: #047857;
+  --jq-color-warning: #92400e;
+}
+
+/* THE OWN RUNG — precedence rung 1. `data-theme` on `:root` itself or on the
+   `.jq-studio-root` element is the viewer's explicit pin and wins over both the
+   ancestor stamp and the OS preference, in both directions. Light needs no token
+   re-assertion (the base block is already light and the media default is guarded
+   off by `:not([data-theme='light'])`); it only fixes `color-scheme`. */
 :root[data-theme='light'],
 .jq-studio-root[data-theme='light'] {
   color-scheme: light;

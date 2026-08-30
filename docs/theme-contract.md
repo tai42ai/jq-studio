@@ -13,14 +13,37 @@ same tokens.
 
 ## Light / dark
 
-`prefers-color-scheme` is the default. A `data-theme` attribute on the root
-(`:root` or a `.jq-studio-root` element) pins the theme in both directions:
+`prefers-color-scheme` is the default. A `data-theme` attribute pins the theme in
+both directions:
 
 ```html
 <html data-theme="dark">
   <!-- forces dark regardless of the OS preference -->
 </html>
 ```
+
+The theme is resolved with a fixed precedence (highest wins), so the outcome is
+deterministic no matter where the stamp lives:
+
+1. **`data-theme` on the element itself** — `:root`, or the `.jq-studio-root`
+   element. A viewer's explicit pin.
+2. **`data-theme` on an ancestor `:root`** (i.e. `document.documentElement`).
+   Only the `:root` stamp is honored — a stamp on `<body>` or an app wrapper
+   `<div>` reaches neither rung, because the editor dialog portals to
+   `document.body` and escapes any wrapper below `<html>`.
+   This is the common host pattern: the app stamps the theme on `<html>` while
+   the editor's dialogs/tooltips are **portalled to `document.body`**. Those
+   portalled surfaces carry `.jq-studio-root` but no `data-theme` of their own,
+   so they **inherit the ancestor stamp** rather than fall through to the OS. An
+   ancestor stamp therefore governs the portalled canvas in both directions —
+   `<html data-theme="light">` keeps the editor light even when the OS prefers
+   dark, and vice-versa.
+3. **`prefers-color-scheme`** — the OS preference, used when no `data-theme`
+   governs.
+4. **The light default** — when the OS states no preference.
+
+An own stamp always beats an ancestor stamp (a `.jq-studio-root data-theme`
+overrides `<html>`), and an ancestor stamp always beats the OS preference.
 
 `--jq-color-focus-ring` and `--jq-color-background` are aliases (of the accent and
 the ground respectively) and carry no dark value of their own.

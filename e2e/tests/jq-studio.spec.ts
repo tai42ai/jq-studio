@@ -76,3 +76,40 @@ test('the theme contract: overriding a --jq-* token takes effect', async ({ page
     .toBe('rgb(16, 185, 129)');
   expect(before).not.toBe('rgb(16, 185, 129)');
 });
+
+/**
+ * The host scenario: the app stamps `data-theme` on `document.documentElement`
+ * (as tai-studio does) while the editor is portalled to `document.body` (Radix
+ * Dialog). The portalled `.jq-studio-root` carries no stamp of its own, so it
+ * must inherit the ancestor's stamp rather than fall through to the OS. These
+ * assert a canvas-side `--jq-*` token — read off the editor dialog, which IS the
+ * portalled `.jq-studio-root` — resolves to the stamped side even when the OS
+ * preference points the other way.
+ */
+test.describe('the theme contract: an ancestor data-theme governs the portalled canvas', () => {
+  const editorRootBg = (page: import('@playwright/test').Page) =>
+    page
+      .getByRole('dialog', { name: /Transform — Editor/ })
+      .evaluate((el) => getComputedStyle(el).getPropertyValue('--jq-color-bg').trim());
+
+  const openEditor = async (page: import('@playwright/test').Page) => {
+    await page.locator('#default').getByRole('button', { name: 'Visual editor' }).click();
+    await expect(page.getByRole('dialog', { name: /Transform — Editor/ })).toBeVisible();
+  };
+
+  test('light stamp wins over an OS dark preference', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
+    await openEditor(page);
+    // The canvas root resolves the LIGHT ground, not the OS-preferred dark one.
+    expect(await editorRootBg(page)).toBe('#ffffff');
+  });
+
+  test('dark stamp wins over an OS light preference', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+    await openEditor(page);
+    // The canvas root resolves the DARK ground, not the OS-preferred light one.
+    expect(await editorRootBg(page)).toBe('#0c0e12');
+  });
+});
