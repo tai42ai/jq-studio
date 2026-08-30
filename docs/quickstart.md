@@ -31,20 +31,21 @@ user edits the graph and saves; the new expression comes back through `onChange`
 
 ## `JqFieldProps`
 
-| Prop             | Type                      | Default | Notes                                                                                            |
-| ---------------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
-| `label`          | `string`                  | —       | Visible label; also the editor dialog's title.                                                   |
-| `value`          | `string`                  | —       | The current jq expression (controlled).                                                          |
-| `onChange`       | `(value: string) => void` | —       | Called on a resting-control edit and on a visual-editor save.                                    |
-| `shape`          | `JqInputShapeDescriptor`  | —       | What `.` is for this field (drives the context chip + Test-panel sample).                        |
-| `sampleInput`    | `SampleInputProvider`     | —       | Live sample for the Test panel; overrides `shape.sample` when it returns a defined value.        |
-| `serverValidate` | `ServerValidateHook`      | —       | Optional host validator surfaced in the Test panel.                                              |
-| `multiline`      | `boolean`                 | `false` | Render a textarea instead of a single-line input for the resting control.                        |
-| `readOnly`       | `boolean`                 | `false` | Show read-only; the visual editor opens as a viewer.                                             |
-| `placeholder`    | `string`                  | —       | Placeholder for the resting control.                                                             |
-| `id`             | `string`                  | auto    | id for the resting control (for an external `<label htmlFor>`).                                  |
-| `description`    | `ReactNode`               | —       | Helper text under the control, linked via `aria-describedby`.                                    |
-| `error`          | `ReactNode`               | —       | Error under the control (`role="alert"`); linked via `aria-describedby` and sets `aria-invalid`. |
+| Prop                 | Type                      | Default | Notes                                                                                            |
+| -------------------- | ------------------------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `label`              | `string`                  | —       | Visible label; also the editor dialog's title.                                                   |
+| `value`              | `string`                  | —       | The current jq expression (controlled).                                                          |
+| `onChange`           | `(value: string) => void` | —       | Called on a resting-control edit and on a visual-editor save.                                    |
+| `shape`              | `JqInputShapeDescriptor`  | —       | What `.` is for this field (drives the context chip + Test-panel sample).                        |
+| `sampleInput`        | `SampleInputProvider`     | —       | Live sample for the Test panel; overrides `shape.sample` when it returns a defined value.        |
+| `serverValidate`     | `ServerValidateHook`      | —       | Optional host validator surfaced in the Test panel.                                              |
+| `multiline`          | `boolean`                 | `false` | Render a textarea instead of a single-line input for the resting control.                        |
+| `readOnly`           | `boolean`                 | `false` | Show read-only; the visual editor opens as a viewer.                                             |
+| `placeholder`        | `string`                  | —       | Placeholder for the resting control.                                                             |
+| `id`                 | `string`                  | auto    | id for the resting control (for an external `<label htmlFor>`).                                  |
+| `description`        | `ReactNode`               | —       | Helper text under the control, linked via `aria-describedby`.                                    |
+| `error`              | `ReactNode`               | —       | Error under the control (`role="alert"`); linked via `aria-describedby` and sets `aria-invalid`. |
+| `onEditorOpenChange` | `(open: boolean) => void` | —       | Called on every editor open-state transition; a host mutes global keydown shortcuts while open.  |
 
 ## Describing `.` with a shape
 

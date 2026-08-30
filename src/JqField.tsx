@@ -18,7 +18,7 @@
  * a11y-linked helper slots under the control (wired via `aria-describedby`, with
  * `aria-invalid` set while an error is present).
  */
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Pencil } from 'lucide-react';
 
 import { Button, TextInput, Textarea } from './primitives';
@@ -65,6 +65,21 @@ export interface JqFieldProps {
    *  wired to the control via `aria-describedby`; its presence also sets
    *  `aria-invalid` on the control. */
   readonly error?: ReactNode;
+  /** Notified on every transition of the visual editor's open state: `true` when
+   *  the door button opens it, `false` on EVERY close route — Save, Cancel,
+   *  Escape, overlay click, the discard-confirm, and the non-destructive
+   *  parse-failure fallback's own Close (all of which funnel through the single
+   *  `open` state this fires from, so no route can slip past it).
+   *
+   *  WHY a host wants this: a host with GLOBAL keyboard shortcuts (window-level
+   *  `keydown` listeners for undo/redo/save/delete) must mute them while the
+   *  editor is open, because a `keydown` bubbles all the way to `window` even
+   *  from the editor's focus-trapped modal — so the host would otherwise fire its
+   *  own shortcut on a keystroke the user meant for the editor. Unmounting the
+   *  field while the editor is open also counts as a close (fires `false`), so a
+   *  host route-swap or crash boundary never strands the shortcuts muted.
+   *  Optional; a host with no such shortcuts can ignore it. */
+  readonly onEditorOpenChange?: (open: boolean) => void;
 }
 
 export function JqField({
@@ -80,10 +95,50 @@ export function JqField({
   id,
   description,
   error,
+  onEditorOpenChange,
 }: JqFieldProps) {
   const generatedId = useId();
   const controlId = id ?? generatedId;
   const [open, setOpen] = useState(false);
+
+  // Notify a host on every open-state transition. Keying an effect on the single
+  // `open` state — the one place EVERY open/close route mutates (the door button,
+  // Save, Cancel, Escape, the overlay, the discard-confirm, and the parse-failure
+  // fallback's Close all land here) — means no path, present or future, can slip
+  // past the notify; a per-callsite wrapper could. The ref skips the mount frame
+  // and any non-transition re-render, so the callback fires only on a real flip:
+  // it reports NET COMMITTED transitions, so StrictMode's double-invoked mount
+  // never yields a spurious call.
+  const previousOpenRef = useRef(open);
+  useEffect(() => {
+    if (previousOpenRef.current !== open) {
+      previousOpenRef.current = open;
+      onEditorOpenChange?.(open);
+    }
+  }, [open, onEditorOpenChange]);
+
+  // Live mirrors the unmount cleanup below reads: an empty-dep cleanup captures
+  // its closure at mount, so it must reach the CURRENT open state and callback
+  // through refs rather than stale mount-time values.
+  const openRef = useRef(open);
+  const onEditorOpenChangeRef = useRef(onEditorOpenChange);
+  useEffect(() => {
+    openRef.current = open;
+    onEditorOpenChangeRef.current = onEditorOpenChange;
+  });
+
+  // Unmount counts as a close for the muting contract: if the field is torn down
+  // while the editor is open (a host route swap, an error boundary above), none
+  // of the normal close paths run — so without this a host would leave its global
+  // shortcuts muted forever. Empty deps means this fires ONLY at unmount; it can
+  // never double-fire with a normal close, which flips `open` to false first, so
+  // `openRef.current` already reads false here.
+  useEffect(
+    () => () => {
+      if (openRef.current) onEditorOpenChangeRef.current?.(false);
+    },
+    [],
+  );
 
   // Only reference the ids that are actually rendered, so `aria-describedby`
   // never dangles at an absent node (a dangling id is worse than none). The
