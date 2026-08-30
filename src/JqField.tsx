@@ -141,9 +141,12 @@ export function JqField({
       </label>
       <div className="jqs-field__row">
         {resting}
+        {/* The accessible name folds the field label in so multiple JqFields on one
+            page expose discernible door names (visible text stays the short verb). */}
         <Button
           type="button"
           variant="secondary"
+          aria-label={`${readOnly ? 'Open the visual view' : 'Open the visual editor'} for ${label}`}
           onClick={() => {
             setOpen(true);
           }}

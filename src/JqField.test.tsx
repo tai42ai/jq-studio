@@ -210,5 +210,20 @@ describe('JqField', () => {
       expect(control).toHaveAttribute('aria-invalid', 'true');
       expect(screen.getByRole('alert')).toHaveAttribute('id', 'expr-error');
     });
+
+    it('gives each door a discernible accessible name carrying the field label', () => {
+      render(
+        <>
+          <JqField label="Condition" value=".a" onChange={vi.fn()} />
+          <JqField label="Expr" value=".b" onChange={vi.fn()} readOnly />
+        </>,
+      );
+      expect(
+        screen.getByRole('button', { name: 'Open the visual editor for Condition' }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Open the visual view for Expr' }),
+      ).toBeInTheDocument();
+    });
   });
 });

@@ -15,7 +15,8 @@ test.describe('default JqField', () => {
   test('evaluates jq through the real wasm runtime and rounds the result back to the field', async ({
     page,
   }) => {
-    const field = page.locator('#default').getByLabel('Transform');
+    // Role-scoped: the door button's accessible name also carries the field label.
+    const field = page.locator('#default').getByRole('textbox', { name: 'Transform' });
     await expect(field).toHaveValue('.value + 1');
 
     // Open the visual editor.
