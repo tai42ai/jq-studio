@@ -11,16 +11,23 @@
  * ```
  *
  * `shape` describes what `.` is for this field (drives the editor's context chip
- * and the Test panel's seeded sample); `serverValidate` plugs a host validator
- * into the Test panel; `multiline` renders a textarea instead of a single-line
- * input for the resting control.
+ * and the Test panel's seeded sample); `sampleInput` supplies a live sample that
+ * takes precedence over `shape.sample` when seeding Test; `serverValidate` plugs a
+ * host validator into the Test panel; `multiline` renders a textarea instead of a
+ * single-line input for the resting control. `description` and `error` render
+ * a11y-linked helper slots under the control (wired via `aria-describedby`, with
+ * `aria-invalid` set while an error is present).
  */
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { Pencil } from 'lucide-react';
 
 import { Button, TextInput, Textarea } from './primitives';
 import { JQEditorDialog } from './JQEditorDialog';
-import type { JqInputShapeDescriptor, ServerValidateHook } from './declaration';
+import type {
+  JqInputShapeDescriptor,
+  SampleInputProvider,
+  ServerValidateHook,
+} from './declaration';
 import { installDefaultJqWorker } from './utils/install-default-worker';
 
 export interface JqFieldProps {
@@ -34,6 +41,13 @@ export interface JqFieldProps {
   /** What `.` IS for this field — drives the editor's context chip and the Test
    *  panel's seeded sample. */
   readonly shape?: JqInputShapeDescriptor;
+  /** A live sample-input provider for the Test panel. Takes precedence over the
+   *  static `shape.sample` skeleton when it yields a defined value — the
+   *  declaration's dynamic-sample contract, so a host can seed Test with a real
+   *  document instead of the static skeleton. Invoked on every editor open (not
+   *  lazily at Test-panel open), so keep it side-effect free.
+   *  See {@link SampleInputProvider}. */
+  readonly sampleInput?: SampleInputProvider;
   /** A pluggable server-validate hook surfaced in the editor's Test panel. */
   readonly serverValidate?: ServerValidateHook;
   /** Render a textarea instead of a single-line input for the resting control. */
@@ -43,6 +57,14 @@ export interface JqFieldProps {
   readonly placeholder?: string;
   /** An id for the resting control, so a host `<label htmlFor>` can point at it. */
   readonly id?: string;
+  /** Helper text rendered under the control and wired to it via `aria-describedby`
+   *  — the a11y-linked slot a host would otherwise have to fake with an
+   *  unassociated sibling `<p>`. */
+  readonly description?: ReactNode;
+  /** Error text rendered under the control (danger token, `role="alert"`) and
+   *  wired to the control via `aria-describedby`; its presence also sets
+   *  `aria-invalid` on the control. */
+  readonly error?: ReactNode;
 }
 
 export function JqField({
@@ -50,15 +72,27 @@ export function JqField({
   value,
   onChange,
   shape,
+  sampleInput,
   serverValidate,
   multiline = false,
   readOnly = false,
   placeholder,
   id,
+  description,
+  error,
 }: JqFieldProps) {
   const generatedId = useId();
   const controlId = id ?? generatedId;
   const [open, setOpen] = useState(false);
+
+  // Only reference the ids that are actually rendered, so `aria-describedby`
+  // never dangles at an absent node (a dangling id is worse than none). The
+  // control lists both when both slots are present; `aria-invalid` mirrors the
+  // presence of an error.
+  const descriptionId = description != null ? `${controlId}-description` : undefined;
+  const errorId = error != null ? `${controlId}-error` : undefined;
+  const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined;
+  const invalid = error != null ? true : undefined;
 
   // Install the default worker once, so a runaway expression the Test panel runs
   // is terminated on a deadline rather than freezing the tab.
@@ -78,6 +112,8 @@ export function JqField({
       placeholder={placeholder}
       spellCheck={false}
       rows={3}
+      aria-describedby={describedBy}
+      aria-invalid={invalid}
     />
   ) : (
     <TextInput
@@ -93,6 +129,8 @@ export function JqField({
       autoComplete="off"
       autoCapitalize="off"
       autoCorrect="off"
+      aria-describedby={describedBy}
+      aria-invalid={invalid}
     />
   );
 
@@ -114,11 +152,22 @@ export function JqField({
           {readOnly ? 'Visual view' : 'Visual editor'}
         </Button>
       </div>
+      {description != null && (
+        <p id={descriptionId} className="jqs-field__description">
+          {description}
+        </p>
+      )}
+      {error != null && (
+        <p id={errorId} className="jqs-field__error" role="alert">
+          {error}
+        </p>
+      )}
       <JQEditorDialog
         open={open}
         initialExpression={value}
         fieldLabel={label}
         shape={shape}
+        sampleInput={sampleInput}
         serverValidate={serverValidate}
         readOnly={readOnly}
         onSave={(expression) => {

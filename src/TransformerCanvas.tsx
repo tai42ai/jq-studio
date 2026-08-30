@@ -38,7 +38,11 @@ import { FunctionDeclNode } from './nodes/FunctionDeclNode';
 import { FunctionCallNode } from './nodes/FunctionCallNode';
 import { CommentNode } from './nodes/CommentNode';
 import type { JQNodeData, JQNode, JQEdge } from './types';
-import type { JqInputShapeDescriptor, ServerValidateHook } from './declaration';
+import type {
+  JqInputShapeDescriptor,
+  SampleInputProvider,
+  ServerValidateHook,
+} from './declaration';
 import { jqNodeColorVar } from './colors';
 import { validateJQConnection, dropEdgesOnTargetSlot } from './utils/validator';
 import { JQNodeType, JQHandleIdPrefix, ValueType } from './enums';
@@ -105,6 +109,9 @@ interface TransformerCanvasProps {
   /** What `.` is for this field — seeds the Test panel and (later) the context
    *  chip. Optional: absent = today's behaviour. */
   shape?: JqInputShapeDescriptor;
+  /** Live sample-input provider; its defined result takes precedence over
+   *  `shape.sample` when seeding the Test panel. */
+  sampleInput?: SampleInputProvider;
   /** Pluggable server-side validator surfaced in the Test panel when a host
    *  provides one (a consumer's `serverValidate` hook). */
   serverValidate?: ServerValidateHook;
@@ -155,6 +162,7 @@ export const TransformerCanvas = ({
   onHasLogicNodeChange,
   onLogicLessSave,
   shape,
+  sampleInput,
   serverValidate,
   onRequestClose,
   readOnly,
@@ -565,10 +573,22 @@ export const TransformerCanvas = ({
     [edges, nodeTypeById],
   );
 
-  const testSample = useMemo(
-    () => (shape?.sample !== undefined ? JSON.stringify(shape.sample, null, 2) : undefined),
-    [shape],
-  );
+  // The Test panel's seed, by declared precedence: a host's live `sampleInput()`
+  // when it yields a defined value, else the shape's static `sample` skeleton,
+  // else nothing (a blank input). A provider that throws or returns `undefined`
+  // is treated as "no live sample" and falls back to the skeleton — a host seam
+  // must never take the Test panel down.
+  const testSample = useMemo(() => {
+    if (sampleInput) {
+      try {
+        const live = sampleInput();
+        if (live !== undefined) return JSON.stringify(live, null, 2);
+      } catch {
+        // Fall through to the static skeleton below.
+      }
+    }
+    return shape?.sample !== undefined ? JSON.stringify(shape.sample, null, 2) : undefined;
+  }, [sampleInput, shape]);
 
   return (
     <div className={clsx('jqs-jq-canvas', className)}>

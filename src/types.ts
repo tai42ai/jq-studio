@@ -1,6 +1,10 @@
 import { type Node, type Edge } from '@xyflow/react';
 import { JQNodeType, ValueType } from './enums';
-import type { JqInputShapeDescriptor, ServerValidateHook } from './declaration';
+import type {
+  JqInputShapeDescriptor,
+  SampleInputProvider,
+  ServerValidateHook,
+} from './declaration';
 
 export interface JQBaseNodeData {
   name?: string;
@@ -98,6 +102,9 @@ export interface TransformersProps {
   onLogicLessSave?: () => void;
   /** What `.` is for this field — seeds the Test panel and the context chip. */
   shape?: JqInputShapeDescriptor;
+  /** Live sample-input provider; takes precedence over `shape.sample` in the Test
+   *  panel when it yields a defined value. */
+  sampleInput?: SampleInputProvider;
   /** Pluggable server-validate hook surfaced in the Test panel. */
   serverValidate?: ServerValidateHook;
   /** Close the surrounding editor (the parse-failure fallback's primary action). */

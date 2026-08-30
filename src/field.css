@@ -27,3 +27,16 @@
   width: 1em;
   height: 1em;
 }
+/* Helper slots under the control: `description` is muted guidance; `error` is
+ * danger-tinted and carries role="alert". Both are wired to the control through
+ * aria-describedby (the reason they exist — a11y-linked, not sibling <p> hacks). */
+.jqs-field__description {
+  margin: 0;
+  font: var(--jq-text-sm) var(--jq-font-sans);
+  color: var(--jq-color-text-muted);
+}
+.jqs-field__error {
+  margin: 0;
+  font: var(--jq-text-sm) var(--jq-font-sans);
+  color: var(--jq-color-danger);
+}
