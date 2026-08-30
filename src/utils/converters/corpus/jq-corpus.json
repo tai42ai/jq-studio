@@ -1,0 +1,962 @@
+[
+  {
+    "expr": "((.prior_outputs.retry | last | .check.value.expired) // false) == true",
+    "source": "demo:prompt:condition"
+  },
+  {
+    "expr": "((.prior_outputs.retry | last | .check.value.delivery_failed) // false) == true",
+    "source": "demo:prompt:condition"
+  },
+  {
+    "expr": "((.prior_outputs.retry | last | .check.value.valid) // false) == true",
+    "source": "demo:prompt:condition"
+  },
+  {
+    "expr": ".prior_outputs.prompt as $a | (($a | type) == \"object\") as $isobj | ($isobj and (($a[\"app:interaction_expired\"]) // false)) as $exp | ($isobj and (($a.delivery_failed) // false)) as $sf | ((($a | type) == \"string\" and ($a | length) > 0) and ($exp | not) and ($sf | not)) as $val | {answer: (if $val then $a else null end), valid: $val, expired: $exp, delivery_failed: $sf}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": "{outcome: \"answered\", answer: (.prior_outputs.retry | last | .check.value.answer)}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": "{outcome: \"exhausted\", answer: null}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": "{outcome: \"expired\", answer: null}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": "{outcome: \"delivery_failed\", answer: null}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": "{question: .step_kwargs.question, answer_format: \"text\", mode: \"async\", expiry_at: ((now + ((.step_kwargs.expiry_seconds) // 86400)) | todate), channel: .step_kwargs.channel, recipient: .step_kwargs.recipient, audience: .step_kwargs.audience, group_id: .step_kwargs.group_id}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": "{delivery_failed: true, error: .prior_outputs.error}",
+    "source": "demo:prompt:expr"
+  },
+  {
+    "expr": ".result | with_entries(select(.value != null))",
+    "source": "demo:prompt:return_expr"
+  },
+  {
+    "expr": "(.iterate.prior_outputs | last | .check.value) as $c | (((($c.valid // false) or ($c.expired // false) or ($c.delivery_failed // false)) | not) and ((.iterate.prior_outputs | length) < 3))",
+    "source": "demo:prompt:while_cond"
+  },
+  {
+    "expr": "{done: false, offer_uuid: null, cards: null, more_available: null}",
+    "source": "demo:build_bundle:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe offer part of the state now (JSON): \" + ((.states.record.offer // null) | tojson) + \"\\n\\nThe rest of the state (JSON): \" + ((.states.record // {}) | tojson))}",
+    "source": "demo:build_bundle:expr"
+  },
+  {
+    "expr": "((((((((.states.record.todo // {})[\"identity\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"identity\"}))) | length > 0) or (((.states.record.identity.subject_uuid // null) != null) | not))) or (((((((.states.record.todo // {})[\"account\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"account\"}))) | length > 0) or (((.states.record.account.account_id // null) != null) | not))) or ((((((.states.record.todo // {})[\"language\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"language\"}))) | length > 0)) or ((((((.states.record.todo // {})[\"consent\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"consent\"}))) | length > 0)) or ((((((.states.record.todo // {})[\"filters\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"filters\"}))) | length > 0)) or (((((((.states.record.todo // {})[\"browse\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"browse\"})) + (((.states.record.todo // {})[\"more\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"more\"})) + (((.states.record.todo // {})[\"question\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"question\"})) + (((.states.record.todo // {})[\"change_mind\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"change_mind\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))) or (((((((.states.record.todo // {})[\"create\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"create\"})) + (((.states.record.todo // {})[\"credit\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"credit\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))) or (false) or (((((((.states.record.todo // {})[\"pay\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"pay\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))) or (((((((.states.record.todo // {})[\"human\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"human\"})) + (((.states.record.todo // {})[\"cancel\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"cancel\"})) + (((.states.record.todo // {})[\"update_order\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"update_order\"}))) | length > 0) and ((.states.record.account.account_id // null) != null)))) | not",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((((.states.record.todo // {})[\"create\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"create\"})) + (((.states.record.todo // {})[\"credit\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"credit\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((((.states.record.todo // {})[\"browse\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"browse\"})) + (((.states.record.todo // {})[\"more\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"more\"})) + (((.states.record.todo // {})[\"question\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"question\"})) + (((.states.record.todo // {})[\"change_mind\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"change_mind\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((((.states.record.todo // {})[\"account\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"account\"}))) | length > 0) or (((.states.record.account.account_id // null) != null) | not))",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((((.states.record.todo // {})[\"human\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"human\"})) + (((.states.record.todo // {})[\"cancel\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"cancel\"})) + (((.states.record.todo // {})[\"update_order\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"update_order\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((((.states.record.todo // {})[\"identity\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"identity\"}))) | length > 0) or (((.states.record.identity.subject_uuid // null) != null) | not))",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((((.states.record.todo // {})[\"pay\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"pay\"}))) | length > 0) and ((.states.record.account.account_id // null) != null))",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "(((((.states.record.todo // {})[\"consent\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"consent\"}))) | length > 0)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "(((((.states.record.todo // {})[\"filters\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"filters\"}))) | length > 0)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "(((((.states.record.todo // {})[\"language\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"language\"}))) | length > 0)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\") | not) and (((.prior_outputs.open_case.result.respond.done // null) == true) | not) and (((.prior_outputs.create_link.result.respond.done // null) == true) | not) and (((.prior_outputs.update_list.result.respond.done // null) == true) | not) and (((.prior_outputs.prepare_order.result.respond.done // null) == true) | not) and (((.prior_outputs.build_bundle.result.respond.done // null) == true) | not)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\") | not) and (((.prior_outputs.open_case.result.respond.done // null) == true) | not) and (((.prior_outputs.create_link.result.respond.done // null) == true) | not) and (((.prior_outputs.update_list.result.respond.done // null) == true) | not) and (((.prior_outputs.prepare_order.result.respond.done // null) == true) | not) and ((.prior_outputs.build_bundle.result.respond.done // null) == true)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\") | not) and (((.prior_outputs.open_case.result.respond.done // null) == true) | not) and (((.prior_outputs.create_link.result.respond.done // null) == true) | not) and (((.prior_outputs.update_list.result.respond.done // null) == true) | not) and ((.prior_outputs.prepare_order.result.respond.done // null) == true)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\") | not) and (((.prior_outputs.open_case.result.respond.done // null) == true) | not) and (((.prior_outputs.create_link.result.respond.done // null) == true) | not) and ((.prior_outputs.update_list.result.respond.done // null) == true)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\") | not) and (((.prior_outputs.open_case.result.respond.done // null) == true) | not) and ((.prior_outputs.create_link.result.respond.done // null) == true)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "((((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\") | not) and ((.prior_outputs.open_case.result.respond.done // null) == true)",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "(((.prior_outputs.match_account.result // {} | [.[]] | first) | .status // null) == \"prompt\")",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": ".prior_outputs.subject_input_filter.answer == false",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": ".prior_outputs.subject_input_filter.answer == true",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "false",
+    "source": "demo:session:condition"
+  },
+  {
+    "expr": "(.prior_outputs.build_bundle.result.respond) as $o | {template_id: (\"app/entries/session/main/render_cards/\" + (.states.record.language // \"en\") + \".md\"), kwargs: {count: ($o.cards | length), more_available: $o.more_available, open_items: (((((.states.record.todo // {})[\"browse\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"browse\"})) + (((.states.record.todo // {})[\"more\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"more\"})) + (((.states.record.todo // {})[\"create\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"create\"})) + (((.states.record.todo // {})[\"question\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"question\"})) + (((.states.record.todo // {})[\"change_mind\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"change_mind\"})) + (((.states.record.todo // {})[\"update_order\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"update_order\"})) + (((.states.record.todo // {})[\"cancel\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"cancel\"})) + (((.states.record.todo // {})[\"pay\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"pay\"})) + (((.states.record.todo // {})[\"credit\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"credit\"})) + (((.states.record.todo // {})[\"share\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"share\"})) + (((.states.record.todo // {})[\"human\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"human\"})) + (((.states.record.todo // {})[\"other\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"other\"}))) | map(.text))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "(.prior_outputs.create_link.result.respond) as $o | {template_id: (\"app/entries/session/main/respond_billing_link_sent/\" + (.states.record.language // \"en\") + \".md\"), kwargs: {recipient_phone: $o.recipient_phone, amount: ($o.amount_minor / 100), currency: $o.currency, expires_at: $o.expires_at}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "(.prior_outputs.open_case.result.respond) as $o | {template_id: (\"app/entries/session/main/respond_agent_notified/\" + (.states.record.language // \"en\") + \".md\"), kwargs: {case_id: $o.case_id}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "(.prior_outputs.prepare_order.result.respond) as $o | {template_id: (\"app/entries/session/main/respond_order_details_needed/\" + (.states.record.language // \"en\") + \".md\"), kwargs: {missing: $o.missing}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "(.prior_outputs.update_list.result.respond) as $o | {template_id: (\"app/entries/session/main/respond_cart_summary/\" + (.states.record.language // \"en\") + \".md\"), kwargs: {items: ($o.items | map({name, quantity, price: (.price_minor / 100)})), total: ($o.total_minor / 100), currency: $o.currency, cancellation_policy: $o.cancellation_policy}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: ((((.states.record.todo // {})[\"create\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"create\"})) + (((.states.record.todo // {})[\"credit\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"credit\"})))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: ((((.states.record.todo // {})[\"browse\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"browse\"})) + (((.states.record.todo // {})[\"more\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"more\"})) + (((.states.record.todo // {})[\"question\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"question\"})) + (((.states.record.todo // {})[\"change_mind\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"change_mind\"})))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: ((((.states.record.todo // {})[\"account\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"account\"})))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: ((((.states.record.todo // {})[\"human\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"human\"})) + (((.states.record.todo // {})[\"cancel\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"cancel\"})) + (((.states.record.todo // {})[\"update_order\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"update_order\"})))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: ((((.states.record.todo // {})[\"identity\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"identity\"})))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: ((((.states.record.todo // {})[\"pay\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"pay\"})))}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{step_kwargs: {channel: .step_kwargs.channel, sender: .step_kwargs.sender, message: .step_kwargs.message, items: []}}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{stopped: true, reason: .prior_outputs.subject_input_filter.reason}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{template_id: (\"app/entries/session/main/respond_ask_subject/\" + (.states.record.language // \"en\") + \".md\"), kwargs: ((.prior_outputs.match_account.result // {} | [.[]] | first) as $d | {prompt: $d.prompt, differs_by: $d.differs_by, open_items: (((((.states.record.todo // {})[\"browse\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"browse\"})) + (((.states.record.todo // {})[\"more\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"more\"})) + (((.states.record.todo // {})[\"create\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"create\"})) + (((.states.record.todo // {})[\"question\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"question\"})) + (((.states.record.todo // {})[\"change_mind\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"change_mind\"})) + (((.states.record.todo // {})[\"update_order\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"update_order\"})) + (((.states.record.todo // {})[\"cancel\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"cancel\"})) + (((.states.record.todo // {})[\"pay\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"pay\"})) + (((.states.record.todo // {})[\"credit\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"credit\"})) + (((.states.record.todo // {})[\"share\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"share\"})) + (((.states.record.todo // {})[\"human\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"human\"})) + (((.states.record.todo // {})[\"other\"] // []) | map(select(.status == \"open\")) | map(. + {kind: \"other\"}))) | map(.text))})}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{user_message: (\"Subject wrote: \" + (.step_kwargs.message | tostring) + \"\\n\\nOur last line to the subject: \" + (((.states.record.transcript // []) | map(select(.role == \"assistant\")) | last | .text) // \"(none yet)\") + \"\\n\\nStill open from earlier turns (JSON): \" + (((.states.record.todo // {}) | to_entries | map(.key as $k | ((.value // []) | map(select(.status == \"open\")) | map(. + {kind: $k}))) | add // []) | tojson) + \"\\n\\nWhat we know (JSON): \" + ({subject_known: ((.states.record.identity.subject_uuid // null) != null), account_known: ((.states.record.account.account_id // null) != null), language: .states.record.language} | tojson))}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{user_message: (\"Subject wrote: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe state of the subject (JSON): \" + ((.states.record // {}) | tojson) + \"\\n\\nWhat the account handler found this turn (JSON): \" + ((.prior_outputs.match_account.result // {} | [.[]] | first) | tojson))}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{user_message: (\"Subject wrote: \" + (.step_kwargs.message | tostring))}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe consent part of the state now (JSON): \" + ((.states.record.consent // null) | tojson) + \"\\n\\nToday: \" + (now | todate | .[0:10]))}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe filters part of the state now (JSON): \" + ((.states.record.filters // null) | tojson) + \"\\n\\nToday: \" + (now | todate | .[0:10]))}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe language part of the state now (JSON): \" + ((.states.record.language // null) | tojson) + \"\\n\\nToday: \" + (now | todate | .[0:10]))}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{}",
+    "source": "demo:session:expr"
+  },
+  {
+    "expr": "{reply: .result.rendered, kind: \"ask_subject\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{reply: .result.rendered, kind: \"cart_summary\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{reply: .result.rendered, kind: \"order_details_needed\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{reply: .result.rendered, kind: \"render_cards\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{reply: .result.rendered, kind: \"billing_link_sent\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{reply: .result.rendered, kind: \"agent_notified\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{reply: .result.reply, kind: \"reply\"}",
+    "source": "demo:session:return_expr"
+  },
+  {
+    "expr": "{done: false, link_url: null, expires_at: null, recipient_phone: null, amount_minor: null, currency: null}",
+    "source": "demo:create_link:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe billing part of the state now (JSON): \" + ((.states.record.billing // null) | tojson) + \"\\n\\nThe rest of the state (JSON): \" + ((.states.record // {}) | tojson))}",
+    "source": "demo:create_link:expr"
+  },
+  {
+    "expr": ".prior_outputs.prompt as $a | (($a | type) == \"object\") as $isobj | ($isobj and (($a[\"app:interaction_expired\"]) // false)) as $exp | ($isobj and (($a.delivery_failed) // false)) as $sf | (($isobj and (($a | keys | length) > 0)) and ($exp | not) and ($sf | not)) as $val | {answer: (if $val then $a else null end), valid: $val, expired: $exp, delivery_failed: $sf}",
+    "source": "demo:form:expr"
+  },
+  {
+    "expr": "{question: .step_kwargs.question, answer_format: \"form\", mode: \"async\", expiry_at: ((now + ((.step_kwargs.expiry_seconds) // 86400)) | todate), channel: .step_kwargs.channel, recipient: .step_kwargs.recipient, audience: .step_kwargs.audience, group_id: .step_kwargs.group_id, schema: .step_kwargs.schema}",
+    "source": "demo:form:expr"
+  },
+  {
+    "expr": "{phone: (if .step_kwargs.channel == \"sms\" then (.step_kwargs.sender | tostring) else null end), browser_id: (if .step_kwargs.channel == \"webhook\" then (.step_kwargs.sender | tostring) else null end), email: (.states.record.identity.email // null), entry_code: (.states.record.identity.entry.code // null)}",
+    "source": "demo:lookup_subject:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe identity part of the state now (JSON): \" + ((.states.record.identity // null) | tojson))}",
+    "source": "demo:lookup_subject:expr"
+  },
+  {
+    "expr": "{known: (.result.is_new | not), subject_uuid: .result.subject_uuid, conflict_subject_uuid: (.result.email_match_subject_uuid // null), account_bound: .result.account_bound, account_id: .result.account.account_id, account_name: .result.account.name}",
+    "source": "demo:lookup_subject:return_expr"
+  },
+  {
+    "expr": "(((.states.record.account.account_id // null) != null) | not) and ((.prior_outputs.look_up_account_record.account_bound // false) != true) and (((.states.record.account.claim // {}) | [.[]] | map(select(. != null and . != \"\")) | length == 0) | not)",
+    "source": "demo:match_account:condition"
+  },
+  {
+    "expr": "(((.states.record.account.account_id // null) != null) | not) and ((.prior_outputs.look_up_account_record.account_bound // false) != true) and ((.states.record.account.claim // {}) | [.[]] | map(select(. != null and . != \"\")) | length == 0)",
+    "source": "demo:match_account:condition"
+  },
+  {
+    "expr": "(((.states.record.account.account_id // null) != null) | not) and ((.prior_outputs.look_up_account_record.account_bound // false) == true)",
+    "source": "demo:match_account:condition"
+  },
+  {
+    "expr": "((.states.record.account.account_id // null) != null)",
+    "source": "demo:match_account:condition"
+  },
+  {
+    "expr": "((.states.record.account.claim // {}) | {name, town, street, zip_code, country}) + {within: ((.states.record.account.candidates // []) | map(.account_id) | if length > 0 then . else null end)}",
+    "source": "demo:match_account:expr"
+  },
+  {
+    "expr": "{phone: (if .step_kwargs.channel == \"sms\" then (.step_kwargs.sender | tostring) else null end), browser_id: (if .step_kwargs.channel == \"webhook\" then (.step_kwargs.sender | tostring) else null end), entry_code: (.states.record.identity.entry.code // null)}",
+    "source": "demo:match_account:expr"
+  },
+  {
+    "expr": "{status: \"prompt\", prompt: \"which_account\", differs_by: null, count: 0, candidates: []}",
+    "source": "demo:match_account:expr"
+  },
+  {
+    "expr": "{status: \"bound\", account_id: .states.record.account.account_id, account_name: .states.record.account.name, by: \"state\", candidates: []}",
+    "source": "demo:match_account:expr"
+  },
+  {
+    "expr": "{status: \"bound\", account_id: .prior_outputs.look_up_account_record.account.account_id, account_name: .prior_outputs.look_up_account_record.account.name, by: \"records\", candidates: []}",
+    "source": "demo:match_account:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe account part of the state now (JSON): \" + ((.states.record.account // null) | tojson))}",
+    "source": "demo:match_account:expr"
+  },
+  {
+    "expr": "if .result.count == 1 then {status: \"bound\", account_id: .result.accounts[0].account_id, account_name: .result.accounts[0].name, by: \"match\", widened: .result.widened, candidates: []} elif .result.count > 1 then {status: \"prompt\", prompt: \"narrow\", differs_by: .result.differs_by, count: .result.count, widened: .result.widened, candidates: (.result.accounts | map({account_id, name, street, zip_code, city: .town, country}))} else {status: \"prompt\", prompt: \"again\", differs_by: null, count: 0, candidates: []} end",
+    "source": "demo:match_account:return_expr"
+  },
+  {
+    "expr": "{done: false, case_id: null, alerted: null}",
+    "source": "demo:open_case:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe handoff part of the state now (JSON): \" + ((.states.record.handoff // null) | tojson) + \"\\n\\nThe rest of the state (JSON): \" + ((.states.record // {}) | tojson))}",
+    "source": "demo:open_case:expr"
+  },
+  {
+    "expr": "{done: false, missing: null, ready: null}",
+    "source": "demo:prepare_order:expr"
+  },
+  {
+    "expr": "{user_message: (\"The subject said: \\n\" + ((.step_kwargs.items // []) | map(\"- \" + .text) | join(\"\\n\")) + \"\\n\\nFull message: \" + (.step_kwargs.message | tostring) + \"\\n\\nThe order part of the state now (JSON): \" + ((.states.record.order // null) | tojson) + \"\\n\\nThe rest of the state (JSON): \" + ((.states.record // {}) | tojson))}",
+    "source": "demo:prepare_order:expr"
+  },
+  {
+    "expr": "{ok:true}",
+    "source": "demo:scratch_writer_a:expr"
+  },
+  {
+    "expr": "((.prior_outputs.deliver | last | .send.value) | type) == \"object\" and (((.prior_outputs.deliver | last | .send.value).delivery_failed) // false)",
+    "source": "demo:send_notice:condition"
+  },
+  {
+    "expr": "{message: .step_kwargs.message, channel: .step_kwargs.channel, recipient: .step_kwargs.recipient, audience: .step_kwargs.audience, media: .step_kwargs.media, options: .step_kwargs.options, template: .step_kwargs.template}",
+    "source": "demo:send_notice:expr"
+  },
+  {
+    "expr": "{outcome: \"failed\", error: ((.prior_outputs.deliver | last | .send.value).error)}",
+    "source": "demo:send_notice:expr"
+  },
+  {
+    "expr": "{outcome: \"sent\", receipt: (.prior_outputs.deliver | last | .send.value)}",
+    "source": "demo:send_notice:expr"
+  },
+  {
+    "expr": "{done: false, cart_id: null, items: null, total_minor: null, currency: null, cancellation_policy: null}",
+    "source": "demo:update_list:expr"
+  },
+  {
+    "expr": "# Data Processing Pipeline\n# Transforms raw sensor readings\n# into a clean summary report\n. | .readings\n| map(select(. > 0))\n| sort\n| {min: .[0], max: .[-1], count: length}",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "# Extract student info\n. | .name as $name\n# Store the score for grading\n| .score as $s\n# Apply grade classification thresholds\n| {name: $name, grade: (if $s >= 90 then \"A\" elif $s >= 80 then \"B\" elif $s >= 70 then \"C\" else \"F\" end)}",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "# Stage 1: Extract data\n# from the input object\n. | .records\n# Stage 2: Scale each value\n# and rebuild the objects\n| map({name: .name, value: (.value * 0.9)})\n| map(select(.value < 50))\n| sort_by(.name)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .capacity as $cap | .loads | length as $count | map(.size) | add as $used | ($cap - $used) as $free | {capacity: $cap, count: $count, used: $used, free: $free, pct: (($used * 100 / $cap) | floor), per_item: (($used / $count) | floor), status: (if $free < 0 then \"over\" elif $free < ($cap / 10) then \"critical\" elif $free < ($cap / 4) then \"warning\" else \"healthy\" end), even_split: (if ($used % $count) == 0 then true else false end)}",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .config as $cfg | .users | map(.age as $age | .role as $role | {name: .name, clearance: (if $role == \"admin\" then (if $age >= 30 then \"top_secret\" elif $age >= 25 then \"secret\" else \"confidential\" end) elif $role == \"manager\" then (if ($cfg | .strict) == true then \"confidential\" else \"secret\" end) else (if $age >= 21 and .active == true then \"basic\" elif $age >= 21 then \"revoked\" else \"none\" end) end)}) | sort_by(.name)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .data # raw input data\n# Filter by minimum threshold\n| map(select(.value >= 10))\n| sort_by(.id) # sort by identifier\n# Build clean output\n| map({id: .id, val: .value})",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .departments | map(.teams | map({dept: .dept, team: .team, members: .members | map(select(.email | test(\"@company\\\\.com$\"))) | map(.name) | sort})) | map(map(select(.members | length > 0)))",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .entries | map({id: .id, data: ((try (.json | fromjson) catch null) // (try (.backup | fromjson) catch null)), num: ((try (.val | tonumber) catch null) // (try (.alt | tonumber) catch null) // -1), keys: (try (.json | fromjson | keys | length) catch 0)}) | map(select(.data != null)) | map({id: .id, data: .data, num: .num, keys: .keys, kind: (if (.data | type) == \"object\" and (.data | has(\"name\")) then \"named\" elif .keys > 0 then \"rich\" else \"simple\" end)}) | sort_by(.id)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .events | map(select(.timestamp >= 1000 and .timestamp <= 2000)) | group_by(.type) | map({type: .[0].type, count: length, users: map(.user) | unique | sort})",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .events | map({start: .s, end: .e}) | map(.end - .start) | add",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .items\n# Multiply the two factors for each item\n| map(.value * .weight)\n# Compute summary statistics\n| {total: add, count: length}",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .payloads | map(try fromjson catch {error: \"parse_failed\"}) | map(select(has(\"error\") | not))",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .records\n# Group records by state\n| group_by(.state)\n# Build summary per group\n| map({state: .[0].state, count: length, total: map(.value) | add})\n# Sort by state name\n| sort_by(.state)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .records | group_by(.group) | map({group: .[0].group, count: length, sum: map(.value) | add, tags: map(.tag) | sort | join(\", \")}) | map(select(.count >= 2)) | sort_by(.group)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .tags # raw tag list\n| map(ascii_downcase) # normalize case\n# Remove duplicates\n| unique\n# Sort alphabetically\n| sort\n# Join into comma-separated string\n| join(\", \")",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .text | split(\" \") | map(ascii_downcase) | map(select(length > 2)) | unique | sort | join(\", \")",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .users\n# Filter active users only\n| map(select(.active == true))\n# Sort alphabetically\n| sort_by(.name)\n# Extract just the names\n| map(.name)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .users | map(select(.active == true)) | sort_by(.name) | group_by(.department) | map({department: .[0].department, count: length, members: map({name: .name, email: .email}) | sort_by(.name)})",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .values\n# Try to convert strings to numbers, default to 0\n| map(try tonumber catch 0)\n# Remove failed conversions (zeros)\n| map(select(. > 0))\n# Sort ascending\n| sort",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | .words | map(gsub(\"[^a-z]\"; \"\"))",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | if .a then if .b then \"ab\" else \"a\" end else \"none\" end",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": ". | if .items | length > 0 then .items | map(.name) | sort else \"empty\" end",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "def clamp(lo; hi): if . < lo then lo elif . > hi then hi else . end;\ndef clampScore: clamp(0; 100);\n\n. | .scores | map(clampScore)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "def classify: if . >= 90 then \"excellent\" elif . >= 70 then \"good\" elif . >= 50 then \"average\" else \"poor\" end;\ndef scale(factor): . * factor | floor;\n\n. | .students | map(.weight as $w | {name: .name, adjusted: .score | scale($w), grade: .score | scale($w) | classify}) | sort_by(.name)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "def double: . * 2;\n\n# Apply double to each value\n. | .nums\n# Double every number\n| map(double)\n# Sort the results\n| sort",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "def normalize: ascii_downcase | gsub(\"[^a-z0-9 ]\"; \"-\");\n\n. | .documents | map({title: .title | normalize, tags: .tags | map(ascii_downcase) | unique | sort | join(\", \"), words: .body | split(\" \") | map(select(length > 0)) | length, source: (.source // \"unknown\") | ascii_upcase}) | map(select(.words >= 3)) | sort_by(.title)",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "def parity: if . % 2 == 0 then \"even\" else \"odd\" end;\ndef classify: if . >= 100 then \"large\" elif . >= 10 then \"medium\" else \"small\" end;\n\n. | .records | unique_by(.key) | length as $total | map({key: .key, value: .value, class: .value | classify, parity: .value | parity}) as $processed | {total: $total, min_value: ($processed | min_by(.value) | .value), max_value: ($processed | max_by(.value) | .value), entries: ($processed | sort_by(.key))}",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "if .c then\n  .a # keep the branch note here\n| length\nelse\n  \"fallback\"\nend",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "if .done then {end: .at, status: \"closed\"} else {end: null, status: \"open\"} end",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "{\n  name # who the record is\n  : .n\n}",
+    "source": "fixture:test-expressions"
+  },
+  {
+    "expr": "\"\\(.a) and \\(.b)\"",
+    "source": "generated"
+  },
+  {
+    "expr": "\"hi \\(.name)\"",
+    "source": "generated"
+  },
+  {
+    "expr": "(((.a + .b)))",
+    "source": "generated"
+  },
+  {
+    "expr": "((.a // {}) | .b) // []",
+    "source": "generated"
+  },
+  {
+    "expr": "((.a))",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a // .b) | .c",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a // {}) | .b",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a > 1) and (.b < 2)",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b | .c) | length",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b)",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b) + .c",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b) == (.c | .d)",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b) as $x | $x",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b) | .c",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a | .b) | length",
+    "source": "generated"
+  },
+  {
+    "expr": "(.a)",
+    "source": "generated"
+  },
+  {
+    "expr": ".[\"key\"]",
+    "source": "generated"
+  },
+  {
+    "expr": ".[-1]",
+    "source": "generated"
+  },
+  {
+    "expr": ".[-2:]",
+    "source": "generated"
+  },
+  {
+    "expr": ".[0:2]",
+    "source": "generated"
+  },
+  {
+    "expr": ".[]",
+    "source": "generated"
+  },
+  {
+    "expr": ".a != .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a != false",
+    "source": "generated"
+  },
+  {
+    "expr": ".a % .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a % .b % .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a * .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a * .b * .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a + (.b | .c)",
+    "source": "generated"
+  },
+  {
+    "expr": ".a + .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a + .b + .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a - .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a - .b - .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a / .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a / .b / .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a // \"x\"",
+    "source": "generated"
+  },
+  {
+    "expr": ".a // .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a // .b // .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a // .b | .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a < .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a <= .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a == .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a == null",
+    "source": "generated"
+  },
+  {
+    "expr": ".a > .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a > 0 and .b < 10",
+    "source": "generated"
+  },
+  {
+    "expr": ".a >= .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a and .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a and .b and .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a and .b or .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a as $x | $x",
+    "source": "generated"
+  },
+  {
+    "expr": ".a as $x | $x + 1",
+    "source": "generated"
+  },
+  {
+    "expr": ".a as $x | .b as $y | $x + $y",
+    "source": "generated"
+  },
+  {
+    "expr": ".a or .b",
+    "source": "generated"
+  },
+  {
+    "expr": ".a or .b and .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a or .b or .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | (.b | .c)",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | .[]",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | .b // .c",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | @base64",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | @json",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | join(\", \")",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | keys | length",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | last",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | split(\",\")",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | tostring",
+    "source": "generated"
+  },
+  {
+    "expr": ".a | try tonumber catch 0",
+    "source": "generated"
+  },
+  {
+    "expr": ".a.b // .c.d // \"default\"",
+    "source": "generated"
+  },
+  {
+    "expr": ".a.b.c // null",
+    "source": "generated"
+  },
+  {
+    "expr": ".a[\"b\"]",
+    "source": "generated"
+  },
+  {
+    "expr": ".a[.b]",
+    "source": "generated"
+  },
+  {
+    "expr": ".a[0]",
+    "source": "generated"
+  },
+  {
+    "expr": ".a[]",
+    "source": "generated"
+  },
+  {
+    "expr": ".active | not",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | all(.x > 5)",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | any(.x > 5)",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | group_by(.k)",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | length",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | map(.x)",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | map(.x) | add",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | map(select(.active)) | length",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | map(select(.status == \"open\")) | length",
+    "source": "generated"
+  },
+  {
+    "expr": ".items | sort_by(.name)",
+    "source": "generated"
+  },
+  {
+    "expr": ".s | startswith(\"a\")",
+    "source": "generated"
+  },
+  {
+    "expr": ".s | test(\"^a\")",
+    "source": "generated"
+  },
+  {
+    "expr": ".x | if . > 5 then \"big\" else \"small\" end",
+    "source": "generated"
+  },
+  {
+    "expr": ".x | tonumber > 5",
+    "source": "generated"
+  },
+  {
+    "expr": "@base64",
+    "source": "generated"
+  },
+  {
+    "expr": "@csv",
+    "source": "generated"
+  },
+  {
+    "expr": "[.[] | select(. > 5)]",
+    "source": "generated"
+  },
+  {
+    "expr": "[.[]] | first",
+    "source": "generated"
+  },
+  {
+    "expr": "[.a, .b]",
+    "source": "generated"
+  },
+  {
+    "expr": "[1, 2, 3]",
+    "source": "generated"
+  },
+  {
+    "expr": "[]",
+    "source": "generated"
+  },
+  {
+    "expr": "add",
+    "source": "generated"
+  },
+  {
+    "expr": "gsub(\"[^a-z]\"; \"\")",
+    "source": "generated"
+  },
+  {
+    "expr": "has(\"x\")",
+    "source": "generated"
+  },
+  {
+    "expr": "if .a then 1 elif .b then 2 else 3 end",
+    "source": "generated"
+  },
+  {
+    "expr": "if .x > 5 then \"big\" else \"small\" end",
+    "source": "generated"
+  },
+  {
+    "expr": "if .x then \"a\" else \"b\" end",
+    "source": "generated"
+  },
+  {
+    "expr": "if .x then .y end",
+    "source": "generated"
+  },
+  {
+    "expr": "keys",
+    "source": "generated"
+  },
+  {
+    "expr": "keys_unsorted",
+    "source": "generated"
+  },
+  {
+    "expr": "map(.x)",
+    "source": "generated"
+  },
+  {
+    "expr": "map(select(.x > 5))",
+    "source": "generated"
+  },
+  {
+    "expr": "not",
+    "source": "generated"
+  },
+  {
+    "expr": "range(0; 10; 2)",
+    "source": "generated"
+  },
+  {
+    "expr": "recurse(.children)",
+    "source": "generated"
+  },
+  {
+    "expr": "reduce .[] as $x (0; . + $x)",
+    "source": "generated"
+  },
+  {
+    "expr": "select(.x)",
+    "source": "generated"
+  },
+  {
+    "expr": "sub(\"a\"; \"b\")",
+    "source": "generated"
+  },
+  {
+    "expr": "try (.a | fromjson) catch null",
+    "source": "generated"
+  },
+  {
+    "expr": "try .a",
+    "source": "generated"
+  },
+  {
+    "expr": "try .a catch \"x\"",
+    "source": "generated"
+  },
+  {
+    "expr": "{\"k\": .v}",
+    "source": "generated"
+  },
+  {
+    "expr": "{(.k): .v}",
+    "source": "generated"
+  },
+  {
+    "expr": "{a: .x, b: .y}",
+    "source": "generated"
+  },
+  {
+    "expr": "{a: .x, b: {c: .y}}",
+    "source": "generated"
+  },
+  {
+    "expr": "{name, age}",
+    "source": "generated"
+  },
+  {
+    "expr": "(.iterate.prior_outputs | last | .check.value) as $c | (((($c.valid // false) or ($c.expired // false) or ($c.delivery_failed // false)) | not) and ((.iterate.prior_outputs | length) < 5))",
+    "source": "seed"
+  },
+  {
+    "expr": ".prior_outputs.deliver | last | .send.value",
+    "source": "seed"
+  },
+  {
+    "expr": ".prior_outputs.retry | last | .check.value",
+    "source": "seed"
+  }
+]

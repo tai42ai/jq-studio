@@ -1,0 +1,1410 @@
+/*
+ * Scoped styles for the jq transformers surface (canvas, node editors, palette,
+ * dialogs). Every selector is nested under the library root class and every
+ * colour / spacing value is a design-system token (`var(--jq-*)`), so the
+ * surface themes itself with the host and never leaks into the host page. Library
+ * @keyframes carry the `jqs-` prefix. Per-node accent is bound once per card as
+ * `--jqs-jq-accent` and read by the header, icon, and selection ring.
+ */
+
+/* --- Editor layout --------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-editor {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--jq-color-bg);
+  font-family: var(--jq-font-sans);
+}
+
+.jq-studio-root .jqs-jq-editor__toggle {
+  position: absolute;
+  top: var(--jq-space-4);
+  left: var(--jq-space-4);
+  z-index: 10;
+}
+
+.jq-studio-root .jqs-jq-editor__canvas {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.jq-studio-root .jqs-jq-canvas {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.jq-studio-root .jqs-jq-canvas__flow {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* Entry-guard notice: shown in place of a graph whose visual reading does not
+   match the loaded text, sending the author to the text editor instead. */
+/* Canvas toolbar: a non-floating top bar (the old floating corner buttons are
+   gone). Load / Test sit right; the error-summary chip answers "why is Save
+   disabled" beside them. */
+.jq-studio-root .jqs-jq-canvas__toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  padding: var(--jq-space-2) var(--jq-space-3);
+  border-bottom: 1px solid var(--jq-color-border);
+  background: var(--jq-color-surface);
+  flex-shrink: 0;
+}
+
+.jq-studio-root .jqs-jq-canvas__toolbar-spacer {
+  flex: 1;
+}
+
+/* Error-summary chip: "N problems", danger-tinted, clickable to frame the next
+   errored node. */
+.jq-studio-root .jqs-jq-problem-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+  padding: 0.15rem var(--jq-space-2);
+  border: 1px solid var(--jq-color-danger);
+  border-radius: var(--jq-radius-full);
+  background: color-mix(in srgb, var(--jq-color-danger) 12%, transparent);
+  color: var(--jq-color-danger);
+  font-size: var(--jq-text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.jq-studio-root .jqs-jq-problem-chip:disabled {
+  cursor: default;
+}
+
+/* Live expression readout: a bottom strip showing the currently generated jq —
+   the round-trip made visible while editing. Collapsed shows one ellipsised
+   line; open (a native <details>) reveals the full text. */
+.jq-studio-root .jqs-jq-readout {
+  flex-shrink: 0;
+  border-top: 1px solid var(--jq-color-border);
+  background: var(--jq-color-code-bg);
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-readout__summary {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  padding: var(--jq-space-1) var(--jq-space-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.jq-studio-root .jqs-jq-readout__summary::-webkit-details-marker {
+  display: none;
+}
+
+.jq-studio-root .jqs-jq-readout__label {
+  flex-shrink: 0;
+  padding: 0 var(--jq-space-1);
+  border-radius: var(--jq-radius-sm);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text-muted);
+  font: var(--jq-text-xs) var(--jq-font-mono);
+  text-transform: uppercase;
+}
+
+.jq-studio-root .jqs-jq-readout__line {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: var(--jq-text-code) var(--jq-font-mono);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-readout__full {
+  margin: 0;
+  padding: 0 var(--jq-space-3) var(--jq-space-2);
+  max-height: 8rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font: var(--jq-text-code) var(--jq-font-mono);
+  color: var(--jq-color-text);
+}
+
+/* On a conversion failure the readout carries the error note, styled as an error
+   — never pretending the `# Error:` placeholder is jq. */
+.jq-studio-root .jqs-jq-readout--error .jqs-jq-readout__line,
+.jq-studio-root .jqs-jq-readout--error .jqs-jq-readout__full {
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-readout--error .jqs-jq-readout__label {
+  color: var(--jq-color-danger);
+}
+
+/* Non-destructive entry fallbacks — the author's text is preserved verbatim and
+   never overwritten unless they choose "Start empty". The parse-failure case
+   (WP-A6, an alert) and the unfaithfully-read case (neutral status) share the
+   centred layout. */
+.jq-studio-root .jqs-jq-canvas__parse-fallback,
+.jq-studio-root .jqs-jq-canvas__entry-fallback {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--jq-space-4);
+  overflow: auto;
+}
+
+.jq-studio-root .jqs-jq-parse-fallback__box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-3);
+  max-width: 40rem;
+  padding: var(--jq-space-4);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+}
+
+.jq-studio-root .jqs-jq-parse-fallback__head {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  color: var(--jq-color-warning);
+}
+
+.jq-studio-root .jqs-jq-parse-fallback__title {
+  margin: 0;
+  font-size: var(--jq-text-md);
+  font-weight: 600;
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-parse-fallback__hint {
+  margin: 0;
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-parse-fallback__code {
+  margin: 0;
+  padding: var(--jq-space-3);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-code-bg);
+  font: var(--jq-text-code) var(--jq-font-mono);
+  color: var(--jq-color-text);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.jq-studio-root .jqs-jq-parse-fallback__actions {
+  display: flex;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-canvas .react-flow {
+  background: var(--jq-color-surface);
+}
+
+.jq-studio-root .jqs-jq-canvas .react-flow__minimap {
+  background: var(--jq-color-surface);
+}
+
+.jq-studio-root .jqs-jq-canvas .react-flow__controls {
+  box-shadow: var(--jq-shadow-sm);
+}
+
+.jq-studio-root .jqs-jq-canvas .react-flow__controls-button {
+  background: var(--jq-color-surface-raised);
+  border-bottom: 1px solid var(--jq-color-border);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-canvas .react-flow__controls-button:hover {
+  background: var(--jq-color-surface);
+}
+
+.jq-studio-root .jqs-jq-canvas .react-flow__attribution {
+  background: transparent;
+  color: var(--jq-color-text-muted);
+}
+
+/* --- Palette --------------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-palette {
+  width: 16rem;
+  flex-shrink: 0;
+  padding: var(--jq-space-4);
+  padding-top: 3.5rem;
+  border-right: 1px solid var(--jq-color-border);
+  background: var(--jq-color-surface);
+  overflow-y: auto;
+}
+
+.jq-studio-root .jqs-jq-palette__title {
+  margin: 0 0 var(--jq-space-4);
+  font-size: var(--jq-text-lg);
+  font-weight: 600;
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-palette__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-palette__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--jq-space-2);
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--jq-space-2) var(--jq-space-3);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  font: var(--jq-text-md) var(--jq-font-sans);
+  text-align: left;
+  cursor: grab;
+  transition: border-color 0.2s ease;
+}
+
+.jq-studio-root .jqs-jq-palette__divider-label {
+  padding-top: var(--jq-space-1);
+  color: var(--jq-color-text-muted);
+  font: var(--jq-text-xs) var(--jq-font-sans);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.jq-studio-root .jqs-jq-palette__item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.jq-studio-root .jqs-jq-palette__item-label {
+  font-weight: 600;
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-palette__item-reason {
+  font: var(--jq-text-sm) var(--jq-font-sans);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-palette__item:active {
+  cursor: grabbing;
+}
+
+.jq-studio-root .jqs-jq-palette__item:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.jq-studio-root .jqs-jq-palette__item--dimmed {
+  opacity: 0.4;
+}
+
+.jq-studio-root .jqs-jq-palette__item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--jq-radius-sm);
+  color: var(--jq-color-primary-text);
+  flex-shrink: 0;
+}
+
+/* --- Node card ------------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-node {
+  position: relative;
+  min-width: 200px;
+  max-width: 280px;
+  border: 2px solid transparent;
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  box-shadow: var(--jq-shadow-md);
+  color: var(--jq-color-text);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Selection tints the border with the node's own accent and KEEPS the lift (the
+   base `--jq-shadow-md` stays). Declared before the error/warning modifiers so
+   an errored-and-selected card resolves deterministically to the error ring. */
+.jq-studio-root .jqs-jq-node--selected {
+  border-color: var(--jqs-jq-accent, var(--jq-color-focus-ring));
+}
+
+/* Error / warning rings are ADDITIVE — a 2px ring layered over the retained md
+   lift, so an errored card never loses its raise. */
+.jq-studio-root .jqs-jq-node--error {
+  border-color: var(--jq-color-danger);
+  box-shadow:
+    var(--jq-shadow-md),
+    0 0 0 2px var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-node--warning {
+  border-color: var(--jq-color-warning);
+  box-shadow:
+    var(--jq-shadow-md),
+    0 0 0 2px var(--jq-color-warning);
+}
+
+/* A comment is chrome-marked (dashed border + slight fade), never colour-marked. */
+.jq-studio-root .jqs-jq-node--comment {
+  border-style: dashed;
+  border-color: var(--jq-color-border);
+  opacity: 0.9;
+}
+
+.jq-studio-root .jqs-jq-node__handle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.jq-studio-root .jqs-jq-node__handle--top {
+  top: -0.375rem;
+}
+
+.jq-studio-root .jqs-jq-node__handle--bottom {
+  bottom: -0.375rem;
+}
+
+/* Card head: accent icon chip + a text block (small accent TYPE LABEL over the
+   prominent content NAME) — the flow-card emphasis, ported. */
+.jq-studio-root .jqs-jq-node__body {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  padding: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-node__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--jq-radius-md);
+  background: var(--jqs-jq-accent, var(--jq-color-text-muted));
+  color: var(--jq-color-primary-text);
+  flex-shrink: 0;
+}
+
+.jq-studio-root .jqs-jq-node__icon svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.jq-studio-root .jqs-jq-node__icon--round {
+  border-radius: 9999px;
+}
+
+/* Condition chips read as diamonds (flow Conditional/Branch parity); the inner
+   glyph counter-rotates so it stays upright. */
+.jq-studio-root .jqs-jq-node__icon--diamond {
+  transform: rotate(45deg) scale(0.85);
+}
+
+.jq-studio-root .jqs-jq-node__icon--diamond svg {
+  transform: rotate(-45deg);
+}
+
+.jq-studio-root .jqs-jq-node__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.jq-studio-root .jqs-jq-node__type-label {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+  margin: 0;
+  font-size: var(--jq-text-sm);
+  font-weight: 500;
+  text-align: left;
+  color: var(--jqs-jq-accent, var(--jq-color-text-muted));
+}
+
+.jq-studio-root .jqs-jq-node__type-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The disambiguating kind badge beside the type label (shared-hue kinds only). */
+.jq-studio-root .jqs-jq-node__kind-badge {
+  padding: 0 var(--jq-space-1);
+  border-radius: var(--jq-radius-sm);
+  font-size: var(--jq-text-xs);
+  font-weight: 500;
+  color: var(--jq-color-primary-text);
+  background: var(--jqs-jq-accent, var(--jq-color-text-muted));
+}
+
+.jq-studio-root .jqs-jq-node__title-alert {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-node__title-alert--warning {
+  color: var(--jq-color-warning);
+}
+
+/* The promoted content slot: the node's own value, big — a collapsed Value reads
+   its path here, "Value" small above it. */
+.jq-studio-root .jqs-jq-node__name {
+  margin: 0;
+  font-size: var(--jq-text-md);
+  font-weight: 600;
+  text-align: left;
+  color: var(--jq-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Expanded edit body. The canvas DENSITY overrides live HERE (not on the card),
+   so the compact 28px controls and the `--jq-text-md` shrink are scoped to the
+   form — the head's type label and name keep the design-system sizes. */
+.jq-studio-root .jqs-jq-node__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-2);
+  padding: 0 var(--jq-space-3) var(--jq-space-3);
+  --jq-control-height: 28px;
+  --jq-text-md: var(--jq-text-sm);
+}
+
+/* Collapsed side-handle rails — real scoped positioning replacing the dead
+   Tailwind classes (no Tailwind exists in this package). Absolutely placed
+   inside the relatively-positioned card, centred on the card's mid-height. */
+.jq-studio-root .jqs-jq-node__collapsed-handles {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  /* Spread stacked ports so a role-bearing card (Condition if/then/else,
+     Try/Catch try/catch) shows its exits as a legible vertical list rather
+     than dots piled on one point. The gap must clear the outside label PILLS
+     that ride each dot, so a three-line if/then/else stack never self-overlaps. */
+  gap: var(--jq-space-4);
+}
+
+.jq-studio-root .jqs-jq-node__collapsed-handles--left {
+  left: 0;
+  align-items: flex-start;
+  transform: translate(-50%, -50%);
+}
+
+.jq-studio-root .jqs-jq-node__collapsed-handles--right {
+  right: 0;
+  align-items: flex-end;
+  transform: translate(50%, -50%);
+}
+
+/* Operator (and operand) side-handle row — scoped positioning replacing dead
+   Tailwind; the two slots straddle the card's left/right edges. */
+.jq-studio-root .jqs-jq-operator-handles {
+  position: relative;
+  height: 0.5rem;
+  margin-bottom: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-operator-handles__slot {
+  position: absolute;
+  top: 50%;
+}
+
+.jq-studio-root .jqs-jq-operator-handles__slot--left {
+  left: -1.25rem;
+  transform: translate(-50%, -50%);
+}
+
+.jq-studio-root .jqs-jq-operator-handles__slot--right {
+  right: -1.25rem;
+  transform: translate(50%, -50%);
+}
+
+.jq-studio-root .jqs-jq-node__errors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+  padding: 0 var(--jq-space-3) var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-node__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--jq-space-1);
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-node__error--warning {
+  color: var(--jq-color-warning);
+}
+
+.jq-studio-root .jqs-jq-node__error-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+}
+
+.jq-studio-root .jqs-jq-node__side {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.jq-studio-root .jqs-jq-node__side--left {
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.jq-studio-root .jqs-jq-node__side--right {
+  right: 0;
+  transform: translate(50%, -50%);
+}
+
+/* --- Handles --------------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-handle {
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+  /* Solid accent fill from the owning card (`--jqs-jq-accent`), so a handle
+     reads in its node's colour without an inline style. */
+  background: var(--jqs-jq-accent, var(--jq-color-text-muted));
+  border: 2px solid var(--jq-color-border);
+  transition:
+    opacity 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* A muted handle (illegal drop target mid-drag) is non-interactive — flow
+   parity, so a drag never lands on a dot the validator would reject. */
+.jq-studio-root .jqs-jq-handle--muted {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* --- Handle tooltip -------------------------------------------------------- */
+
+.jq-studio-root.jqs-jq-handle-tip,
+.jq-studio-root .jqs-jq-handle-tip {
+  max-width: 260px;
+}
+
+.jq-studio-root.jqs-jq-handle-tip p,
+.jq-studio-root .jqs-jq-handle-tip p {
+  margin: 0;
+}
+
+.jq-studio-root .jqs-jq-handle-tip__title {
+  font-size: var(--jq-text-sm);
+  font-weight: 600;
+}
+
+.jq-studio-root .jqs-jq-handle-tip__body {
+  margin-top: var(--jq-space-1);
+  font-size: var(--jq-text-sm);
+  opacity: 0.8;
+}
+
+.jq-studio-root .jqs-jq-handle-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.jq-studio-root .jqs-jq-handle-wrap--reverse {
+  flex-direction: row-reverse;
+}
+
+.jq-studio-root .jqs-jq-handle-label {
+  position: absolute;
+  white-space: nowrap;
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-handle-label--right {
+  right: 1.25rem;
+}
+
+.jq-studio-root .jqs-jq-handle-label--left {
+  left: 1.25rem;
+}
+
+/* --- Outside port-label pill ---------------------------------------------- */
+
+/* A port's role label placed just OUTSIDE the card edge as a small pill, so it
+   names the port exactly once (no separate on-wire chip) without sitting under
+   the card's own content or piling on the wire's start. Rendered in the node
+   layer (above the edge SVG), so it stays legible where a wire crosses it. */
+.jq-studio-root .jqs-jq-handle-label--outside {
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 var(--jq-space-1);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-sm, 4px);
+  background: var(--jq-color-surface, var(--jq-color-background));
+  font-size: var(--jq-text-xs, 0.6875rem);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Left rail: pill sits to the LEFT of the dot; right rail: to the RIGHT — each
+   fully clear of the card edge (100% = the dot-sized wrap) with a small gap. */
+.jq-studio-root .jqs-jq-handle-label--outside.jqs-jq-handle-label--left {
+  left: auto;
+  right: calc(100% + 0.35rem);
+}
+
+.jq-studio-root .jqs-jq-handle-label--outside.jqs-jq-handle-label--right {
+  right: auto;
+  left: calc(100% + 0.35rem);
+}
+
+.jq-studio-root .jqs-jq-handle-label--top {
+  top: 0;
+}
+
+.jq-studio-root .jqs-jq-handle-label--bottom {
+  bottom: 0;
+}
+
+/* --- Rows / fields --------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-field__label-row {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-field__label-row--spread {
+  justify-content: space-between;
+}
+
+.jq-studio-root .jqs-jq-field__error {
+  margin: 0;
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-field__checkbox-row {
+  display: flex;
+  align-items: center;
+  padding-top: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-label {
+  font-size: var(--jq-text-sm);
+  font-weight: 500;
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-muted {
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-muted-italic {
+  margin: 0;
+  font-size: var(--jq-text-sm);
+  font-style: italic;
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-null {
+  padding: var(--jq-space-2);
+  font-family: var(--jq-font-mono);
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--jq-space-1) 0;
+}
+
+.jq-studio-root .jqs-jq-row__label {
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-row__label--inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-row__handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.jq-studio-root .jqs-jq-row__handle--left {
+  left: -1.3rem;
+}
+
+.jq-studio-root .jqs-jq-row__handle--right {
+  right: -1.3rem;
+}
+
+/* --- Start node ------------------------------------------------------------ */
+
+.jq-studio-root .jqs-jq-start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-start__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--jq-space-1) var(--jq-space-2) var(--jq-space-1) 0;
+}
+
+.jq-studio-root .jqs-jq-start__handle {
+  position: absolute;
+  right: -1.25rem;
+}
+
+/* --- Condition / try-catch branches ---------------------------------------- */
+
+.jq-studio-root .jqs-jq-branches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-3);
+  padding-right: var(--jq-space-4);
+}
+
+.jq-studio-root .jqs-jq-branch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-branch--else {
+  flex-direction: row;
+  align-items: center;
+}
+
+.jq-studio-root .jqs-jq-branch__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.jq-studio-root .jqs-jq-branch__label {
+  font-size: var(--jq-text-sm);
+  font-weight: 500;
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-branch__handle {
+  position: absolute;
+  right: -2.25rem;
+}
+
+.jq-studio-root .jqs-jq-branch__handle--if {
+  top: 0.5rem;
+}
+
+.jq-studio-root .jqs-jq-branch__handle--then {
+  bottom: 0.5rem;
+}
+
+.jq-studio-root .jqs-jq-branch__handle--else {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* --- Value collections (array / object) ------------------------------------ */
+
+.jq-studio-root .jqs-jq-collection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-collection__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-collection__handle {
+  position: absolute;
+  right: -1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* --- Function decl parameters ---------------------------------------------- */
+
+.jq-studio-root .jqs-jq-params {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-params__row {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-logic-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--jq-space-2);
+  border-top: 1px solid var(--jq-color-border);
+}
+
+.jq-studio-root .jqs-jq-logic-row__handle {
+  position: absolute;
+  right: -1rem;
+}
+
+/* --- Path selector --------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-path {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-path__root {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-path__root-label {
+  width: 1.5rem;
+  flex-shrink: 0;
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-path__segment {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+  padding-left: var(--jq-space-3);
+  border-left: 2px solid var(--jq-color-border);
+}
+
+.jq-studio-root .jqs-jq-path__segment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-path__range {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-path__range-sep {
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-path__preview {
+  margin-top: var(--jq-space-1);
+  padding: var(--jq-space-1) var(--jq-space-2);
+  border-radius: var(--jq-radius-sm);
+  background: var(--jq-color-surface);
+  font-family: var(--jq-font-mono);
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+  word-break: break-all;
+}
+
+/* --- Segment toggle -------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-segtoggle {
+  display: inline-flex;
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  overflow: hidden;
+}
+
+.jq-studio-root .jqs-jq-segtoggle__item {
+  padding: 0.15rem var(--jq-space-2);
+  border: none;
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text-muted);
+  font-size: var(--jq-text-sm);
+  cursor: pointer;
+}
+
+.jq-studio-root .jqs-jq-segtoggle__item--on {
+  background: var(--jq-color-primary);
+  color: var(--jq-color-primary-text);
+}
+
+/* --- Icons / icon buttons -------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.jq-studio-root .jqs-jq-icon-sm {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.jq-studio-root .jqs-jq-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem;
+  border: none;
+  background: transparent;
+  color: var(--jq-color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.jq-studio-root .jqs-jq-icon-btn:hover {
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-icon-btn--danger {
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-info-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--jq-color-text-muted);
+  cursor: help;
+}
+
+.jq-studio-root .jqs-jq-ok {
+  color: var(--jq-color-success);
+}
+
+.jq-studio-root .jqs-jq-err {
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-spin {
+  animation: jqs-jq-spin 1s linear infinite;
+}
+
+/* --- Tooltip content ------------------------------------------------------- */
+
+.jq-studio-root.jqs-jq-tooltip,
+.jq-studio-root .jqs-jq-tooltip {
+  display: block;
+  max-width: 260px;
+  font-size: var(--jq-text-sm);
+}
+
+/* --- Dialogs --------------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-float-btn-wrap {
+  display: inline-flex;
+}
+
+.jq-studio-root .jqs-jq-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-4);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.jq-studio-root .jqs-jq-run-row {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-code {
+  margin: 0;
+  padding: var(--jq-space-2) var(--jq-space-3);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface);
+  font: var(--jq-text-sm) var(--jq-font-mono);
+  color: var(--jq-color-text);
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-x: auto;
+}
+
+.jq-studio-root .jqs-jq-output {
+  margin: 0;
+  padding: var(--jq-space-2) var(--jq-space-3);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  font: var(--jq-text-sm) var(--jq-font-mono);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.jq-studio-root .jqs-jq-output--ok {
+  border-color: var(--jq-color-success);
+  background: color-mix(in srgb, var(--jq-color-success) 12%, transparent);
+  color: var(--jq-color-success);
+}
+
+.jq-studio-root .jqs-jq-output--err {
+  border-color: var(--jq-color-danger);
+  background: color-mix(in srgb, var(--jq-color-danger) 12%, transparent);
+  color: var(--jq-color-danger);
+}
+
+.jq-studio-root .jqs-jq-kbd {
+  padding: 0.1rem var(--jq-space-2);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-sm);
+  background: var(--jq-color-surface);
+  font: var(--jq-text-sm) var(--jq-font-mono);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-duration {
+  margin-left: auto;
+  font: var(--jq-text-sm) var(--jq-font-mono);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+  padding: 0.15rem var(--jq-space-2);
+  border: none;
+  background: transparent;
+  color: var(--jq-color-text-muted);
+  font-size: var(--jq-text-sm);
+  cursor: pointer;
+}
+
+.jq-studio-root .jqs-jq-error-box {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--jq-space-2);
+  padding: var(--jq-space-2) var(--jq-space-3);
+  border: 1px solid var(--jq-color-danger);
+  border-radius: var(--jq-radius-md);
+  background: color-mix(in srgb, var(--jq-color-danger) 10%, transparent);
+}
+
+.jq-studio-root .jqs-jq-error-box p {
+  margin: 0;
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-danger);
+}
+
+/* --- Full-screen editor overlay -------------------------------------------- */
+
+/* Layout only: the `jqp-dialog-fullscreen` panel this class merges onto owns
+   the position, the scrim, the layer (`--jq-z-dialog`) and the surface ink, so
+   the editor never fights the child Load/Test dialogs for stacking. */
+.jq-studio-root.jqs-jq-fullscreen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--jq-font-sans);
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--jq-space-2) var(--jq-space-4);
+  border-bottom: 1px solid var(--jq-color-border);
+  background: var(--jq-color-surface-raised);
+  flex-shrink: 0;
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  min-width: 0;
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__title {
+  margin: 0;
+  font-size: var(--jq-text-lg);
+  font-weight: 600;
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--jq-color-border);
+}
+
+/* --- Context chip + tooltip (toolbar) -------------------------------------- */
+
+.jq-studio-root .jqs-jq-context-chip {
+  display: inline-flex;
+  cursor: help;
+}
+
+.jq-studio-root.jqs-jq-context-tip,
+.jq-studio-root .jqs-jq-context-tip {
+  display: block;
+  max-width: 320px;
+  font-size: var(--jq-text-sm);
+}
+
+.jq-studio-root .jqs-jq-context-tip__blurb {
+  margin: 0 0 var(--jq-space-2);
+  font-weight: 500;
+}
+
+.jq-studio-root .jqs-jq-context-tip__keys {
+  margin: 0 0 var(--jq-space-2);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-context-tip__key {
+  display: contents;
+}
+
+.jq-studio-root .jqs-jq-context-tip__key dt {
+  font-family: var(--jq-font-mono);
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-context-tip__key dd {
+  margin: 0;
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-context-tip__returns {
+  margin: 0;
+  font-weight: 500;
+}
+
+.jq-studio-root .jqs-jq-context-tip__caveat {
+  margin: var(--jq-space-1) 0 0;
+  color: var(--jq-color-warning);
+}
+
+/* --- Legend dialog --------------------------------------------------------- */
+
+.jq-studio-root .jqs-jq-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-legend__section-label {
+  margin-top: var(--jq-space-2);
+  color: var(--jq-color-text-muted);
+  font: var(--jq-text-xs) var(--jq-font-sans);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.jq-studio-root .jqs-jq-legend__row {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-legend__chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border-radius: var(--jq-radius-md);
+  background: var(--jqs-jq-accent, var(--jq-color-text-muted));
+  color: var(--jq-color-primary-text);
+}
+
+.jq-studio-root .jqs-jq-legend__wire {
+  width: 1.75rem;
+  height: 0;
+  flex-shrink: 0;
+  border-top: 2px solid var(--jq-color-text-muted);
+}
+
+.jq-studio-root .jqs-jq-legend__caption {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  font-size: var(--jq-text-sm);
+  font-weight: 600;
+  color: var(--jq-color-text);
+}
+
+.jq-studio-root .jqs-jq-legend__gloss {
+  font-size: var(--jq-text-sm);
+  color: var(--jq-color-text-muted);
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__save-error {
+  flex-shrink: 0;
+  margin: var(--jq-space-2) var(--jq-space-4);
+}
+
+.jq-studio-root.jqs-jq-fullscreen .jqs-jq-fullscreen__body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* --- Preview tile ---------------------------------------------------------- */
+
+/* The Editor-tab thumbnail frame. It is the positioned, fixed-height parent the
+   absolutely-filled `.jqs-jq-preview` needs to lay itself out against. */
+.jq-studio-root .jqs-jq-editor-tile {
+  position: relative;
+  height: 9rem;
+  overflow: hidden;
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface);
+}
+
+.jq-studio-root .jqs-jq-field-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-preview {
+  position: absolute;
+  inset: 0;
+}
+
+.jq-studio-root .jqs-jq-preview--empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--jq-space-2);
+  color: var(--jq-color-text-muted);
+  background: var(--jq-color-surface);
+}
+
+.jq-studio-root .jqs-jq-preview__empty-icon {
+  width: 2rem;
+  height: 2rem;
+  opacity: 0.4;
+}
+
+.jq-studio-root .jqs-jq-preview__empty-title {
+  font-size: var(--jq-text-sm);
+  font-weight: 500;
+}
+
+.jq-studio-root .jqs-jq-preview__empty-hint {
+  font-size: var(--jq-text-sm);
+  opacity: 0.7;
+  max-width: 90%;
+  text-align: center;
+}
+
+/* The offending fragment named in the neutral "not shown here" notice. */
+.jq-studio-root .jqs-jq-preview__empty-construct {
+  max-width: 90%;
+  padding: var(--jq-space-1) var(--jq-space-2);
+  border-radius: var(--jq-radius-sm);
+  background: var(--jq-color-surface-sunken, rgba(0, 0, 0, 0.05));
+  font-family: var(--jq-font-mono, monospace);
+  font-size: var(--jq-text-xs);
+  overflow-wrap: anywhere;
+  opacity: 0.8;
+}
+
+/* Loud styling reserved for genuinely malformed jq (the alerting error state). */
+.jq-studio-root .jqs-jq-preview--invalid {
+  color: var(--jq-color-danger-text, var(--jq-color-text-muted));
+}
+
+.jq-studio-root .jqs-jq-preview--invalid .jqs-jq-preview__empty-icon {
+  opacity: 0.7;
+}
+
+/* --- Keyframes ------------------------------------------------------------- */
+
+@keyframes jqs-jq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes jqs-jq-edge-dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}

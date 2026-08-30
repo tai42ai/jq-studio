@@ -1,0 +1,316 @@
+/*
+ * Styling for jq-studio's built-in primitives (`jqp-*`). Token-driven (`--jq-*`),
+ * so they follow the host's theme, and deliberately NOT scoped under
+ * `.jq-studio-root` — a primitive (and its Radix portal content) must paint
+ * wherever it renders, including a dialog or tooltip portalled to `document.body`.
+ * A host that injects its own components through `PrimitivesProvider` replaces
+ * these entirely.
+ */
+
+/* -- Button ----------------------------------------------------------------- */
+.jqp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--jq-space-1);
+  min-height: var(--jq-control-height);
+  padding: 0 var(--jq-space-3);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  font: 500 var(--jq-text-md) var(--jq-font-sans);
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 150ms,
+    border-color 150ms,
+    opacity 150ms;
+}
+.jqp-btn:hover:not(:disabled) {
+  background: var(--jq-color-surface-sunken);
+}
+.jqp-btn:focus-visible {
+  outline: 2px solid var(--jq-color-focus-ring);
+  outline-offset: 1px;
+}
+.jqp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.jqp-btn-primary {
+  border-color: transparent;
+  background: var(--jq-color-primary);
+  color: var(--jq-color-primary-text);
+}
+.jqp-btn-primary:hover:not(:disabled) {
+  background: var(--jq-color-primary);
+  filter: brightness(0.94);
+}
+.jqp-btn-danger {
+  border-color: transparent;
+  background: var(--jq-color-danger);
+  color: var(--jq-color-danger-text);
+}
+.jqp-btn-danger:hover:not(:disabled) {
+  background: var(--jq-color-danger);
+  filter: brightness(0.94);
+}
+.jqp-btn-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+/* -- Text controls ---------------------------------------------------------- */
+.jqp-input,
+.jqp-textarea {
+  width: 100%;
+  min-height: var(--jq-control-height);
+  padding: var(--jq-space-1) var(--jq-space-2);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  font: var(--jq-text-md) var(--jq-font-sans);
+}
+.jqp-textarea {
+  resize: vertical;
+  font-family: var(--jq-font-mono);
+}
+.jqp-input:focus-visible,
+.jqp-textarea:focus-visible {
+  outline: 2px solid var(--jq-color-focus-ring);
+  outline-offset: 0;
+  border-color: var(--jq-color-focus-ring);
+}
+
+/* -- Select ----------------------------------------------------------------- */
+.jqp-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jq-space-2);
+  min-height: var(--jq-control-height);
+  padding: 0 var(--jq-space-2);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  font: var(--jq-text-md) var(--jq-font-sans);
+  cursor: pointer;
+}
+.jqp-select-trigger:focus-visible {
+  outline: 2px solid var(--jq-color-focus-ring);
+  outline-offset: 1px;
+}
+.jqp-select-content {
+  z-index: calc(var(--jq-z-dialog) + 10);
+  overflow: hidden;
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  box-shadow: var(--jq-shadow-md);
+}
+.jqp-select-viewport {
+  padding: var(--jq-space-1);
+}
+.jqp-select-group-label {
+  padding: var(--jq-space-1) var(--jq-space-2);
+  color: var(--jq-color-text-muted);
+  font: 600 var(--jq-text-xs) var(--jq-font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.jqp-select-item {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  padding: var(--jq-space-1) var(--jq-space-2);
+  border-radius: var(--jq-radius-sm);
+  color: var(--jq-color-text);
+  font: var(--jq-text-md) var(--jq-font-sans);
+  cursor: pointer;
+  user-select: none;
+}
+.jqp-select-item[data-highlighted] {
+  outline: none;
+  background: var(--jq-color-surface-sunken);
+}
+.jqp-select-item[data-disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.jqp-select-item-indicator {
+  display: inline-flex;
+  color: var(--jq-color-primary);
+}
+
+/* -- Checkbox --------------------------------------------------------------- */
+.jqp-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+  color: var(--jq-color-text);
+  font: var(--jq-text-md) var(--jq-font-sans);
+  cursor: pointer;
+}
+.jqp-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-sm);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-primary-text);
+  cursor: pointer;
+}
+.jqp-checkbox[data-state='checked'],
+.jqp-checkbox[data-state='indeterminate'] {
+  border-color: transparent;
+  background: var(--jq-color-primary);
+}
+.jqp-checkbox:focus-visible {
+  outline: 2px solid var(--jq-color-focus-ring);
+  outline-offset: 1px;
+}
+
+/* -- Tooltip ---------------------------------------------------------------- */
+.jqp-tooltip {
+  z-index: calc(var(--jq-z-dialog) + 10);
+  max-width: 22rem;
+  padding: var(--jq-space-1) var(--jq-space-2);
+  border-radius: var(--jq-radius-sm);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  font: var(--jq-text-sm) var(--jq-font-sans);
+  box-shadow: var(--jq-shadow-md);
+  border: 1px solid var(--jq-color-border);
+}
+.jqp-tooltip-arrow {
+  fill: var(--jq-color-surface-raised);
+}
+
+/* -- Dialog ----------------------------------------------------------------- */
+.jqp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--jq-z-dialog);
+  background: rgb(0 0 0 / 0.45);
+}
+.jqp-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: var(--jq-z-dialog);
+  display: flex;
+  flex-direction: column;
+  width: min(92vw, 40rem);
+  max-height: 86vh;
+  padding: var(--jq-space-4);
+  transform: translate(-50%, -50%);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  box-shadow: var(--jq-shadow-md);
+  overflow: auto;
+}
+.jqp-dialog-fullscreen {
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  padding: 0;
+  transform: none;
+  border-radius: 0;
+}
+.jqp-dialog-title {
+  margin: 0;
+  font: 600 var(--jq-text-lg) var(--jq-font-sans);
+}
+.jqp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-3);
+}
+.jqp-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--jq-space-2);
+  margin-top: var(--jq-space-3);
+}
+.jqp-muted {
+  color: var(--jq-color-text-muted);
+  font: var(--jq-text-sm) var(--jq-font-sans);
+}
+.jqp-error-state {
+  padding: var(--jq-space-2) var(--jq-space-3);
+  border-radius: var(--jq-radius-sm);
+  background: color-mix(in srgb, var(--jq-color-danger) 12%, transparent);
+  color: var(--jq-color-danger);
+  font: var(--jq-text-sm) var(--jq-font-sans);
+}
+.jqp-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: var(--jq-space-1);
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: jqp-spin 0.7s linear infinite;
+}
+@keyframes jqp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.jqp-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* -- Badge ------------------------------------------------------------------ */
+.jqp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jq-space-1);
+  padding: 0.1rem var(--jq-space-2);
+  border-radius: var(--jq-radius-full);
+  background: color-mix(in srgb, var(--jq-color-primary) 14%, transparent);
+  color: var(--jq-color-primary);
+  font: 600 var(--jq-text-xs) var(--jq-font-sans);
+}
+.jqp-badge-neutral {
+  background: var(--jq-color-surface-sunken);
+  color: var(--jq-color-text-muted);
+}
+.jqp-badge-info {
+  background: color-mix(in srgb, var(--jq-color-primary) 14%, transparent);
+  color: var(--jq-color-primary);
+}
+.jqp-badge-ok {
+  background: color-mix(in srgb, var(--jq-color-success) 16%, transparent);
+  color: var(--jq-color-success);
+}
+.jqp-badge-warn {
+  background: color-mix(in srgb, var(--jq-color-warning) 18%, transparent);
+  color: var(--jq-color-warning);
+}
+.jqp-badge-err {
+  background: color-mix(in srgb, var(--jq-color-danger) 14%, transparent);
+  color: var(--jq-color-danger);
+}

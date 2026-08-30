@@ -1,0 +1,14 @@
+/*
+ * The single stylesheet a consumer imports: `@tai42/jq-studio/styles.css`.
+ *
+ * It bundles, in cascade order, the React Flow base styles the canvas needs, the
+ * default `--jq-*` theme (light + dark), the editor's own scoped styles, the
+ * built-in primitives, and the drop-in field chrome. A host that ships its own
+ * theme can still import this and simply redefine the `--jq-*` tokens; a host
+ * that injects its own primitives gets those regardless of this file.
+ */
+@import '@xyflow/react/dist/style.css';
+@import './theme.css';
+@import './transformers.css';
+@import './primitives/primitives.css';
+@import './field.css';
