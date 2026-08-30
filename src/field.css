@@ -1,0 +1,29 @@
+/*
+ * Styling for the drop-in `JqField` chrome (`jqs-field*`). The resting control is
+ * a primitive (its own `jqp-*` paint); this only lays out the label, the control
+ * row, and the "Visual editor" button.
+ */
+.jqs-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+  font: var(--jq-text-md) var(--jq-font-sans);
+  color: var(--jq-color-text);
+}
+.jqs-field__label {
+  font: 600 var(--jq-text-sm) var(--jq-font-sans);
+  color: var(--jq-color-text);
+}
+.jqs-field__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--jq-space-2);
+}
+.jqs-field__control {
+  flex: 1 1 auto;
+  font-family: var(--jq-font-mono);
+}
+.jqs-field .jqs-icon {
+  width: 1em;
+  height: 1em;
+}

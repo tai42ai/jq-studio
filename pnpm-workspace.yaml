@@ -1,0 +1,13 @@
+allowBuilds:
+  esbuild: true
+
+# pnpm settings for the standalone @tai42/jq-studio package. jq-web ships a
+# patched jq.js: the patch exposes the Emscripten factory without firing a stray
+# wasm fetch on import, so the module can be instantiated with an explicit
+# locateFile (the built worker + main-thread loader both resolve jq.wasm relative
+# to their own served URL).
+onlyBuiltDependencies:
+  - esbuild
+
+patchedDependencies:
+  jq-web@0.6.2: patches/jq-web.patch

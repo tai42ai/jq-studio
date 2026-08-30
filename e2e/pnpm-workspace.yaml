@@ -1,0 +1,7 @@
+# Standalone workspace root for the e2e project, so pnpm does not climb to the
+# package root above. Keeps the consumer app's install isolated from the library's.
+allowBuilds:
+  esbuild: true
+
+onlyBuiltDependencies:
+  - esbuild

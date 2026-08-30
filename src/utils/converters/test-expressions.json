@@ -1,0 +1,732 @@
+[
+  {
+    "name": "User Directory Pipeline",
+    "description": "Filters active users, sorts by name, extracts contact info, groups by department, builds a summary object per group.",
+    "expression": ". | .users | map(select(.active == true)) | sort_by(.name) | group_by(.department) | map({department: .[0].department, count: length, members: map({name: .name, email: .email}) | sort_by(.name)})",
+    "input": {
+      "users": [
+        {"name": "Zara", "email": "zara@co.com", "department": "eng", "active": true},
+        {"name": "Alice", "email": "alice@co.com", "department": "eng", "active": true},
+        {"name": "Bob", "email": "bob@co.com", "department": "sales", "active": false},
+        {"name": "Carol", "email": "carol@co.com", "department": "sales", "active": true},
+        {"name": "Dave", "email": "dave@co.com", "department": "eng", "active": true}
+      ]
+    },
+    "expected_output": [
+      {
+        "department": "eng",
+        "count": 3,
+        "members": [
+          {"name": "Alice", "email": "alice@co.com"},
+          {"name": "Dave", "email": "dave@co.com"},
+          {"name": "Zara", "email": "zara@co.com"}
+        ]
+      },
+      {
+        "department": "sales",
+        "count": 1,
+        "members": [
+          {"name": "Carol", "email": "carol@co.com"}
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Grade Classifier with elif",
+    "description": "Classifies students into letter grades using multi-branch elif, then builds a results array with name and grade.",
+    "expression": ". | .students | map({name: .name, grade: if .score >= 90 then \"A\" elif .score >= 80 then \"B\" elif .score >= 70 then \"C\" elif .score >= 60 then \"D\" else \"F\" end}) | sort_by(.name)",
+    "input": {
+      "students": [
+        {"name": "Emma", "score": 92},
+        {"name": "Liam", "score": 73},
+        {"name": "Olivia", "score": 85},
+        {"name": "Noah", "score": 58},
+        {"name": "Ava", "score": 61}
+      ]
+    },
+    "expected_output": [
+      {"name": "Ava", "grade": "D"},
+      {"name": "Emma", "grade": "A"},
+      {"name": "Liam", "grade": "C"},
+      {"name": "Noah", "grade": "F"},
+      {"name": "Olivia", "grade": "B"}
+    ]
+  },
+  {
+    "name": "Safe JSON Parse with Try-Catch",
+    "description": "Takes an array of raw strings, tries to parse each as JSON, falls back to a wrapped error object on failure, then filters only successfully parsed items.",
+    "expression": ". | .payloads | map(try fromjson catch {error: \"parse_failed\"}) | map(select(has(\"error\") | not))",
+    "input": {
+      "payloads": [
+        "{\"id\": 1, \"status\": \"ok\"}",
+        "not valid json",
+        "{\"id\": 2, \"status\": \"ok\"}",
+        "{broken",
+        "{\"id\": 3, \"status\": \"done\"}"
+      ]
+    },
+    "expected_output": [
+      {"id": 1, "status": "ok"},
+      {"id": 2, "status": "ok"},
+      {"id": 3, "status": "done"}
+    ]
+  },
+  {
+    "name": "Variable Binding with Nested Object",
+    "description": "Binds a label into a variable, multiplies two numeric fields per item, sums them, derives a secondary value, builds a nested summary object.",
+    "expression": ". | .source as $src | .items | map(.weight * .count) | add as $base | $base * 0.1 as $extra | {summary: {source: $src, base: $base, extra: $extra, total: $base + $extra, item_count: . | length}}",
+    "input": {
+      "source": "batch-7",
+      "items": [
+        {"label": "alpha", "weight": 25, "count": 4},
+        {"label": "beta", "weight": 50, "count": 2},
+        {"label": "gamma", "weight": 10, "count": 10}
+      ]
+    },
+    "expected_output": {
+      "summary": {
+        "source": "batch-7",
+        "base": 300,
+        "extra": 30,
+        "total": 330,
+        "item_count": 3
+      }
+    }
+  },
+  {
+    "name": "Custom Function with Conditional Logic",
+    "description": "Declares a clamp function using if-elif-else, applies it to normalize all scores in a dataset to 0-100 range.",
+    "expression": "def clamp(lo; hi): if . < lo then lo elif . > hi then hi else . end;\ndef clampScore: clamp(0; 100);\n\n. | .scores | map(clampScore)",
+    "input": {
+      "scores": [-15, 42, 108, 73, 0, 100, 255, -3, 88]
+    },
+    "expected_output": [0, 42, 100, 73, 0, 100, 100, 0, 88]
+  },
+  {
+    "name": "Text Analytics Pipeline",
+    "description": "Takes raw text, splits into words, normalizes to lowercase, removes short words, deduplicates, sorts, and joins back.",
+    "expression": ". | .text | split(\" \") | map(ascii_downcase) | map(select(length > 2)) | unique | sort | join(\", \")",
+    "input": {
+      "text": "The Quick Brown Fox Jumps Over The Lazy Dog the fox"
+    },
+    "expected_output": "brown, dog, fox, jumps, lazy, over, quick, the"
+  },
+  {
+    "name": "Nested Conditional with Try-Catch and Operators",
+    "description": "Processes a config value: tries numeric conversion, classifies as high/medium/low with nested conditional, falls back to alternative operator on error.",
+    "expression": ". | .entries | map({key: .key, rating: try (if (.value | tonumber) >= 100 then \"high\" elif (.value | tonumber) >= 50 then \"medium\" else \"low\" end) catch \"invalid\"}) | sort_by(.key)",
+    "input": {
+      "entries": [
+        {"key": "alpha", "value": "150"},
+        {"key": "beta", "value": "not_a_number"},
+        {"key": "gamma", "value": "42"},
+        {"key": "delta", "value": "75"}
+      ]
+    },
+    "expected_output": [
+      {"key": "alpha", "rating": "high"},
+      {"key": "beta", "rating": "invalid"},
+      {"key": "delta", "rating": "medium"},
+      {"key": "gamma", "rating": "low"}
+    ]
+  },
+  {
+    "name": "Multi-Function Declaration with Chained Usage",
+    "description": "Declares two helper functions (one uses a conditional), then chains them in a pipeline transforming a list of records.",
+    "expression": "def formatValue: if . >= 1000 then tostring + \"K\" else tostring end;\ndef tag(_label): {label: _label, value: .};\n\n. | .records | map({name: .name, value: .value | formatValue, status: if .level > 0 then \"active\" else \"idle\" end}) | sort_by(.name)",
+    "input": {
+      "records": [
+        {"name": "alpha", "value": 1200, "level": 5},
+        {"name": "beta", "value": 25, "level": 0},
+        {"name": "gamma", "value": 800, "level": 12},
+        {"name": "delta", "value": 75, "level": 3}
+      ]
+    },
+    "expected_output": [
+      {"name": "alpha", "value": "1200K", "status": "active"},
+      {"name": "beta", "value": "25", "status": "idle"},
+      {"name": "delta", "value": "75", "status": "active"},
+      {"name": "gamma", "value": "800", "status": "active"}
+    ]
+  },
+  {
+    "name": "Event Log Aggregator",
+    "description": "Processes event logs: filters by date range using comparison operators, groups by event type, counts and extracts unique users per group.",
+    "expression": ". | .events | map(select(.timestamp >= 1000 and .timestamp <= 2000)) | group_by(.type) | map({type: .[0].type, count: length, users: map(.user) | unique | sort})",
+    "input": {
+      "events": [
+        {"type": "click", "user": "alice", "timestamp": 1500},
+        {"type": "view", "user": "bob", "timestamp": 500},
+        {"type": "click", "user": "bob", "timestamp": 1200},
+        {"type": "click", "user": "alice", "timestamp": 1800},
+        {"type": "view", "user": "alice", "timestamp": 1100},
+        {"type": "submit", "user": "carol", "timestamp": 1900},
+        {"type": "view", "user": "carol", "timestamp": 2500}
+      ]
+    },
+    "expected_output": [
+      {"type": "click", "count": 3, "users": ["alice", "bob"]},
+      {"type": "submit", "count": 1, "users": ["carol"]},
+      {"type": "view", "count": 1, "users": ["alice"]}
+    ]
+  },
+  {
+    "name": "API Response Normalizer",
+    "description": "Normalizes messy API data: safe field access with try-catch, string cleanup with gsub, conditional type coercion, builds clean output objects.",
+    "expression": "def cleanName(): gsub(\"[^a-zA-Z ]\"; \"\") | ascii_downcase;\n\n. | .records | map({id: .id, name: try (.name | cleanName) catch \"unknown\", value: if (.value | type) == \"string\" then try (.value | tonumber) catch 0 else .value end, valid: has(\"id\") and has(\"name\")}) | map(select(.valid == true)) | sort_by(.id)",
+    "input": {
+      "records": [
+        {"id": 1, "name": "John!!Doe##", "value": "42"},
+        {"id": 2, "name": "Jane@Smith$", "value": 99},
+        {"id": 3, "value": "broken"},
+        {"id": 4, "name": "Bob***W", "value": "not_num"}
+      ]
+    },
+    "expected_output": [
+      {"id": 1, "name": "johndoe", "value": 42, "valid": true},
+      {"id": 2, "name": "janesmith", "value": 99, "valid": true},
+      {"id": 4, "name": "bobw", "value": 0, "valid": true}
+    ]
+  },
+  {
+    "name": "Statistics Calculator",
+    "description": "Computes multiple statistics on a numeric array: count, sum, mean, min, max, sorted values, all combined into one result object using variables.",
+    "expression": ". | .values | sort as $sorted | length as $count | add as $sum | {count: $count, sum: $sum, mean: $sum / $count, min: $sorted | first(.[])}",
+    "input": {
+      "values": [45, 12, 78, 34, 90, 23, 56, 67]
+    },
+    "expected_output": {
+      "count": 8,
+      "sum": 405,
+      "mean": 50.625,
+      "min": 12
+    }
+  },
+  {
+    "name": "Config Merger with Defaults",
+    "description": "Merges user config with defaults using alternative operator, validates required fields with conditional, builds final config.",
+    "expression": ". | {host: .config.host // \"localhost\", port: .config.port // 8080, debug: .config.debug // false, name: if has(\"config\") and (.config | has(\"name\")) then .config.name else \"unnamed-service\" end, env: if .config.port == 443 then \"production\" else \"development\" end}",
+    "input": {
+      "config": {
+        "host": "api.example.com",
+        "port": 443,
+        "name": "my-api"
+      }
+    },
+    "expected_output": {
+      "host": "api.example.com",
+      "port": 443,
+      "debug": false,
+      "name": "my-api",
+      "env": "production"
+    }
+  },
+  {
+    "name": "Nested Data Flattener",
+    "description": "Processes nested department/team/member structure: flattens, transforms, filters by regex, and builds a flat roster.",
+    "expression": ". | .departments | map(.teams | map({dept: .dept, team: .team, members: .members | map(select(.email | test(\"@company\\\\.com$\"))) | map(.name) | sort})) | map(map(select(.members | length > 0)))",
+    "input": {
+      "departments": [
+        {
+          "teams": [
+            {"dept": "eng", "team": "backend", "members": [
+              {"name": "Alice", "email": "alice@company.com"},
+              {"name": "Bob", "email": "bob@external.com"}
+            ]},
+            {"dept": "eng", "team": "frontend", "members": [
+              {"name": "Carol", "email": "carol@company.com"},
+              {"name": "Dave", "email": "dave@company.com"}
+            ]}
+          ]
+        },
+        {
+          "teams": [
+            {"dept": "sales", "team": "enterprise", "members": [
+              {"name": "Eve", "email": "eve@external.com"}
+            ]}
+          ]
+        }
+      ]
+    },
+    "expected_output": [
+      [
+        {"dept": "eng", "team": "backend", "members": ["Alice"]},
+        {"dept": "eng", "team": "frontend", "members": ["Carol", "Dave"]}
+      ],
+      []
+    ]
+  },
+  {
+    "name": "Threshold Deficit Report",
+    "description": "Compares each record's level to its target with a helper function, computes the deficit, flags depleted records, filters positives, sorts by level.",
+    "expression": "def deficit(target): if . >= target then 0 else target - . end;\n\n. | .entries | map(.target as $t | {key: .name, level: .level, gap: (.level | deficit($t)), depleted: if .level == 0 then true else false end}) | map(select(.gap > 0)) | sort_by(.level)",
+    "input": {
+      "entries": [
+        {"name": "alpha", "level": 500, "target": 100},
+        {"name": "beta", "level": 20, "target": 200},
+        {"name": "gamma", "level": 0, "target": 150},
+        {"name": "delta", "level": 75, "target": 300},
+        {"name": "epsilon", "level": 1000, "target": 500}
+      ]
+    },
+    "expected_output": [
+      {"key": "gamma", "level": 0, "gap": 150, "depleted": true},
+      {"key": "beta", "level": 20, "gap": 180, "depleted": false},
+      {"key": "delta", "level": 75, "gap": 225, "depleted": false}
+    ]
+  },
+  {
+    "name": "Full Pipeline: Parse, Validate, Transform, Summarize",
+    "description": "Complete data pipeline: parses JSON strings with try-catch, validates with conditional + has, normalizes names, computes totals with variables, builds final report.",
+    "expression": "def normalize(): ascii_downcase | gsub(\" \"; \"_\");\n\n. | .raw_records | map(try fromjson catch {error: true}) | map(select(has(\"error\") | not)) | map(select(has(\"name\") and has(\"amount\"))) | map({name: .name | normalize, amount: .amount}) | sort_by(.name) | map(.amount) | add as $total | {total: $total, count: length}",
+    "input": {
+      "raw_records": [
+        "{\"name\": \"Alice Smith\", \"amount\": 150}",
+        "INVALID JSON",
+        "{\"name\": \"Bob Jones\", \"amount\": 200}",
+        "{\"noname\": true}",
+        "{\"name\": \"Carol White\", \"amount\": 350}"
+      ]
+    },
+    "expected_output": {
+      "total": 700,
+      "count": 3
+    }
+  },
+  {
+    "name": "Nested Aggregation with Tier Classification",
+    "description": "Threads a label variable, sums an adjusted product across nested groups, classifies the total with a helper function, builds a summary object.",
+    "expression": "def classify: if . >= 500 then \"high\" elif . >= 200 then \"mid\" else \"low\" end;\n\n. | .source as $src | .groups | map(.parts | map((.adjust // 0) as $a | .weight * .count * (1 - $a)) | add) | add as $total | length as $count | {source: $src, group_count: $count, sum_total: $total, average: $total / $count, tier: $total | classify}",
+    "input": {
+      "source": "batch-3",
+      "groups": [
+        {"parts": [{"weight": 100, "count": 2, "adjust": 0.1}, {"weight": 50, "count": 3}]},
+        {"parts": [{"weight": 200, "count": 1, "adjust": 0.2}, {"weight": 30, "count": 5}]}
+      ]
+    },
+    "expected_output": {
+      "source": "batch-3",
+      "group_count": 2,
+      "sum_total": 640,
+      "average": 320,
+      "tier": "high"
+    }
+  },
+  {
+    "name": "Nested Try-Catch with Type Guards",
+    "description": "Processes heterogeneous data types: outer try-catch wraps an inner conditional with type checks, inner try-catch handles string-to-number conversion failures, filters null values.",
+    "expression": ". | .records | map({id: .id, value: try (if (.raw | type) == \"string\" then try (.raw | tonumber) catch -1 elif (.raw | type) == \"number\" then .raw else null end) catch null}) | map(select(.value != null)) | sort_by(.id)",
+    "input": {
+      "records": [
+        {"id": 1, "raw": "42"},
+        {"id": 2, "raw": "bad"},
+        {"id": 3, "raw": 99},
+        {"id": 4, "raw": true},
+        {"id": 5, "raw": "7.5"}
+      ]
+    },
+    "expected_output": [
+      {"id": 1, "value": 42},
+      {"id": 2, "value": -1},
+      {"id": 3, "value": 99},
+      {"id": 5, "value": 7.5}
+    ]
+  },
+  {
+    "name": "Chained Function Declarations with Variable Threading",
+    "description": "Two function declarations (classify with 4-branch elif, scale with arithmetic pipe to floor), variable binding inside map, piped function calls as object values.",
+    "expression": "def classify: if . >= 90 then \"excellent\" elif . >= 70 then \"good\" elif . >= 50 then \"average\" else \"poor\" end;\ndef scale(factor): . * factor | floor;\n\n. | .students | map(.weight as $w | {name: .name, adjusted: .score | scale($w), grade: .score | scale($w) | classify}) | sort_by(.name)",
+    "input": {
+      "students": [
+        {"name": "Alice", "score": 82, "weight": 1.1},
+        {"name": "Bob", "score": 65, "weight": 0.9},
+        {"name": "Carol", "score": 91, "weight": 1.0},
+        {"name": "Dave", "score": 48, "weight": 1.2}
+      ]
+    },
+    "expected_output": [
+      {"name": "Alice", "adjusted": 90, "grade": "excellent"},
+      {"name": "Bob", "adjusted": 58, "grade": "average"},
+      {"name": "Carol", "adjusted": 91, "grade": "excellent"},
+      {"name": "Dave", "adjusted": 57, "grade": "average"}
+    ]
+  },
+  {
+    "name": "Group Aggregation with Sorted Labels",
+    "description": "Groups records by a key, computes count and sum per group, collects and sorts labels into a joined string, filters small groups, sorts by key.",
+    "expression": ". | .records | group_by(.group) | map({group: .[0].group, count: length, sum: map(.value) | add, tags: map(.tag) | sort | join(\", \")}) | map(select(.count >= 2)) | sort_by(.group)",
+    "input": {
+      "records": [
+        {"group": "blue", "value": 32, "tag": "lunch"},
+        {"group": "green", "value": 299, "tag": "keyboard"},
+        {"group": "blue", "value": 18, "tag": "coffee"},
+        {"group": "green", "value": 899, "tag": "monitor"},
+        {"group": "blue", "value": 45, "tag": "dinner"},
+        {"group": "red", "value": 25, "tag": "novel"}
+      ]
+    },
+    "expected_output": [
+      {"group": "blue", "count": 3, "sum": 95, "tags": "coffee, dinner, lunch"},
+      {"group": "green", "count": 2, "sum": 1198, "tags": "keyboard, monitor"}
+    ]
+  },
+  {
+    "name": "Triple AND with OR Conditional",
+    "description": "Triple AND operator chain in select filter, OR combined with AND in conditional condition, four comparison operators (>=, <=, <, ==), multi-branch conditional classification.",
+    "expression": ". | .sensors | map(select(.value >= 10 and .value <= 90 and .active == true)) | map({id: .id, value: .value, level: if .value >= 70 or (.value >= 50 and .priority == \"high\") then \"critical\" elif .value >= 30 and .value < 70 then \"warning\" else \"normal\" end}) | sort_by(.id)",
+    "input": {
+      "sensors": [
+        {"id": "s1", "value": 85, "active": true, "priority": "low"},
+        {"id": "s2", "value": 5, "active": true, "priority": "high"},
+        {"id": "s3", "value": 55, "active": true, "priority": "high"},
+        {"id": "s4", "value": 45, "active": false, "priority": "low"},
+        {"id": "s5", "value": 25, "active": true, "priority": "low"},
+        {"id": "s6", "value": 60, "active": true, "priority": "low"}
+      ]
+    },
+    "expected_output": [
+      {"id": "s1", "value": 85, "level": "critical"},
+      {"id": "s3", "value": 55, "level": "critical"},
+      {"id": "s5", "value": 25, "level": "normal"},
+      {"id": "s6", "value": 60, "level": "warning"}
+    ]
+  },
+  {
+    "name": "Slug Generator with Alternative Defaults",
+    "description": "Function declaration with multi-pipe body (ascii_downcase piped to gsub), alternative operator for fallback defaults, string splitting for word count, select filter.",
+    "expression": "def slugify: ascii_downcase | gsub(\"[^a-z0-9]\"; \"-\");\n\n. | .articles | map({slug: .title | slugify, author: .author // \"anonymous\", words: .body | split(\" \") | length, published: .published // false}) | map(select(.words >= 3)) | sort_by(.slug)",
+    "input": {
+      "articles": [
+        {"title": "Hello World", "author": "Alice", "body": "This is a test article", "published": true},
+        {"title": "My Post", "body": "Short post here today"},
+        {"title": "Tech Review", "author": "Carol", "body": "A great year for tech innovations and discoveries", "published": false},
+        {"title": "Quick Note", "body": "Hi"}
+      ]
+    },
+    "expected_output": [
+      {"slug": "hello-world", "author": "Alice", "words": 5, "published": true},
+      {"slug": "my-post", "author": "anonymous", "words": 4, "published": false},
+      {"slug": "tech-review", "author": "Carol", "words": 8, "published": false}
+    ]
+  },
+  {
+    "name": "Full Kitchen Sink Pipeline",
+    "description": "Combines function declaration with parameter, try-catch for safe conversion, AND operator in select, variable binding in map, ascii_downcase, tonumber, group_by, nested object in map, sort_by at multiple levels.",
+    "expression": "def badge(threshold): if . >= threshold then \"star\" else \"none\" end;\n\n. | .employees | map(select(has(\"name\") and has(\"department\"))) | map(.department as $dept | {name: .name | ascii_downcase, dept: $dept, score: try (.rating | tonumber) catch 0, badge: try (.rating | tonumber | badge(80)) catch \"none\"}) | group_by(.dept) | map({dept: .[0].dept, size: length, members: map({name: .name, badge: .badge}) | sort_by(.name)}) | sort_by(.dept)",
+    "input": {
+      "employees": [
+        {"name": "ALICE", "department": "eng", "rating": "92"},
+        {"name": "BOB", "department": "eng", "rating": "bad"},
+        {"name": "CAROL", "department": "sales", "rating": "78"},
+        {"name": "DAVE", "department": "eng", "rating": "85"},
+        {"name": "EVE", "department": "sales"},
+        {"department": "ops", "rating": "90"}
+      ]
+    },
+    "expected_output": [
+      {
+        "dept": "eng",
+        "size": 3,
+        "members": [
+          {"name": "alice", "badge": "star"},
+          {"name": "bob", "badge": "none"},
+          {"name": "dave", "badge": "star"}
+        ]
+      },
+      {
+        "dept": "sales",
+        "size": 2,
+        "members": [
+          {"name": "carol", "badge": "none"},
+          {"name": "eve", "badge": "none"}
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Hierarchical Access Control with Deep Conditionals",
+    "description": "3-level nested if/elif/else conditionals, 3 as-variable bindings, pipe chain inside comparison operand ($cfg | .strict), AND operator joining two comparisons, complex role-based access matrix.",
+    "expression": ". | .config as $cfg | .users | map(.age as $age | .role as $role | {name: .name, clearance: (if $role == \"admin\" then (if $age >= 30 then \"top_secret\" elif $age >= 25 then \"secret\" else \"confidential\" end) elif $role == \"manager\" then (if ($cfg | .strict) == true then \"confidential\" else \"secret\" end) else (if $age >= 21 and .active == true then \"basic\" elif $age >= 21 then \"revoked\" else \"none\" end) end)}) | sort_by(.name)",
+    "input": {
+      "config": {"strict": true},
+      "users": [
+        {"name": "Alice", "age": 35, "role": "admin", "active": true},
+        {"name": "Bob", "age": 24, "role": "admin", "active": true},
+        {"name": "Carol", "age": 40, "role": "manager", "active": true},
+        {"name": "Dave", "age": 28, "role": "user", "active": false},
+        {"name": "Eve", "age": 19, "role": "user", "active": true},
+        {"name": "Frank", "age": 22, "role": "user", "active": true}
+      ]
+    },
+    "expected_output": [
+      {"name": "Alice", "clearance": "top_secret"},
+      {"name": "Bob", "clearance": "confidential"},
+      {"name": "Carol", "clearance": "confidential"},
+      {"name": "Dave", "clearance": "revoked"},
+      {"name": "Eve", "clearance": "none"},
+      {"name": "Frank", "clearance": "basic"}
+    ]
+  },
+  {
+    "name": "Multi-Stage Text Processor",
+    "description": "Function declaration with gsub pipe body, ascii_downcase, ascii_upcase, alternative operator for missing fields, split+select+length for word counting, unique+sort+join for tag deduplication, map inside object construction.",
+    "expression": "def normalize: ascii_downcase | gsub(\"[^a-z0-9 ]\"; \"-\");\n\n. | .documents | map({title: .title | normalize, tags: .tags | map(ascii_downcase) | unique | sort | join(\", \"), words: .body | split(\" \") | map(select(length > 0)) | length, source: (.source // \"unknown\") | ascii_upcase}) | map(select(.words >= 3)) | sort_by(.title)",
+    "input": {
+      "documents": [
+        {"title": "Hello World", "tags": ["Tech", "INTRO", "tech"], "body": "This is a sample document here", "source": "blog"},
+        {"title": "Quick Note", "tags": ["Memo"], "body": "Hi", "source": "email"},
+        {"title": "Data Report 2024", "tags": ["Data", "Report", "data"], "body": "Quarterly data analysis for the full year period"},
+        {"title": "My Review", "tags": ["Review", "opinion"], "body": "Great product highly recommend it", "source": "forum"}
+      ]
+    },
+    "expected_output": [
+      {"title": "data report 2024", "tags": "data, report", "words": 8, "source": "UNKNOWN"},
+      {"title": "hello world", "tags": "intro, tech", "words": 6, "source": "BLOG"},
+      {"title": "my review", "tags": "opinion, review", "words": 5, "source": "FORUM"}
+    ]
+  },
+  {
+    "name": "Capacity Tracker with Modulo Arithmetic",
+    "description": "4 sequential as-variable bindings with cross-references, modulo operator in conditional, floor on division chains, per-item average computation, percentage calculation inline, status classification using variable comparisons.",
+    "expression": ". | .capacity as $cap | .loads | length as $count | map(.size) | add as $used | ($cap - $used) as $free | {capacity: $cap, count: $count, used: $used, free: $free, pct: (($used * 100 / $cap) | floor), per_item: (($used / $count) | floor), status: (if $free < 0 then \"over\" elif $free < ($cap / 10) then \"critical\" elif $free < ($cap / 4) then \"warning\" else \"healthy\" end), even_split: (if ($used % $count) == 0 then true else false end)}",
+    "input": {
+      "capacity": 5000,
+      "loads": [
+        {"name": "alpha", "size": 1500},
+        {"name": "beta", "size": 800},
+        {"name": "gamma", "size": 400},
+        {"name": "delta", "size": 300}
+      ]
+    },
+    "expected_output": {
+      "capacity": 5000,
+      "count": 4,
+      "used": 3000,
+      "free": 2000,
+      "pct": 60,
+      "per_item": 750,
+      "status": "healthy",
+      "even_split": true
+    }
+  },
+  {
+    "name": "Try-Catch Fallback Pipeline with Alternative Operator",
+    "description": "Try-catch with alternative (//) operator for fallback chains, fromjson for JSON parsing, tonumber with chained //, keys+length on parsed data, type check combined with has using AND operator with pipe chains in both operands, two sequential maps with select filter.",
+    "expression": ". | .entries | map({id: .id, data: ((try (.json | fromjson) catch null) // (try (.backup | fromjson) catch null)), num: ((try (.val | tonumber) catch null) // (try (.alt | tonumber) catch null) // -1), keys: (try (.json | fromjson | keys | length) catch 0)}) | map(select(.data != null)) | map({id: .id, data: .data, num: .num, keys: .keys, kind: (if (.data | type) == \"object\" and (.data | has(\"name\")) then \"named\" elif .keys > 0 then \"rich\" else \"simple\" end)}) | sort_by(.id)",
+    "input": {
+      "entries": [
+        {"id": 1, "json": "{\"name\": \"alpha\", \"v\": 1}", "val": "100"},
+        {"id": 2, "json": "bad", "backup": "{\"v\": 2}", "val": "abc", "alt": "50"},
+        {"id": 3, "json": "bad", "backup": "also_bad", "val": "25"},
+        {"id": 4, "json": "[1, 2, 3]", "val": "abc", "alt": "xyz"},
+        {"id": 5, "json": "{\"status\": \"ok\"}", "val": "75"}
+      ]
+    },
+    "expected_output": [
+      {"id": 1, "data": {"name": "alpha", "v": 1}, "num": 100, "keys": 2, "kind": "named"},
+      {"id": 2, "data": {"v": 2}, "num": 50, "keys": 0, "kind": "simple"},
+      {"id": 4, "data": [1, 2, 3], "num": -1, "keys": 3, "kind": "rich"},
+      {"id": 5, "data": {"status": "ok"}, "num": 75, "keys": 1, "kind": "rich"}
+    ]
+  },
+  {
+    "name": "Deduplicated Aggregation with Modulo Functions",
+    "description": "Two function declarations (parity using modulo operator, class using elif chain), unique_by for deduplication, min_by and max_by for extremes, as-variable for intermediate computed array, pipe chains inside object values, sort_by on final output.",
+    "expression": "def parity: if . % 2 == 0 then \"even\" else \"odd\" end;\ndef classify: if . >= 100 then \"large\" elif . >= 10 then \"medium\" else \"small\" end;\n\n. | .records | unique_by(.key) | length as $total | map({key: .key, value: .value, class: .value | classify, parity: .value | parity}) as $processed | {total: $total, min_value: ($processed | min_by(.value) | .value), max_value: ($processed | max_by(.value) | .value), entries: ($processed | sort_by(.key))}",
+    "input": {
+      "records": [
+        {"key": "A1", "value": 150},
+        {"key": "B2", "value": 5},
+        {"key": "A1", "value": 150},
+        {"key": "C3", "value": 42},
+        {"key": "D4", "value": 8},
+        {"key": "B2", "value": 5}
+      ]
+    },
+    "expected_output": {
+      "total": 4,
+      "min_value": 5,
+      "max_value": 150,
+      "entries": [
+        {"key": "A1", "value": 150, "class": "large", "parity": "even"},
+        {"key": "B2", "value": 5, "class": "small", "parity": "odd"},
+        {"key": "C3", "value": 42, "class": "medium", "parity": "even"},
+        {"key": "D4", "value": 8, "class": "small", "parity": "even"}
+      ]
+    }
+  },
+  {
+    "name": "Commented Filter Pipeline",
+    "description": "Simple pipeline with standalone comments between each filtering and sorting stage.",
+    "expression": ". | .users\n# Filter active users only\n| map(select(.active == true))\n# Sort alphabetically\n| sort_by(.name)\n# Extract just the names\n| map(.name)",
+    "input": {
+      "users": [
+        {"name": "Charlie", "active": true},
+        {"name": "Alice", "active": false},
+        {"name": "Bob", "active": true}
+      ]
+    },
+    "expected_output": ["Bob", "Charlie"]
+  },
+  {
+    "name": "Arithmetic Pipeline with Comments",
+    "description": "Arithmetic pipeline with comments explaining each transformation stage.",
+    "expression": ". | .items\n# Multiply the two factors for each item\n| map(.value * .weight)\n# Compute summary statistics\n| {total: add, count: length}",
+    "input": {
+      "items": [
+        {"value": 10, "weight": 3},
+        {"value": 20, "weight": 4},
+        {"value": 30, "weight": 2}
+      ]
+    },
+    "expected_output": {"total": 170, "count": 3}
+  },
+  {
+    "name": "Conditional Classification with Comments",
+    "description": "Stores input fields in variables with comments, applies conditional grade classification.",
+    "expression": "# Extract student info\n. | .name as $name\n# Store the score for grading\n| .score as $s\n# Apply grade classification thresholds\n| {name: $name, grade: (if $s >= 90 then \"A\" elif $s >= 80 then \"B\" elif $s >= 70 then \"C\" else \"F\" end)}",
+    "input": {"name": "Alice", "score": 85},
+    "expected_output": {"name": "Alice", "grade": "B"}
+  },
+  {
+    "name": "Multiline Comment Header",
+    "description": "Multiline comment block (consecutive # lines) at the top, followed by a data processing pipeline.",
+    "expression": "# Data Processing Pipeline\n# Transforms raw sensor readings\n# into a clean summary report\n. | .readings\n| map(select(. > 0))\n| sort\n| {min: .[0], max: .[-1], count: length}",
+    "input": {
+      "readings": [5, -2, 8, 0, 3, -1, 7]
+    },
+    "expected_output": {"min": 3, "max": 8, "count": 4}
+  },
+  {
+    "name": "Try-Catch with Comments",
+    "description": "Try-catch conversion pipeline with comments explaining each transformation stage.",
+    "expression": ". | .values\n# Try to convert strings to numbers, default to 0\n| map(try tonumber catch 0)\n# Remove failed conversions (zeros)\n| map(select(. > 0))\n# Sort ascending\n| sort",
+    "input": {
+      "values": ["42", "bad", "7", "nope", "15"]
+    },
+    "expected_output": [7, 15, 42]
+  },
+  {
+    "name": "Function Declaration with Commented Main Flow",
+    "description": "Function declaration followed by a commented main flow pipeline using the custom function.",
+    "expression": "def double: . * 2;\n\n# Apply double to each value\n. | .nums\n# Double every number\n| map(double)\n# Sort the results\n| sort",
+    "input": {
+      "nums": [3, 1, 4, 1, 5]
+    },
+    "expected_output": [2, 2, 6, 8, 10]
+  },
+  {
+    "name": "Mixed Inline and Standalone Comments",
+    "description": "Mix of inline comments (after expression) and standalone comment lines in the same pipeline.",
+    "expression": ". | .data # raw input data\n# Filter by minimum threshold\n| map(select(.value >= 10))\n| sort_by(.id) # sort by identifier\n# Build clean output\n| map({id: .id, val: .value})",
+    "input": {
+      "data": [
+        {"id": "c", "value": 5},
+        {"id": "a", "value": 15},
+        {"id": "b", "value": 25},
+        {"id": "d", "value": 3}
+      ]
+    },
+    "expected_output": [
+      {"id": "a", "val": 15},
+      {"id": "b", "val": 25}
+    ]
+  },
+  {
+    "name": "Group-By Aggregation with Comments",
+    "description": "Grouping pipeline with comments explaining the group-by, summarization, and sorting stages.",
+    "expression": ". | .records\n# Group records by state\n| group_by(.state)\n# Build summary per group\n| map({state: .[0].state, count: length, total: map(.value) | add})\n# Sort by state name\n| sort_by(.state)",
+    "input": {
+      "records": [
+        {"state": "open", "value": 100},
+        {"state": "closed", "value": 50},
+        {"state": "open", "value": 200},
+        {"state": "closed", "value": 75}
+      ]
+    },
+    "expected_output": [
+      {"state": "closed", "count": 2, "total": 125},
+      {"state": "open", "count": 2, "total": 300}
+    ]
+  },
+  {
+    "name": "Multiple Multiline Comment Blocks",
+    "description": "Pipeline with two separate multiline comment blocks (consecutive # lines) at different positions.",
+    "expression": "# Stage 1: Extract data\n# from the input object\n. | .records\n# Stage 2: Scale each value\n# and rebuild the objects\n| map({name: .name, value: (.value * 0.9)})\n| map(select(.value < 50))\n| sort_by(.name)",
+    "input": {
+      "records": [
+        {"name": "Widget", "value": 40},
+        {"name": "Gadget", "value": 60},
+        {"name": "Gizmo", "value": 20}
+      ]
+    },
+    "expected_output": [
+      {"name": "Gizmo", "value": 18},
+      {"name": "Widget", "value": 36}
+    ]
+  },
+  {
+    "name": "Tag Normalizer with Comments",
+    "description": "Tag processing pipeline with inline comments on most stages and standalone comments between others.",
+    "expression": ". | .tags # raw tag list\n| map(ascii_downcase) # normalize case\n# Remove duplicates\n| unique\n# Sort alphabetically\n| sort\n# Join into comma-separated string\n| join(\", \")",
+    "input": {
+      "tags": ["Python", "JAVA", "python", "Go", "java", "Rust"]
+    },
+    "expected_output": "go, java, python, rust"
+  },
+  {
+    "name": "Conditional with Piped Condition and Branch",
+    "description": "Unparenthesised pipes inside an if condition and inside its then branch, bounded by the conditional's own if/end keywords.",
+    "expression": ". | if .items | length > 0 then .items | map(.name) | sort else \"empty\" end",
+    "input": {
+      "items": [{"name": "zoe"}, {"name": "amy"}]
+    },
+    "expected_output": ["amy", "zoe"]
+  },
+  {
+    "name": "Nested Conditional Without Parentheses",
+    "description": "Conditional nested directly in a then branch, matched by its own if/end keywords.",
+    "expression": ". | if .a then if .b then \"ab\" else \"a\" end else \"none\" end",
+    "input": {"a": true, "b": false},
+    "expected_output": "a"
+  },
+  {
+    "name": "Comment Inside a Conditional Branch",
+    "description": "Comment written inside a then branch, which stays in that branch across the round-trip.",
+    "expression": "if .c then\n  .a # keep the branch note here\n| length\nelse\n  \"fallback\"\nend",
+    "input": {"c": true, "a": "hello"},
+    "expected_output": 5
+  },
+  {
+    "name": "Nested Semicolon Arguments",
+    "description": "Function call with its own ';' arguments nested inside another call's argument list.",
+    "expression": ". | .words | map(gsub(\"[^a-z]\"; \"\"))",
+    "input": {
+      "words": ["a1b2", "c3d"]
+    },
+    "expected_output": ["ab", "cd"]
+  },
+  {
+    "name": "Keyword-Named Object Keys",
+    "description": "Object keys written as the jq keywords 'start' and 'end', with the pipeline continuing past the closing brace.",
+    "expression": ". | .events | map({start: .s, end: .e}) | map(.end - .start) | add",
+    "input": {
+      "events": [{"s": 1, "e": 4}, {"s": 10, "e": 12}]
+    },
+    "expected_output": 5
+  },
+  {
+    "name": "Keyword-Named Key Inside a Conditional Branch",
+    "description": "Conditional whose branches each build an object keyed by the jq keyword 'end', so the branch boundaries survive the keys.",
+    "expression": "if .done then {end: .at, status: \"closed\"} else {end: null, status: \"open\"} end",
+    "input": {"done": true, "at": 9},
+    "expected_output": {"end": 9, "status": "closed"}
+  },
+  {
+    "name": "Comment After an Object Field Key",
+    "description": "Comment written between a field key and its colon, which the field's value chain keeps.",
+    "expression": "{\n  name # who the record is\n  : .n\n}",
+    "input": {"n": "ada"},
+    "expected_output": {"name": "ada"}
+  }
+]

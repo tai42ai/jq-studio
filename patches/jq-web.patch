@@ -1,0 +1,22 @@
+diff --git a/jq.js b/jq.js
+index 2d1638ddbeca23d5cefdc8c0b7100a37ee1dc977..7460173efe2a4e87b0e11dbc6b6369a26c955fd3 100644
+--- a/jq.js
++++ b/jq.js
+@@ -4610,13 +4610,9 @@ if (typeof exports === 'object' && typeof module === 'object') {
+   // This default export looks redundant, but it allows TS to import this
+   // commonjs style module.
+   module.exports.default = jq;
++  // Expose the Emscripten factory itself, without invoking it. Callers
++  // instantiate the module with an explicit locateFile, so importing this
++  // file fires no stray (mis-resolved) wasm fetch.
++  module.exports.factory = jq;
+ } else if (typeof define === 'function' && define['amd'])
+   define([], () => jq);
+-jq = jq().then( module => {
+-  return { json: module.json, raw: module.raw };
+-} );
+-
+-if (typeof exports === 'object' && typeof module === 'object')
+-  module.exports = jq;
+-else if (typeof exports === 'object')
+-  exports["jq"] = jq;

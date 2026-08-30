@@ -1,0 +1,28 @@
+@tai42/jq-studio
+Copyright 2026 tai42
+
+This product includes software developed at tai42 (https://tai42.ai).
+Licensed under the Apache License, Version 2.0.
+
+--------------------------------------------------------------------------------
+Third-party components bundled in the distributed artifact
+--------------------------------------------------------------------------------
+
+This product bundles jq-web (https://github.com/fiatjaf/jq-web), a WebAssembly
+build of jq, together with the compiled `jq.wasm` module. The full text of every
+notice referenced below is reproduced verbatim in the THIRD-PARTY-LICENSES file
+that ships alongside this NOTICE.
+
+1. jq-web glue
+   Copyright (c) 2019 fiatjaf <fiatjaf@gmail.com>
+   Licensed under the ISC License.
+
+2. jq
+   Copyright (C) 2012 Stephen Dolan and contributors
+   Licensed under the MIT License.
+
+3. dtoa.c and g_fmt.c (incorporated into jq)
+   The author of this software is David M. Gay.
+   Copyright (c) 1991, 1996, 2000, 2001 by Lucent Technologies.
+   Distributed under the permissive "AS IS" terms reproduced in
+   THIRD-PARTY-LICENSES.

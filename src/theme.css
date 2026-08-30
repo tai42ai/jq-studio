@@ -1,0 +1,122 @@
+/*
+ * jq-studio's DEFAULT theme: the `--jq-*` design-token contract, light and dark.
+ *
+ * Self-contained — it depends on no other stylesheet. It publishes every token
+ * jq-studio's scoped CSS reads (see the README "Theme contract"), so the editor
+ * paints correctly out of the box. A host that has its own palette REDEFINES any
+ * of these tokens on `:root` or on the `.jq-studio-root` element and jq-studio
+ * follows it; a host that ships no theme keeps this one.
+ *
+ * Dark mode: `prefers-color-scheme` is the DEFAULT, and a `data-theme="light|dark"`
+ * pin on the root (either `:root` or the `.jq-studio-root` element) overrides the
+ * OS in both directions. Tokens are declared on BOTH `:root` and `.jq-studio-root`
+ * so they resolve whether a host themes the document or only the editor subtree.
+ */
+
+:root,
+.jq-studio-root {
+  color-scheme: light dark;
+
+  /* -- Grounds ------------------------------------------------------------ */
+  --jq-color-bg: #ffffff;
+  --jq-color-background: var(--jq-color-bg);
+  --jq-color-surface: #f9fafb;
+  --jq-color-surface-raised: #ffffff;
+  --jq-color-surface-sunken: #eef0f3;
+  --jq-color-code-bg: #f3f4f6;
+
+  /* -- Lines -------------------------------------------------------------- */
+  --jq-color-border: #e5e7eb;
+
+  /* -- Ink ---------------------------------------------------------------- */
+  --jq-color-text: #111827;
+  --jq-color-text-muted: rgba(17, 24, 39, 0.62);
+
+  /* -- Accent / semantic (the `-text` members are legible as text) -------- */
+  --jq-color-primary: #dc143c;
+  --jq-color-primary-text: #ffffff;
+  --jq-color-danger: #b91c1c;
+  --jq-color-danger-text: #ffffff;
+  --jq-color-success: #047857;
+  --jq-color-warning: #92400e;
+
+  /* -- Focus -------------------------------------------------------------- */
+  --jq-color-focus-ring: var(--jq-color-primary);
+
+  /* -- Spacing (n x 4) ---------------------------------------------------- */
+  --jq-space-1: 0.25rem; /* 4px */
+  --jq-space-2: 0.5rem; /* 8px */
+  --jq-space-3: 0.75rem; /* 12px */
+  --jq-space-4: 1rem; /* 16px */
+
+  /* -- Radius ------------------------------------------------------------- */
+  --jq-radius-sm: 4px;
+  --jq-radius-md: 8px;
+  --jq-radius-full: 999px;
+
+  /* -- Type --------------------------------------------------------------- */
+  --jq-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --jq-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  --jq-text-lg: 0.9375rem; /* 15px */
+  --jq-text-md: 0.84375rem; /* 13.5px */
+  --jq-text-sm: 0.78125rem; /* 12.5px */
+  --jq-text-code: 0.75rem; /* 12px */
+  --jq-text-xs: 0.6875rem; /* 11px */
+
+  /* -- Elevation ---------------------------------------------------------- */
+  --jq-shadow-sm: 0 12px 32px rgb(0 0 0 / 0.08);
+  --jq-shadow-md: 0 24px 48px rgb(0 0 0 / 0.16);
+
+  /* -- Control geometry --------------------------------------------------- */
+  --jq-control-height: 36px;
+
+  /* -- Stacking ----------------------------------------------------------- */
+  --jq-z-dialog: 40;
+}
+
+/* THE DARK HALF. `prefers-color-scheme` is the default; a `data-theme="light"`
+   pin stands the media query down so a viewer's choice wins over the OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']),
+  .jq-studio-root:not([data-theme='light']) {
+    --jq-color-bg: #0c0e12;
+    --jq-color-surface: #12151b;
+    --jq-color-surface-raised: #171c24;
+    --jq-color-surface-sunken: #0d1016;
+    --jq-color-code-bg: #10131a;
+    --jq-color-border: #262c36;
+    --jq-color-text: #e6e8ec;
+    --jq-color-text-muted: rgba(230, 232, 236, 0.64);
+    --jq-color-primary: #ed4c67;
+    --jq-color-primary-text: #0c0e12;
+    --jq-color-danger: #f87171;
+    --jq-color-danger-text: #0c0e12;
+    --jq-color-success: #34d399;
+    --jq-color-warning: #fbbf24;
+  }
+}
+
+/* The viewer's explicit toggle wins over the system preference, both directions. */
+:root[data-theme='light'],
+.jq-studio-root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'],
+.jq-studio-root[data-theme='dark'] {
+  color-scheme: dark;
+  --jq-color-bg: #0c0e12;
+  --jq-color-surface: #12151b;
+  --jq-color-surface-raised: #171c24;
+  --jq-color-surface-sunken: #0d1016;
+  --jq-color-code-bg: #10131a;
+  --jq-color-border: #262c36;
+  --jq-color-text: #e6e8ec;
+  --jq-color-text-muted: rgba(230, 232, 236, 0.64);
+  --jq-color-primary: #ed4c67;
+  --jq-color-primary-text: #0c0e12;
+  --jq-color-danger: #f87171;
+  --jq-color-danger-text: #0c0e12;
+  --jq-color-success: #34d399;
+  --jq-color-warning: #fbbf24;
+}

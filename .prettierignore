@@ -1,0 +1,16 @@
+# Build outputs and artifacts — never formatted.
+node_modules/
+dist/
+coverage/
+pnpm-lock.yaml
+
+# e2e generated output + its own lockfile.
+e2e/test-results/
+e2e/playwright-report/
+e2e/pnpm-lock.yaml
+
+# Fixed jq test assets driven by the corpus/expression tests — kept exactly as
+# shipped, never reformatted.
+src/utils/converters/test-expressions.json
+src/utils/converters/corpus/jq-corpus.json
+src/utils/converters/corpus/jq-corpus.verdicts.json
