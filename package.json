@@ -1,6 +1,6 @@
 {
   "name": "@tai42/jq-studio",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Standalone, embeddable visual jq editor: a node canvas that reads a jq expression into an editable graph and writes it back, round-trip AST converters, a faithfulness guard, and a drop-in JqField — design-system-agnostic, with an injectable primitives seam.",
