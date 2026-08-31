@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/tai42ai/jq-studio/compare/v0.1.2...v0.1.3) (2026-08-31)
+
+
+### Bug Fixes
+
+* return focus to the opener when the built-in dialog closes ([#5](https://github.com/tai42ai/jq-studio/issues/5)) ([abbdfc7](https://github.com/tai42ai/jq-studio/commit/abbdfc7e07a9634422258f482135514f78a038fe))
+
 ## [0.1.2](https://github.com/tai42ai/jq-studio/compare/v0.1.1...v0.1.2) (2026-08-30)
 
 
