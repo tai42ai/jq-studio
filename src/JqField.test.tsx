@@ -446,4 +446,79 @@ describe('JqField', () => {
       expect(onEditorOpenChange.mock.calls).toEqual([[true], [false]]);
     });
   });
+
+  // Focus return (WCAG 2.4.3): closing the visual editor must land focus back on
+  // the door that opened it — never strand it on <body>. The editor and its
+  // discard ConfirmDialog both render on the built-in trigger-less Dialog, so the
+  // built-in's own opener capture/restore is what carries this (a host that
+  // injects its own Dialog owns focus return instead). The STACKED discard route
+  // is the sharp case: the confirm and the editor close in one tick, and the
+  // confirm's opener lived inside the now-unmounting editor — its restore must
+  // no-op so the editor's restore wins and focus lands on the door.
+  describe('focus return on close (WCAG 2.4.3)', () => {
+    const editorReady = async (): Promise<void> => {
+      await waitFor(() => {
+        expect(document.querySelectorAll('.react-flow__node').length).toBeGreaterThan(1);
+      });
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /Save/ })).toBeEnabled();
+      });
+    };
+
+    const makeDirtyEdit = async (): Promise<void> => {
+      const before = document.querySelectorAll('.react-flow__node').length;
+      const logicNode = Array.from(document.querySelectorAll('.react-flow__node')).find(
+        (node) => !node.className.includes('jqStart'),
+      );
+      if (!logicNode) throw new Error('expected a non-Start logic node to delete');
+      const pane = document.querySelector('.react-flow');
+      if (!pane) throw new Error('expected the react-flow pane');
+      fireEvent.click(logicNode);
+      fireEvent.keyDown(pane, { key: 'Backspace' });
+      await waitFor(() => {
+        expect(document.querySelectorAll('.react-flow__node').length).toBeLessThan(before);
+      });
+    };
+
+    /** jsdom does not focus a button on click, so the door is focused explicitly
+     *  before opening — modelling the real interaction that leaves the opener
+     *  focused, which is what the editor captures to restore on close. */
+    const openEditorFromDoor = (): HTMLElement => {
+      const door = screen.getByRole('button', { name: /visual editor/i });
+      door.focus();
+      fireEvent.click(door);
+      return door;
+    };
+
+    it('refocuses the door when a clean editor is closed with Escape', async () => {
+      render(<JqField label="Transform" value=".a" onChange={vi.fn()} />);
+      const door = openEditorFromDoor();
+      await editorReady();
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+      });
+      expect(document.activeElement).toBe(door);
+    });
+
+    it('refocuses the door through the stacked discard-confirm (dirty edit → Cancel → Discard)', async () => {
+      render(<JqField label="Transform" value=".foo" onChange={vi.fn()} />);
+      const door = openEditorFromDoor();
+      await editorReady();
+      await makeDirtyEdit();
+
+      // A genuinely dirty editor guards the close: Cancel raises the discard-confirm.
+      fireEvent.click(screen.getByRole('button', { name: /Cancel/ }));
+      fireEvent.click(await screen.findByRole('button', { name: /Discard/ }));
+
+      // Both dialogs close in one tick; the confirm's opener is inside the
+      // unmounting editor, so only the editor's restore acts — focus lands on the door.
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).toBeNull();
+      });
+      expect(document.activeElement).toBe(door);
+    });
+  });
 });
