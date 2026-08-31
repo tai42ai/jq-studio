@@ -15,7 +15,7 @@ import * as RadixDialog from '@radix-ui/react-dialog';
 import * as RadixSelect from '@radix-ui/react-select';
 import * as RadixTooltip from '@radix-ui/react-tooltip';
 import { Check, ChevronDown, Minus } from 'lucide-react';
-import { useId } from 'react';
+import { useId, useRef } from 'react';
 
 import type {
   AnyButtonProps,
@@ -211,6 +211,43 @@ export function Tooltip({ content, children, delayDuration = 200 }: TooltipProps
 
 // -- Dialog ------------------------------------------------------------------
 
+// Focus return (WCAG 2.4.3). This Dialog is trigger-less and controlled, so Radix's
+// default `onCloseAutoFocus` — `preventDefault(); triggerRef.current?.focus()` —
+// restores focus to a null trigger: it focuses NOTHING and strands focus on
+// `<body>` after close. The built-in editor must never rely on a host for focus
+// return, so the Dialog captures its own opener on open and restores it on close.
+
+/** Snapshot the opener (the focused element the dialog was opened from) plus its
+ *  ancestor chain, taken at OPEN time because a closing dialog can unmount the
+ *  opener itself — the ancestors are the fallbacks walked when it has. */
+function captureOpenerChain(): HTMLElement[] {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return [];
+  const chain: HTMLElement[] = [];
+  for (let node: HTMLElement | null = active; node !== null; node = node.parentElement) {
+    chain.push(node);
+  }
+  return chain;
+}
+
+/** The opener to restore, or null when nothing in the chain is a live focus
+ *  target. `<body>`/`<html>` never count (focusing them is the very failure this
+ *  guards against); the opener held focus so it restores when still connected and
+ *  enabled, while an ancestor fallback must also be focusable in its own right. */
+function firstRestorable(chain: readonly HTMLElement[]): HTMLElement | null {
+  for (let i = 0; i < chain.length; i += 1) {
+    const el = chain[i];
+    if (el === undefined) continue;
+    if (!el.isConnected || el === document.body || el === document.documentElement) continue;
+    if ((el as HTMLButtonElement).disabled) continue;
+    // The opener (i === 0) held focus, so it restores as-is; an ancestor fallback
+    // must be focusable in its own right, else focusing it is a silent no-op.
+    if (i > 0 && el.tabIndex < 0) continue;
+    return el;
+  }
+  return null;
+}
+
 export function Dialog({
   title,
   description,
@@ -227,6 +264,8 @@ export function Dialog({
   if (fullscreen) contentClasses.push('jqp-dialog-fullscreen');
   if (contentClassName !== undefined) contentClasses.push(contentClassName);
 
+  const openerChainRef = useRef<HTMLElement[]>([]);
+
   return (
     <RadixDialog.Root open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
       {trigger !== undefined ? <RadixDialog.Trigger asChild>{trigger}</RadixDialog.Trigger> : null}
@@ -235,6 +274,20 @@ export function Dialog({
         <RadixDialog.Content
           className={contentClasses.join(' ')}
           {...(description === undefined ? { 'aria-describedby': undefined } : {})}
+          onOpenAutoFocus={() => {
+            // Record the opener BEFORE Radix moves focus into the dialog; no
+            // preventDefault, so Radix still focuses the first control inside.
+            openerChainRef.current = captureOpenerChain();
+          }}
+          onCloseAutoFocus={(event) => {
+            // Take over from Radix's null-trigger default (see the note above):
+            // restore the opener, or — when it is gone, as for a stacked inner
+            // dialog whose opener lived in the now-unmounting outer dialog — leave
+            // focus where it is rather than fighting the outer dialog's own
+            // restore. Either way, never fall through to focusing `<body>`.
+            event.preventDefault();
+            firstRestorable(openerChainRef.current)?.focus();
+          }}
         >
           <RadixDialog.Title className={chromeless ? 'jqp-visually-hidden' : 'jqp-dialog-title'}>
             {title}
