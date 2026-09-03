@@ -140,6 +140,52 @@ export function findTopLevelOperator(str: string, operator: string): number {
 }
 
 /**
+ * Finds the index of the `)` that closes the `(` at `openIndex`, stepping over
+ * strings, comments and nested brackets the way the top-level scanners do.
+ *
+ * @param str - String to scan
+ * @param openIndex - Index of the opening parenthesis
+ * @returns Index of the matching close paren, or -1 when it never closes
+ */
+export function matchingCloseParen(str: string, openIndex: number): number {
+  let depth = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = openIndex; i < str.length; i++) {
+    const char = str[i];
+
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+
+    if (char === '#') {
+      i = commentEnd(str, i);
+      continue;
+    }
+
+    if (char === '(' || char === '[' || char === '{') {
+      depth++;
+    } else if (char === ')' || char === ']' || char === '}') {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+
+  return -1;
+}
+
+/**
  * Splits a string by delimiter at top level (not inside brackets/parentheses/strings/comments).
  *
  * Comment text is kept in the part it was written in — the parser that reads the

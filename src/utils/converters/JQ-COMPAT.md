@@ -143,15 +143,15 @@ Paths start with `.` and access data within the input.
 | `.[]`           | Array iterator         | `.items \| .[]`             |
 | `.field[N]`     | Mixed path             | `.users[0].name`            |
 | `.field[N:M]`   | Mixed with range       | `.data[1:3].value`          |
+| `.["key"]`      | Quoted field access    | `.x["a:b"].y`               |
 
 ### NOT Supported Path Syntax
 
-| Syntax     | Why                                                | Workaround               |
-| ---------- | -------------------------------------------------- | ------------------------ |
-| `..`       | Recursive descent not implemented                  | Use `recurse(.children)` |
-| `.field?`  | Parsed as path + `?` operator, not optional access | Use `try .field` instead |
-| `.[expr]`  | Dynamic index not supported                        | Use `nth(expr; .[])`     |
-| `.["key"]` | Quoted field access not supported                  | Use `.key` directly      |
+| Syntax    | Why                                                | Workaround               |
+| --------- | -------------------------------------------------- | ------------------------ |
+| `..`      | Recursive descent not implemented                  | Use `recurse(.children)` |
+| `.field?` | Parsed as path + `?` operator, not optional access | Use `try .field` instead |
+| `.[expr]` | Dynamic index not supported                        | Use `nth(expr; .[])`     |
 
 ---
 
@@ -503,6 +503,7 @@ EXPRESSION as $VARIABLE_NAME
 2. Variables are prefixed with `$` when referencing: `$myVar`
 3. The `as $var` pattern must appear at the end of the expression (before the next `|`)
 4. In the visual graph, **named nodes automatically create variables** — any node with a non-empty name generates the `as $name | $name` pattern
+5. A reference may carry a **postfix path** — `$var.field`, `$var["key"]`, `$var.items[0].name` — which composes onto the reference exactly as it would onto `.`. It draws as the same Path value node a dot path draws, rooted at the variable, and round-trips back to the postfix form.
 
 ### Variable Round-Trip Behavior
 
@@ -813,30 +814,33 @@ The visual graph enforces specific connection rules between node types. Understa
 
 ### Syntax That Will Fail to Parse
 
-| Syntax                  | Error       | Why                                   |
-| ----------------------- | ----------- | ------------------------------------- |
-| `..`                    | Parse error | Recursive descent not implemented     |
-| `"Hello \(.name)"`      | Parse error | String interpolation not implemented  |
-| `.x \|= . + 1`          | Parse error | Assignment operators not implemented  |
-| `.x += 5`               | Parse error | Assignment operators not implemented  |
-| `{(.key): .value}`      | Parse error | Dynamic/computed keys not implemented |
-| `{name}`                | Parse error | Object shorthand not implemented      |
-| `@base64`               | Parse error | Format strings not implemented        |
-| `@csv`, `@html`, `@uri` | Parse error | Format strings not implemented        |
-| `label $out \| ...`     | Parse error | Labels/break not implemented          |
-| `$ENV.PATH`             | Parse error | Environment variables not implemented |
-| `input`                 | Parse error | stdin functions not implemented       |
-| `'single quotes'`       | Parse error | Only double quotes                    |
-| Empty expression        | Error       | Expression cannot be empty            |
-| > 10,000 chars          | Error       | Exceeds maximum length                |
+| Syntax                   | Error       | Why                                                                                                            |
+| ------------------------ | ----------- | -------------------------------------------------------------------------------------------------------------- |
+| `..`                     | Parse error | Recursive descent not implemented                                                                              |
+| `"Hello \(.name)"`       | Parse error | String interpolation not implemented                                                                           |
+| `.x \|= . + 1`           | Parse error | Assignment operators not implemented                                                                           |
+| `.x += 5`                | Parse error | Assignment operators not implemented                                                                           |
+| `{(.key): .value}`       | Parse error | Dynamic/computed keys not implemented                                                                          |
+| `{name}`                 | Parse error | Object shorthand not implemented                                                                               |
+| `@base64`                | Parse error | Format strings not implemented                                                                                 |
+| `@csv`, `@html`, `@uri`  | Parse error | Format strings not implemented                                                                                 |
+| `label $out \| ...`      | Parse error | Labels/break not implemented                                                                                   |
+| `$ENV.PATH`              | Error       | Environment variables not implemented                                                                          |
+| `(.a)[.b]`               | Parse error | A computed index on a parenthesised group reads the original input — the graph has no faithful drawing for it  |
+| `((.a \| f) == 1) as $v` | Parse error | The name cannot bind an operator whose leftmost operand is a pipe — drawing it would rebind `$v` to a fragment |
+| `input`                  | Parse error | stdin functions not implemented                                                                                |
+| `'single quotes'`        | Parse error | Only double quotes                                                                                             |
+| Empty expression         | Error       | Expression cannot be empty                                                                                     |
+| > 10,000 chars           | Error       | Exceeds maximum length                                                                                         |
 
 ### Syntax That Parses but May Not Round-Trip Perfectly
 
-| Syntax                    | Behavior                                        |
-| ------------------------- | ----------------------------------------------- |
-| Extra whitespace          | Trimmed — `".  \|  .x"` becomes `". \| .x"`     |
-| Redundant parentheses     | Stripped — `"((.x))"` becomes `".x"`            |
-| Unnecessary identity pipe | May be simplified — `". \| ."` may become `"."` |
+| Syntax                    | Behavior                                                                                                                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Extra whitespace          | Trimmed — `".  \|  .x"` becomes `". \| .x"`                                                                                                                                                                                |
+| Redundant parentheses     | Stripped — `"((.x))"` becomes `".x"`                                                                                                                                                                                       |
+| Unnecessary identity pipe | May be simplified — `". \| ."` may become `"."`                                                                                                                                                                            |
+| Group with a postfix path | Lowered to the pipe it means — `"(.a \| .b).c"` becomes `".a \| .b \| .c"`. Only input-free postfixes (literal fields, string keys, numbers, ranges, `[]`, `$vars`) are accepted; a computed index parse-fails (see above) |
 
 ### Functions NOT in the Registry
 

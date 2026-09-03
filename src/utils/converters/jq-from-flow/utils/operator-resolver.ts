@@ -2,11 +2,71 @@
  * @fileoverview Utility for finding the outermost operator in a nested operator chain.
  */
 
-import { type JQNode } from '../../../../types';
+import { type JQNode, type JQEdge } from '../../../../types';
 import { JQHandleIdPrefix } from '../../../../enums';
 import { type ConversionContext } from '../types';
 import { classifyEdge } from './edge-classifier';
 import { enterChainNode, edgeTargetNode } from './validators';
+
+/** Reports whether an edge leaves a node through an operator operand handle. */
+function isOperatorOperandEdge(edge: JQEdge): boolean {
+  return (
+    (edge.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
+    (edge.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight)
+  );
+}
+
+/**
+ * Marks every operator nested inside `container`'s operand that starts at
+ * `direct`, by walking the same right-operand containment chain the operand
+ * resolver generates from: each step's right-operand source lists the next
+ * containing operator at a higher edge index, and every operator the walk
+ * visits before reaching `container` lives INSIDE that operand.
+ *
+ * Shared-source edge order alone cannot see these operators — when an operand
+ * chain's entry is a node deep inside a sub-chain, the operators between the
+ * chain's inner operator and `container` carry no edge from any node that also
+ * feeds `container` — so without this walk they read as outermost candidates.
+ */
+function markOperatorsInsideOperand(
+  direct: JQNode,
+  containerId: string,
+  context: ConversionContext,
+  innerOps: Set<string>,
+): void {
+  const walked = new Set<string>([direct.id]);
+  let current = direct;
+
+  for (;;) {
+    const incoming = context.edgesByTarget.get(current.id) ?? [];
+    const rightEdge = incoming.find((e) =>
+      e.targetHandle?.startsWith(JQHandleIdPrefix.OperatorRight),
+    );
+    if (!rightEdge) break;
+
+    const rightOpEdges = (context.edgesBySource.get(rightEdge.source) ?? []).filter(
+      isOperatorOperandEdge,
+    );
+    const currentIdx = rightOpEdges.findIndex((e) => e.target === current.id);
+    if (currentIdx < 0) break;
+
+    let next: JQNode | null = null;
+    for (let i = currentIdx + 1; i < rightOpEdges.length; i++) {
+      const edge = rightOpEdges[i];
+      if (edge && edge.target !== containerId) {
+        next = edgeTargetNode(context, edge);
+        break;
+      }
+    }
+    // The walked set bounds the walk on a malformed graph whose containment
+    // edges cycle; marking stops where the cycle closes.
+    if (!next || walked.has(next.id)) break;
+
+    walked.add(next.id);
+    innerOps.add(next.id);
+    current = next;
+  }
+}
 
 /**
  * Finds the outermost operator in an operator chain connected to a value node.
@@ -38,10 +98,7 @@ export function findOutermostOperator(nodeId: string, context: ConversionContext
 
     const outgoing = context.edgesBySource.get(nid) ?? [];
     for (const edge of outgoing) {
-      if (
-        (edge.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-        (edge.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight)
-      ) {
+      if (isOperatorOperandEdge(edge)) {
         const opNode = edgeTargetNode(context, edge);
 
         // A self-targeting operator edge names no operator; the visited set would
@@ -80,22 +137,30 @@ export function findOutermostOperator(nodeId: string, context: ConversionContext
   }
   if (operators.length === 1) return firstOperator;
 
-  // Identify inner operators: for each operand with multiple operator edges,
-  // all but the last edge's target are inner (earlier edges = inner operators)
+  // Identify inner operators. A shared operand source lists its operator edges
+  // in nesting order, so each edge's target is nested inside the next edge's
+  // target — and the whole operand chain that STARTS at that inner operator is
+  // nested along with it, which the containment walk marks (an operator whose
+  // only edges come from nodes deep inside an operand would otherwise read as
+  // an outermost candidate and serialise the expression down to its subtree).
   const innerOps = new Set<string>();
   for (const op of operators) {
     const incoming = context.edgesByTarget.get(op.id) ?? [];
     for (const edge of incoming) {
       const operandEdges = (context.edgesBySource.get(edge.source) ?? []).filter(
-        (e) =>
-          (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-          (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
+        isOperatorOperandEdge,
       );
-      if (operandEdges.length > 1) {
-        for (let i = 0; i < operandEdges.length - 1; i++) {
-          const oe = operandEdges[i];
-          if (oe) innerOps.add(oe.target);
-        }
+      for (let i = 0; i < operandEdges.length - 1; i++) {
+        const innerEdge = operandEdges[i];
+        const containerEdge = operandEdges[i + 1];
+        if (!innerEdge || !containerEdge) continue;
+        innerOps.add(innerEdge.target);
+        markOperatorsInsideOperand(
+          edgeTargetNode(context, innerEdge),
+          containerEdge.target,
+          context,
+          innerOps,
+        );
       }
     }
   }
@@ -134,11 +199,7 @@ export function findPipeChainEnd(node: JQNode, context: ConversionContext): JQNo
   const entryOutgoing = context.edgesBySource.get(node.id) ?? [];
   const entryBottomEdge = entryOutgoing.find((e) => classifyEdge(e).isBottomHandle);
   if (entryBottomEdge) {
-    const opEdges = entryOutgoing.filter(
-      (e) =>
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
-    );
+    const opEdges = entryOutgoing.filter(isOperatorOperandEdge);
     if (opEdges.length > 0) {
       const bottomIdx = entryOutgoing.indexOf(entryBottomEdge);
       const lastOpIdx = Math.max(...opEdges.map((e) => entryOutgoing.indexOf(e)));
@@ -160,11 +221,7 @@ export function findPipeChainEnd(node: JQNode, context: ConversionContext): JQNo
 
     // Stop if next node has its own operator connections
     const nextOutgoing = context.edgesBySource.get(nextNode.id) ?? [];
-    const nextHasOpEdge = nextOutgoing.some(
-      (e) =>
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
-    );
+    const nextHasOpEdge = nextOutgoing.some(isOperatorOperandEdge);
     if (nextHasOpEdge) break;
 
     enterChainNode(visited, nextNode, bottomEdge);
