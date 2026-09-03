@@ -54,7 +54,7 @@ export function convertASTNode(astNode: ASTNode, context: ConversionContext): st
       if (!context.variableMap.has(astNode.name)) {
         throw new Error(`Reference to undefined variable: $${astNode.name}`);
       }
-      return createValueNode(`$${astNode.name}`, ValueType.Path, context);
+      return createValueNode(`$${astNode.name}${astNode.path ?? ''}`, ValueType.Path, context);
     }
 
     case 'FunctionCall':
@@ -157,7 +157,9 @@ function convertPipeChain(pipe: ASTPipeNode, context: ConversionContext): string
     // onward and skip the redundant `$var` reference stage that follows it.
     if (stage.type === 'Assignment') {
       const next = stages[i + 1];
-      if (next?.type === 'Variable' && next.name === stage.variable) {
+      // A reference carrying a postfix path (`$v.field`) reads INTO the variable's
+      // value, so it is a real stage — only the bare `$v` echo is redundant.
+      if (next?.type === 'Variable' && next.name === stage.variable && next.path === undefined) {
         const node = context.nodes.find((n) => n.id === nodeId);
         if (node) node.data.pipeAfterDeclare = true;
         i++;

@@ -60,18 +60,24 @@ function parsePathToSegments(pathStr: string): PathSegment[] {
     return segments;
   }
 
-  // Variable reference ($var) — use node_ref with name only (no $ prefix)
-  // so it matches precedingNodeNames in PathSelector dropdown
-  if (pathStr.startsWith('$')) {
-    segments.push({ id: 'seg_0', type: 'node_ref', value: pathStr.substring(1) });
-    return segments;
-  }
-
   let current = pathStr;
   let segmentIndex = 0;
 
-  // Start with root if path begins with '.'
-  if (current.startsWith('.')) {
+  // Variable reference ($var) — use node_ref with name only (no $ prefix)
+  // so it matches precedingNodeNames in PathSelector dropdown. A postfix path
+  // (`$var.field`, `$var["key"]`) continues into the segment loop below,
+  // composing onto the reference the way it composes onto `.`.
+  if (current.startsWith('$')) {
+    const varMatch = /^\$(\w+)/.exec(current);
+    const varName = varMatch?.[1] ?? current.substring(1);
+    segments.push({ id: `seg_${String(segmentIndex++)}`, type: 'node_ref', value: varName });
+    current = current.substring(1 + varName.length);
+    // Skip the dot before a field segment (`$var.field` → field `field`)
+    if (current.startsWith('.')) {
+      current = current.substring(1);
+    }
+  } else if (current.startsWith('.')) {
+    // Start with root if path begins with '.'
     segments.push({ id: `seg_${String(segmentIndex++)}`, type: 'root', value: '.' });
     current = current.substring(1);
   }
@@ -86,8 +92,16 @@ function parsePathToSegments(pathStr: string): PathSegment[] {
 
       const bracketContent = current.substring(1, closeIndex);
 
-      // Check if it's a range (contains ':')
-      if (bracketContent.includes(':')) {
+      // A quoted key is an index segment whatever it contains — a colon inside
+      // the quotes (`["a:b"]`) is part of the key, not a range separator, and a
+      // range read would surface it in the editor as a range picker.
+      if (bracketContent.trimStart().startsWith('"')) {
+        segments.push({
+          id: `seg_${String(segmentIndex++)}`,
+          type: 'index',
+          value: bracketContent.trim(),
+        });
+      } else if (bracketContent.includes(':')) {
         const [start, end] = bracketContent.split(':');
         segments.push({
           id: `seg_${String(segmentIndex++)}`,

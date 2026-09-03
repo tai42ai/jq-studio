@@ -68,3 +68,36 @@ export function isUnrepresentableOperand(node: ASTNode): boolean {
   if (stages.length < 2) return false;
   return stages.some((stage) => !CHAINABLE_OPERAND_STAGES.has(stage.type));
 }
+
+/**
+ * Reports whether naming an assignment's value would land the `as $var` INSIDE
+ * one of the value's operator operands, splitting it.
+ *
+ * `EXPR as $var` is drawn by naming EXPR's entry node. For an operator value the
+ * entry is the leftmost operand's first chain node, and the serialiser reads a
+ * NAME there as "bind here, the bottom chain continues the outer pipe" — so when
+ * that operand is a multi-stage pipe, its later stages are stranded outside the
+ * operator and the binding moves to the first stage alone:
+ * `((.a | type) == "x") as $v` came back as `(.a == "x") as $v … | type`. Such a
+ * value has no faithful drawing, so the parser refuses it (honest PARSE-FAIL).
+ * An operator value whose leftmost operand is a single term keeps its name at
+ * the operand entry and re-emits whole — those stay accepted.
+ *
+ * @param value - The assignment's value AST node
+ * @returns True when the value is an operator with a multi-stage pipe anywhere
+ *   on its leftmost-operand spine
+ */
+export function assignmentNameSplitsOperand(value: ASTNode): boolean {
+  let node = value;
+  while (node.type === 'Operator') {
+    let left: ASTNode = node.left;
+    if (left.type === 'Pipe') {
+      const stages = flattenPipeStages(left).filter((stage) => stage.type !== 'Identity');
+      if (stages.length >= 2) return true;
+      left = stages[0] ?? left;
+    }
+    if (left.type !== 'Operator') return false;
+    node = left;
+  }
+  return false;
+}

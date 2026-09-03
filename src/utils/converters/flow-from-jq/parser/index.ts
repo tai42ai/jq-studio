@@ -4,10 +4,11 @@
  * Production-ready parser with comprehensive support for jq syntax.
  */
 
-import { type ASTNode } from '../types';
+import { type ASTNode, type ASTVariableNode } from '../types';
 import { MAX_EXPRESSION_LENGTH } from '../constants';
-import { findTopLevelOperator, splitTopLevel, unescapeString } from './utils';
+import { findTopLevelOperator, matchingCloseParen, splitTopLevel, unescapeString } from './utils';
 import { splitChainComments } from './comment-extractor';
+import { assignmentNameSplitsOperand } from '../pipe-utils';
 import { tryParseOperator } from './operator-parser';
 import { parseConditional } from './conditional-parser';
 import { parseTryCatch } from './trycatch-parser';
@@ -58,6 +59,17 @@ function hasStringInterpolation(content: string): boolean {
   }
   return false;
 }
+
+/**
+ * One or more postfix path segments that read nothing from their input's
+ * ORIGINAL context: literal fields, literal string keys (kept `]`-free and
+ * escape-free because the segment scanner reads a bracket to its first `]`),
+ * `$var` indexes, literal numbers, literal ranges, and bare `[]` iteration.
+ * A computed index (`[.k]`) is NOT in this set — jq evaluates it against the
+ * input of the whole path term, which a pipe rewrite cannot reproduce.
+ */
+const INPUT_FREE_POSTFIX_PATH =
+  /^(?:\.[a-zA-Z_]\w*|\[(?:"[^"\\\]]*"|\$[a-zA-Z_]\w*|-?\d+|-?\d*:-?\d+|-?\d+:-?\d*|)\])+$/;
 
 export function parseJQExpression(expression: string): ASTNode {
   if (expression.length > MAX_EXPRESSION_LENGTH) {
@@ -138,9 +150,15 @@ function parseTerm(expression: string): ASTNode {
   // Check for variable assignment (as $var)
   const asMatch = /^(.+?)\s+as\s+\$(\w+)$/.exec(trimmed);
   if (asMatch) {
+    const value = parseJQExpression(asMatch[1] ?? '');
+    // A value the name cannot bind whole has no faithful drawing — refuse it
+    // rather than draw a graph that rebinds the variable to a fragment.
+    if (assignmentNameSplitsOperand(value)) {
+      throw new Error(`Unable to parse jq expression: ${trimmed}`);
+    }
     return {
       type: 'Assignment',
-      value: parseJQExpression(asMatch[1] ?? ''),
+      value,
       variable: asMatch[2] ?? '',
     };
   }
@@ -242,17 +260,39 @@ function parseTerm(expression: string): ASTNode {
     };
   }
 
-  // Check for variable reference
-  if (trimmed.startsWith('$')) {
-    return {
-      type: 'Variable',
-      name: trimmed.substring(1),
-    };
+  // Check for variable reference, with an optional postfix path — `$a.field`,
+  // `$a["key"]` — which composes onto the reference exactly as it would onto `.`
+  const varMatch = /^\$([a-zA-Z_]\w*)([.[].*)?$/s.exec(trimmed);
+  if (varMatch) {
+    const node: ASTVariableNode = { type: 'Variable', name: varMatch[1] ?? '' };
+    if (varMatch[2] !== undefined) node.path = varMatch[2];
+    return node;
   }
 
   // If wrapped in parentheses, unwrap and parse
   if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
     return parseJQExpression(trimmed.slice(1, -1));
+  }
+
+  // Parenthesised pipeline with a postfix path — `(.a | .b).c`, `(.x)["key"]`.
+  // The group's output pipes into the path, which is exactly what the postfix
+  // means — PROVIDED the postfix reads nothing from the group's input: a
+  // bracket index holding an expression (`(.a)[.b]`) evaluates that expression
+  // against the ORIGINAL input, which piping cannot reproduce, so only
+  // input-free segments (literal fields, string keys, numbers, ranges, `[]`,
+  // `$vars`) take this branch and anything else keeps the honest parse-fail.
+  if (trimmed.startsWith('(')) {
+    const close = matchingCloseParen(trimmed, 0);
+    if (close !== -1 && close < trimmed.length - 1) {
+      const postfix = trimmed.substring(close + 1).trim();
+      if (INPUT_FREE_POSTFIX_PATH.test(postfix)) {
+        return {
+          type: 'Pipe',
+          left: parseJQExpression(trimmed.substring(1, close)),
+          right: { type: 'Path', value: postfix.startsWith('.') ? postfix : `.${postfix}` },
+        };
+      }
+    }
   }
 
   throw new Error(`Unable to parse jq expression: ${trimmed}`);

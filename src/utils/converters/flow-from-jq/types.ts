@@ -89,6 +89,12 @@ export interface ASTPathNode {
 export interface ASTVariableNode {
   type: 'Variable';
   name: string;
+  /**
+   * Postfix path applied to the reference (`.field`, `["key"]`, …), kept apart
+   * from the name so scope checks see the bare variable — `$a.b` reads a field
+   * OF `$a`, not a variable named `a.b`.
+   */
+  path?: string;
 }
 
 export interface ASTFunctionCallNode {
