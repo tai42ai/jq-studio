@@ -158,3 +158,38 @@ describe('assignment values the name cannot bind whole are refused', () => {
     expectFaithful('(.a // false) as $v | $v'));
   it('echoed pipe value stays accepted', () => expectFaithful('(.a | .b) as $x | $x'));
 });
+
+describe('a quoted key classifies as an index segment, never a range', () => {
+  // A colon inside the quotes is part of the key: the range read kept the text
+  // round-trip intact by accident but surfaced the segment in the editor as a
+  // range picker instead of a string-key field.
+  function pathSegmentsOf(expr: string, pathValue: string) {
+    const { nodes } = convertJQToFlow(expr);
+    const node = nodes.find(
+      (n) => n.data.type === JQNodeType.Value && (n.data as JQValueData).pathValue === pathValue,
+    );
+    expect(node).toBeDefined();
+    return (node?.data as JQValueData).pathSegments;
+  }
+
+  it('["a:b"] is an index segment', () => {
+    expect(pathSegmentsOf('.x["a:b"]', '.x["a:b"]')).toEqual([
+      { id: 'seg_0', type: 'root', value: '.' },
+      { id: 'seg_1', type: 'field', value: 'x' },
+      { id: 'seg_2', type: 'index', value: '"a:b"' },
+    ]);
+  });
+
+  it('a real range [1:3] still classifies as a range segment', () => {
+    expect(pathSegmentsOf('.x[1:3]', '.x[1:3]')).toEqual([
+      { id: 'seg_0', type: 'root', value: '.' },
+      { id: 'seg_1', type: 'field', value: 'x' },
+      { id: 'seg_2', type: 'range', value: '1', rangeEnd: '3' },
+    ]);
+  });
+
+  it('["a:b"] still round-trips verbatim', async () => {
+    const out = await expectFaithful('.x["a:b"].y');
+    expect(out).toBe('.x["a:b"].y');
+  });
+});

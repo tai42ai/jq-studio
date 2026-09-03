@@ -92,8 +92,16 @@ function parsePathToSegments(pathStr: string): PathSegment[] {
 
       const bracketContent = current.substring(1, closeIndex);
 
-      // Check if it's a range (contains ':')
-      if (bracketContent.includes(':')) {
+      // A quoted key is an index segment whatever it contains — a colon inside
+      // the quotes (`["a:b"]`) is part of the key, not a range separator, and a
+      // range read would surface it in the editor as a range picker.
+      if (bracketContent.trimStart().startsWith('"')) {
+        segments.push({
+          id: `seg_${String(segmentIndex++)}`,
+          type: 'index',
+          value: bracketContent.trim(),
+        });
+      } else if (bracketContent.includes(':')) {
         const [start, end] = bracketContent.split(':');
         segments.push({
           id: `seg_${String(segmentIndex++)}`,
