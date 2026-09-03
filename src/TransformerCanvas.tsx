@@ -642,12 +642,12 @@ export const TransformerCanvas = ({
               <code>{initialExpression}</code>
             </pre>
             <div className="jqs-jq-parse-fallback__actions">
-              {onRequestClose && (
-                <Button variant="primary" onClick={onRequestClose}>
-                  Close
+              {onRequestClose && <Button onClick={onRequestClose}>Close</Button>}
+              {!readOnly && (
+                <Button variant="danger" onClick={startEmpty}>
+                  Start empty
                 </Button>
               )}
-              {!readOnly && <Button onClick={startEmpty}>Start empty</Button>}
             </div>
           </div>
         </div>
@@ -667,12 +667,12 @@ export const TransformerCanvas = ({
               <code>{initialExpression}</code>
             </pre>
             <div className="jqs-jq-parse-fallback__actions">
-              {onRequestClose && (
-                <Button variant="primary" onClick={onRequestClose}>
-                  Close
+              {onRequestClose && <Button onClick={onRequestClose}>Close</Button>}
+              {!readOnly && (
+                <Button variant="danger" onClick={startEmpty}>
+                  Start empty
                 </Button>
               )}
-              {!readOnly && <Button onClick={startEmpty}>Start empty</Button>}
             </div>
           </div>
         </div>
