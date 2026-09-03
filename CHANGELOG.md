@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/tai42ai/jq-studio/compare/v0.1.3...v0.1.4) (2026-09-03)
+
+
+### Features
+
+* **converters:** variable postfix paths, group-postfix lowering, and chain-loss fixes ([#8](https://github.com/tai42ai/jq-studio/issues/8)) ([0aeca2f](https://github.com/tai42ai/jq-studio/commit/0aeca2f42714d141bdeced4939a30f4fa9ff9730))
+
 ## [0.1.3](https://github.com/tai42ai/jq-studio/compare/v0.1.2...v0.1.3) (2026-08-31)
 
 
