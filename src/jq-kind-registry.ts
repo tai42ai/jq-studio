@@ -14,9 +14,8 @@
  *   - `text-muted`   = plain data / note  (Value, Operator, Comment)
  * Kinds that share a hue are told apart by glyph, shape modifier, and badge.
  *
- * Fork rulings baked in (F1): Operator is muted (data, shape/icon differentiate),
- * Define Function is primary with a `Def` badge. Fork F5: the root node is
- * captioned "Input", not "Start".
+ * Operator is muted (data, shape/icon differentiate), Define Function is primary
+ * with a `Def` badge. The root node is captioned "Input", not "Start".
  *
  * English only.
  */

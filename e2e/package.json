@@ -2,7 +2,7 @@
   "name": "jq-studio-e2e",
   "private": true,
   "type": "module",
-  "description": "Real-browser end-to-end for @tai42/jq-studio: a bare Vite consumer page (no tai42 host) that imports the SHIPPED dist and drives the editor through the real wasm worker. Doubles as the repo's living example.",
+  "description": "Real-browser end-to-end for @tai42/jq-studio: a bare Vite consumer page (no host framework) that imports the SHIPPED dist and drives the editor through the real wasm worker. Doubles as the repo's living example.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

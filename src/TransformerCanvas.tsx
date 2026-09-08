@@ -229,7 +229,7 @@ export const TransformerCanvas = ({
   // base regardless of which parser bug caused the drift.
   const [entryUnfaithful, setEntryUnfaithful] = useState(false);
 
-  // PARSE FAILURE (WP-A6): the loaded jq could not be turned into a graph at all.
+  // PARSE FAILURE: the loaded jq could not be turned into a graph at all.
   // Non-destructive — the author's original text is kept verbatim and shown in a
   // fallback panel; nothing is overwritten unless they choose "Start empty".
   const [parseFailed, setParseFailed] = useState(false);
@@ -652,7 +652,7 @@ export const TransformerCanvas = ({
           </div>
         </div>
       ) : parseFailed ? (
-        // WP-A6 — non-destructive parse-failure fallback: the author's text is
+        // Non-destructive parse-failure fallback: the author's text is
         // preserved verbatim and nothing is overwritten unless they opt in.
         <div className="jqs-jq-canvas__parse-fallback" role="alert">
           <div className="jqs-jq-parse-fallback__box">

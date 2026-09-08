@@ -6,9 +6,9 @@
  * `resolveExitPosition` re-derives the exit toward the partner only when the
  * declared side faces away, so well-behaved wires are left untouched.
  *
- * Wire ROLE labelling no longer rides a separate edge chip: the port's role is
- * named once, on the card edge, by the collapsed-handle rail (see `PortLabels`) —
- * so there is no `edgeChipLabel` to test here and no duplicate label per port.
+ * Wire ROLE labelling rides no separate edge chip: the port's role is named
+ * once, on the card edge, by the collapsed-handle rail (see `PortLabels`) — so
+ * there is no `edgeChipLabel` to test here and no duplicate label per port.
  */
 import { describe, expect, it } from 'vitest';
 import { Position } from '@xyflow/react';

@@ -1,8 +1,8 @@
 /**
- * @fileoverview WP-A5 — the editor shell surfaced by the canvas: the live
+ * @fileoverview The editor shell surfaced by the canvas: the live
  * expression READOUT (the round-trip made visible while editing) and the
  * error-summary CHIP that answers "why is Save disabled" (and jumps to the next
- * errored node). The floating corner buttons are replaced by a real toolbar.
+ * errored node). A real toolbar carries the actions.
  */
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

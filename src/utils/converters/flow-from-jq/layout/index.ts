@@ -1,5 +1,5 @@
 /**
- * @fileoverview Layout orchestrator - coordinates all 7 phases of the layout algorithm.
+ * @fileoverview Layout coordinator - runs all 7 phases of the layout algorithm.
  *
  * The new layout uses edge classification to distinguish vertical pipe chains
  * from horizontal branches, producing clean tree-structured layouts where:

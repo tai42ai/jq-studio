@@ -47,9 +47,8 @@
 
 /* Entry-guard notice: shown in place of a graph whose visual reading does not
    match the loaded text, sending the author to the text editor instead. */
-/* Canvas toolbar: a non-floating top bar (the old floating corner buttons are
-   gone). Load / Test sit right; the error-summary chip answers "why is Save
-   disabled" beside them. */
+/* Canvas toolbar: a non-floating top bar. Load / Test sit right; the
+   error-summary chip answers "why is Save disabled" beside them. */
 .jq-studio-root .jqs-jq-canvas__toolbar {
   display: flex;
   align-items: center;
@@ -150,7 +149,7 @@
 
 /* Non-destructive entry fallbacks — the author's text is preserved verbatim and
    never overwritten unless they choose "Start empty". The parse-failure case
-   (WP-A6, an alert) and the unfaithfully-read case (neutral status) share the
+   (an alert) and the unfaithfully-read case (neutral status) share the
    centred layout. */
 .jq-studio-root .jqs-jq-canvas__parse-fallback,
 .jq-studio-root .jqs-jq-canvas__entry-fallback {

@@ -1,7 +1,7 @@
 /**
- * @fileoverview WP-A6 — the non-destructive parse-failure fallback. When the
+ * @fileoverview The non-destructive parse-failure fallback. When the
  * loaded jq cannot be parsed into a graph, the canvas must NOT blank silently
- * (the old hazard: a later one-node save would overwrite the author's text).
+ * (blanking would let a later one-node save overwrite the author's text).
  * Instead it shows the original expression verbatim with explicit Close / Start
  * empty actions, and refuses a save until the author opts in.
  */

@@ -80,7 +80,7 @@ test('the theme contract: overriding a --jq-* token takes effect', async ({ page
 
 /**
  * The host scenario: the app stamps `data-theme` on `document.documentElement`
- * (as tai-studio does) while the editor is portalled to `document.body` (Radix
+ * (as a host app typically does) while the editor is portalled to `document.body` (Radix
  * Dialog). The portalled `.jq-studio-root` carries no stamp of its own, so it
  * must inherit the ancestor's stamp rather than fall through to the OS. These
  * assert a canvas-side `--jq-*` token — read off the editor dialog, which IS the

@@ -1,7 +1,7 @@
 /**
  * The bare consumer page for @tai42/jq-studio's end-to-end suite — and the repo's
  * living example. It uses ONLY the package's public surface: `JqField`,
- * `PrimitivesProvider`, and the `styles.css` stylesheet. No tai42 host, no design
+ * `PrimitivesProvider`, and the `styles.css` stylesheet. No host framework, no design
  * system. Three scenarios sit side by side:
  *
  *   #default   — a plain controlled `JqField` (the 5-line quickstart).

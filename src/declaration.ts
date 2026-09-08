@@ -47,14 +47,14 @@ export interface JqInputShapeDescriptor {
   /** Per-field caveats (e.g. ".iterate.item is always null in a while condition"). */
   readonly caveats?: readonly string[];
   /** A static skeleton of `.` — the cheap, honest default the Test panel seeds
-   *  its input with (design fork F3). A host may override it dynamically via the
+   *  its input with. A host may override it dynamically via the
    *  declaration's {@link SampleInputProvider}; live samples are a later,
    *  additive concern. */
   readonly sample?: unknown;
 }
 
 /** A provider of a concrete sample input for the Test panel. A function (not a
- *  value) so a host can supply a static skeleton now (F3) and a live sample
+ *  value) so a host can supply a static skeleton now and a live sample
  *  later without changing this API. */
 export type SampleInputProvider = () => unknown;
 

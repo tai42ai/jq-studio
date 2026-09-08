@@ -10,7 +10,7 @@ import { TransformerHandle } from './TransformerHandle';
 type StartNodeProps = NodeProps<Node<JQStartData>>;
 
 // The root node's identity (caption "Input", the log-in glyph) comes from the
-// single kind registry (F5).
+// single kind registry.
 const START_KIND = JQ_KIND_REGISTRY[JQNodeType.Start];
 
 export const StartNode = memo(({ id, selected }: StartNodeProps) => {
