@@ -1,6 +1,6 @@
 // @vitest-environment node
 /**
- * @fileoverview The corpus faithfulness classification — the mission's headline
+ * @fileoverview The corpus faithfulness classification — the headline
  * guarantee, run as a test.
  *
  * `jq-corpus.json` is a deduped, source-tagged battery of real and generated jq:

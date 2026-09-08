@@ -153,7 +153,7 @@ describe('validateFlow', () => {
       expect(fcErrors.some((e) => e.includes('is not connected'))).toBe(true);
     });
 
-    it('does NOT flag a bare first/last (optional param) as unconnected [F6 round-trip fix]', () => {
+    it('does NOT flag a bare first/last (optional param) as unconnected', () => {
       // `.x | first` round-trips to a zero-arg `first` call: its `filter` param
       // is optional (jq's bare `first` = the input's first element), so a fresh
       // graph opened from that expression must have ZERO param errors and a

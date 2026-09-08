@@ -25,10 +25,10 @@ describe('jq kind registry completeness', () => {
     expect(ALL_JQ_NODE_KINDS.at(-1)).toBe(JQNodeType.Comment);
   });
 
-  it('binds the ruled semantic hues (F1) and the Input caption (F5)', () => {
-    // F5: the root node is captioned "Input", not "Start".
+  it('binds the semantic hues and the Input caption', () => {
+    // The root node is captioned "Input", not "Start".
     expect(JQ_KIND_REGISTRY[JQNodeType.Start].builderCaption).toBe('Input');
-    // F1: Operator is muted (data), Define Function is primary + `Def` badge.
+    // Operator is muted (data), Define Function is primary + `Def` badge.
     expect(JQ_KIND_REGISTRY[JQNodeType.Operator].color).toBe('var(--jq-color-text-muted)');
     expect(JQ_KIND_REGISTRY[JQNodeType.FunctionDecl].color).toBe('var(--jq-color-primary)');
     expect(JQ_KIND_REGISTRY[JQNodeType.FunctionDecl].badge).toBe('Def');
@@ -37,7 +37,7 @@ describe('jq kind registry completeness', () => {
     expect(JQ_KIND_REGISTRY[JQNodeType.TryCatch].color).toBe('var(--jq-color-danger)');
     expect(JQ_KIND_REGISTRY[JQNodeType.Start].color).toBe('var(--jq-color-primary)');
     expect(JQ_KIND_REGISTRY[JQNodeType.FunctionCall].color).toBe('var(--jq-color-primary)');
-    // Value literals no longer sit on `warning` (the light-theme brown-bar bug).
+    // Value literals sit on muted text, not `warning`.
     expect(JQ_KIND_REGISTRY[JQNodeType.Value].color).toBe('var(--jq-color-text-muted)');
   });
 

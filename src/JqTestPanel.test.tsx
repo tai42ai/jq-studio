@@ -1,5 +1,5 @@
 /**
- * @fileoverview WP-A5 / WP-B slot — the Test panel's shape-aware surfaces: the
+ * @fileoverview The Test panel's shape-aware surfaces: the
  * JSON input seeded from the field's sample skeleton, the shape label, the
  * "must return" line, and the pluggable ServerValidateHook result the panel
  * surfaces when a host provides one. The jq WASM runner is stubbed so these tests

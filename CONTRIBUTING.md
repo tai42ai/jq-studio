@@ -54,8 +54,6 @@ pnpm test                                    # or: pnpm dev, to open the example
   through `src/primitives` (a host substitutes components via `PrimitivesProvider`);
   never import `@tai42/studio-sdk` or any other component library. ESLint enforces
   this, and the build asserts no such string survives into `dist`.
-- **Client-agnostic.** Nothing consumer- or product-specific may land — neutral
-  names only, in code, fixtures, and the jq corpus.
 - **The jq corpus** (`src/utils/converters/corpus/`) is the headline guarantee:
   every expression must round-trip faithfully or be honestly refused, never corrupt.
   If you change the converters, regenerate the frozen verdict table:

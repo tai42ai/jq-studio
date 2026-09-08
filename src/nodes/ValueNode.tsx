@@ -197,7 +197,7 @@ export const ValueNode = memo(({ id, data, selected }: ValueNodeProps) => {
               updateData({ value: e.target.value });
             }}
             // Snapshot the pre-edit state on focus so a value edit is undoable
-            // (free-text idiom; a node click no longer snapshots).
+            // (free-text idiom; a node click does not snapshot).
             onFocus={() => {
               takeSnapshot();
             }}

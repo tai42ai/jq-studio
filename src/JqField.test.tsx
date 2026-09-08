@@ -299,8 +299,8 @@ describe('JqField', () => {
     /** Drives a GENUINE, serialization-changing edit through the real canvas:
      *  selects the loaded logic node and deletes it, so the editor is honestly
      *  dirty and a close routes through the discard-confirm (not a straight
-     *  close). This is what keeps the close-route tests honest after the
-     *  baseline fix — a freshly-opened valid expression is no longer dirty. */
+     *  close). This keeps the close-route tests honest: a freshly-opened valid
+     *  expression is not dirty. */
     const makeDirtyEdit = async (): Promise<void> => {
       const before = document.querySelectorAll('.react-flow__node').length;
       const logicNode = Array.from(document.querySelectorAll('.react-flow__node')).find(

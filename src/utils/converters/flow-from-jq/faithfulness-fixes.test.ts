@@ -21,11 +21,10 @@ async function expectFaithful(expr: string): Promise<void> {
   expect(await compareJqSemantics(expr, regenerated, execJq)).toBe('faithful');
 }
 
-describe('round-trip corruption fixes: cleanly-fixable pipe chains now stay faithful', () => {
-  // Previously these dropped the trailing stage (e.g. `(.a | .b) | length`
-  // serialised back to `.a | .b`, losing `length`) — a parenthesised sub-chain
-  // surfacing as the LEFT of an outer pipe. The flattening converter now wires
-  // every stage.
+describe('cleanly-flattenable pipe chains round-trip faithfully', () => {
+  // A parenthesised sub-chain surfacing as the LEFT of an outer pipe (e.g.
+  // `(.a | .b) | length`) must keep its trailing stage: the flattening
+  // converter wires every stage.
   it('(.a | .b) | length', () => expectFaithful('(.a | .b) | length'));
   it('(.a | .b) | .c', () => expectFaithful('(.a | .b) | .c'));
   it('(.a | .b | .c) | length', () => expectFaithful('(.a | .b | .c) | length'));

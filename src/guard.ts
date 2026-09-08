@@ -25,7 +25,7 @@ import { roundTripVerdict } from './utils/converters/faithfulness-guard';
  * (round-trip it to behaviour-identical jq)? A host uses this to decide whether
  * the visual door is the sensible default for a field — e.g. defaulting the
  * field editor to the Editor tab only when the current expression both parses
- * AND passes this guard (F4). Memoisation is inherited from `roundTripVerdict`,
+ * AND passes this guard. Memoisation is inherited from `roundTripVerdict`,
  * so repeated calls for the same text pay nothing.
  */
 export async function canRepresentFaithfully(text: string): Promise<boolean> {

@@ -101,7 +101,7 @@ export const NodeNameField = memo(
           }}
           // Snapshot the pre-edit state once as the field gains focus (the
           // established free-text idiom — see CommentNode), so a rename is
-          // undoable now that a plain node click no longer snapshots.
+          // undoable even though a plain node click does not snapshot.
           onFocus={() => {
             takeSnapshot();
           }}

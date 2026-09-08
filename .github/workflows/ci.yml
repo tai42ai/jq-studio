@@ -44,7 +44,7 @@ jobs:
           retention-days: 1
 
   # Real browser end-to-end: mount the SHIPPED artifact in a bare Vite page (no
-  # tai42 anything) and drive it through the real wasm worker.
+  # host framework) and drive it through the real wasm worker.
   e2e:
     needs: verify
     runs-on: ubuntu-24.04
