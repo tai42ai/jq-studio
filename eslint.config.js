@@ -69,6 +69,31 @@ export default tseslint.config(
       ],
     },
   },
+  // Size and complexity floor — SOURCE ONLY. Blank and comment lines do not
+  // count; test, spec and story files carry no size or complexity cap.
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', '**/*.stories.{ts,tsx}'],
+    rules: {
+      complexity: ['error', 15],
+      'max-depth': ['error', 4],
+      'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ['src/**/*.ts'],
+    ignores: ['**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      'max-lines-per-function': ['error', { max: 80, skipBlankLines: true, skipComments: true }],
+    },
+  },
+  {
+    files: ['src/**/*.tsx'],
+    ignores: ['**/*.test.tsx', '**/*.spec.tsx', '**/*.stories.tsx'],
+    rules: {
+      'max-lines-per-function': ['error', { max: 150, skipBlankLines: true, skipComments: true }],
+    },
+  },
   // Tests: async render/mocks are idiomatic even without an `await`, and a test
   // asserting on a known-good fixture may index/non-null-assert into it.
   {
