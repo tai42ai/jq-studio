@@ -3,7 +3,7 @@
  */
 
 import { type JQNode, type JQEdge } from '../../../types';
-import { type FunctionDef } from '../../function-registry';
+import { type FunctionDef } from '../../function-catalog';
 
 /**
  * Conversion context maintaining state during JQ to UI conversion.

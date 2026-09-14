@@ -15,6 +15,14 @@ import {
 } from '../expression-builder';
 import { type NodeExpressionFn } from './branch-chain-builder';
 
+/** Reports whether a source handle is an operator's left or right operand handle. */
+function isOperatorHandle(handle: string | null | undefined): boolean {
+  const h = handle ?? '';
+  return (
+    h.startsWith(JQHandleIdPrefix.OperatorLeft) || h.startsWith(JQHandleIdPrefix.OperatorRight)
+  );
+}
+
 /**
  * Generates a jq expression for an Operator node.
  *
@@ -122,11 +130,7 @@ function resolveOperandExpression(
   indent: number,
 ): string {
   const outgoing = context.edgesBySource.get(operandNode.id) ?? [];
-  const operatorEdges = outgoing.filter(
-    (e) =>
-      (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-      (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
-  );
+  const operatorEdges = outgoing.filter((e) => isOperatorHandle(e.sourceHandle));
 
   // Nesting order is read off this list — an operand edge missing from it would be
   // misread as innermost, dropping every operator the list holds.
@@ -156,11 +160,26 @@ function resolveOperandExpression(
   }
 
   const directInnerOp = edgeTargetNode(context, innerEdge);
+  const outermostInner = climbContainingOperators(directInnerOp, currentOperatorId, context);
+  return nodeExpressionFn(outermostInner, context, indent);
+}
 
-  // For 3+ deep chains, follow the operator result chain through right operands
-  // to find the outermost operator that's still inner to the current one.
-  // Each operator's right operand may connect to a "containing" operator at a
-  // higher edge index, forming the chain: inner → containing → ... → current.
+/**
+ * From the direct inner operator, follows the operator result chain through right
+ * operands to the outermost operator that is still inner to the current one.
+ *
+ * Each operator's right operand may connect to a "containing" operator at a
+ * higher edge index, forming the chain inner → containing → … → current; this
+ * walks it up, stopping before the current outer operator.
+ *
+ * @throws {Error} If a right operand reaches its operator over an edge that is not
+ *   one of that operand's operator edges, leaving the containment order unreadable
+ */
+function climbContainingOperators(
+  directInnerOp: JQNode,
+  currentOperatorId: string,
+  context: ConversionContext,
+): JQNode {
   let result = directInnerOp;
   for (;;) {
     // Find result's right operand (incoming edge to OperatorRight handle)
@@ -171,11 +190,7 @@ function resolveOperandExpression(
     if (!rightEdge) break;
 
     const rightOperandOutgoing = context.edgesBySource.get(rightEdge.source) ?? [];
-    const rightOpEdges = rightOperandOutgoing.filter(
-      (e) =>
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
-    );
+    const rightOpEdges = rightOperandOutgoing.filter((e) => isOperatorHandle(e.sourceHandle));
 
     // A `result` edge missing from this list would start the containment search at
     // index 0 and misread an operator nested INSIDE `result` as containing it.
@@ -202,7 +217,7 @@ function resolveOperandExpression(
     result = nextOp;
   }
 
-  return nodeExpressionFn(result, context, indent);
+  return result;
 }
 
 /**
@@ -259,11 +274,7 @@ function buildOperandWithPipeChain(
   const entryOutgoing = context.edgesBySource.get(node.id) ?? [];
   const entryBottomEdge = entryOutgoing.find((e) => classifyEdge(e).isBottomHandle);
   if (entryBottomEdge) {
-    const opEdges = entryOutgoing.filter(
-      (e) =>
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
-    );
+    const opEdges = entryOutgoing.filter((e) => isOperatorHandle(e.sourceHandle));
     if (opEdges.length > 0) {
       const bottomIdx = entryOutgoing.indexOf(entryBottomEdge);
       const lastOpIdx = Math.max(...opEdges.map((e) => entryOutgoing.indexOf(e)));
@@ -285,11 +296,7 @@ function buildOperandWithPipeChain(
 
     // Stop if next node has its own operator connections
     const nextOutgoing = context.edgesBySource.get(nextNode.id) ?? [];
-    const nextHasOpEdge = nextOutgoing.some(
-      (e) =>
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorLeft) ||
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.OperatorRight),
-    );
+    const nextHasOpEdge = nextOutgoing.some((e) => isOperatorHandle(e.sourceHandle));
     if (nextHasOpEdge) break;
 
     enterChainNode(visited, nextNode, bottomEdge);

@@ -5,7 +5,7 @@
  * of two duplicates arbitrarily.
  */
 import { describe, expect, it } from 'vitest';
-import { dropEdgesOnTargetSlot } from './validator';
+import { dropEdgesOnTargetSlot } from './edge-slot';
 import { JQHandleIdPrefix } from '../enums';
 import type { JQEdge } from '../types';
 

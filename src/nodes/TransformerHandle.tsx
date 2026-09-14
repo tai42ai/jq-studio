@@ -5,10 +5,44 @@ import type { HandleProps } from '@xyflow/react';
 import clsx from 'clsx';
 import { Tooltip } from '../primitives';
 import { JQNodeType, JQHandleIdPrefix } from '../enums';
+import type { TransformerConnectionState } from '../types';
 import { jqNodeColorVar } from '../colors';
 import { useTransformerConnection } from '../TransformerContext';
-import { getValidJQNodeTypesForConnection } from '../utils/validator';
+import { getValidJQNodeTypesForConnection } from '../utils/connection-validator';
 import { getJqHandleTooltip } from '../handle-tooltips';
+
+/** The handle's own id: an explicit `id`, else the inner-body id, else the
+ *  node's default source (bottom) or target (top) port. */
+const resolveHandleId = (
+  id: string | null | undefined,
+  isInner: boolean,
+  nodeId: string,
+  handleType: 'source' | 'target',
+): string => {
+  if (id != null) return id;
+  if (isInner) return `${JQHandleIdPrefix.Inner}:${nodeId}`;
+  return handleType === 'source' ? JQHandleIdPrefix.Bottom : JQHandleIdPrefix.Top;
+};
+
+/** Whether this handle is a valid drop target for the in-progress connection:
+ *  a different node, the opposite endpoint kind, and a node type the source
+ *  handle's connection rule accepts. */
+const isValidDropTarget = (
+  connectionState: TransformerConnectionState,
+  nodeId: string,
+  nodeType: JQNodeType,
+  handleType: 'source' | 'target',
+): boolean => {
+  if (!connectionState.isConnecting) return false;
+  if (connectionState.sourceNodeId === nodeId) return false;
+  if (connectionState.sourceHandleType === handleType) return false;
+  const validTypes = getValidJQNodeTypesForConnection(
+    connectionState.sourceNodeType,
+    connectionState.sourceHandleType,
+    connectionState.sourceHandleId,
+  );
+  return validTypes.includes(nodeType);
+};
 
 interface TransformerHandleProps extends Omit<HandleProps, 'position'> {
   nodeId: string;
@@ -38,27 +72,12 @@ export const TransformerHandle = memo(
   }: TransformerHandleProps) => {
     const { connectionState } = useTransformerConnection();
 
-    const finalHandleId =
-      id ??
-      (isInner
-        ? `${JQHandleIdPrefix.Inner}:${nodeId}`
-        : handleType === 'source'
-          ? JQHandleIdPrefix.Bottom
-          : JQHandleIdPrefix.Top);
+    const finalHandleId = resolveHandleId(id, isInner, nodeId, handleType);
 
-    const isValidConnectionTarget = useMemo(() => {
-      if (!connectionState.isConnecting) return false;
-      if (connectionState.sourceNodeId === nodeId) return false;
-      if (connectionState.sourceHandleType === handleType) return false;
-
-      const validTypes = getValidJQNodeTypesForConnection(
-        connectionState.sourceNodeType,
-        connectionState.sourceHandleType,
-        connectionState.sourceHandleId,
-      );
-
-      return validTypes.includes(nodeType);
-    }, [connectionState, nodeId, nodeType, handleType]);
+    const isValidConnectionTarget = useMemo(
+      () => isValidDropTarget(connectionState, nodeId, nodeType, handleType),
+      [connectionState, nodeId, nodeType, handleType],
+    );
 
     const sourceColor = connectionState.sourceNodeType
       ? jqNodeColorVar[connectionState.sourceNodeType]

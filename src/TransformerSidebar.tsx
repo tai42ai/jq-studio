@@ -5,7 +5,7 @@ import { JQNodeType } from './enums';
 import { JQ_KIND_REGISTRY } from './jq-kind-registry';
 import { jqNodeColorVar } from './colors';
 import { useTransformerConnection } from './TransformerContext';
-import { getValidJQNodeTypesForConnection } from './utils/validator';
+import { getValidJQNodeTypesForConnection } from './utils/connection-validator';
 
 /**
  * The node palette. Every item's caption, glyph, and one-line gloss come from

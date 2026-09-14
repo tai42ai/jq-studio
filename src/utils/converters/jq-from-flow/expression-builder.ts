@@ -10,6 +10,7 @@ import { validateVariableName, enterChainNode, edgeTargetNode } from './utils/va
 import { shouldCreateVariable } from './utils/variable-checker';
 import { generateNodeExpression } from './generators/node-generator';
 import { findOutermostOperator, findPipeChainEnd } from './utils/operator-resolver';
+import { scanTopLevel } from '../jq-lex';
 
 // Re-export for consumers that import from expression-builder
 export { shouldCreateVariable };
@@ -104,40 +105,17 @@ export function joinExpressionParts(
  *
  * Brackets are counted so the pipes a nested `f(.a | length)`, `[…]` or `{…}`
  * already encloses do not count. A `"…"` literal is skipped: every generated
- * literal comes from `escapeStringLiteral`, which escapes backslashes first, so
+ * literal comes from `escapeJqString`, which escapes backslashes first, so
  * no `\(…)` interpolation can reopen jq code inside one. A `#` comment is
  * skipped to the end of its line, because a Comment node's text is written by
  * the flow's author and may hold anything — brackets, quotes and pipes included.
  */
 function hasTopLevelPipe(expr: string): boolean {
-  let depth = 0;
-  let inString = false;
-
-  for (let i = 0; i < expr.length; i++) {
-    const char = expr[i];
-
-    if (inString) {
-      if (char === '\\') i++;
-      else if (char === '"') inString = false;
-      continue;
-    }
-
-    if (char === '"') {
-      inString = true;
-    } else if (char === '#') {
-      const lineEnd = expr.indexOf('\n', i);
-      if (lineEnd < 0) return false;
-      i = lineEnd;
-    } else if (char === '(' || char === '[' || char === '{') {
-      depth++;
-    } else if (char === ')' || char === ']' || char === '}') {
-      depth--;
-      // A stray closer corrupts the depth count; wrapping is the safe answer
-      // (parentheses are inert in jq).
-      if (depth < 0) return true;
-    } else if (char === '|' && depth === 0) {
-      return true;
-    }
+  for (const { char, depth } of scanTopLevel(expr)) {
+    // A stray closer corrupts the depth count; wrapping is the safe answer
+    // (parentheses are inert in jq).
+    if ((char === ')' || char === ']' || char === '}') && depth < 0) return true;
+    if (char === '|' && depth === 0) return true;
   }
 
   return false;

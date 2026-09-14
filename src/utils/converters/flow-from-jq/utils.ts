@@ -3,7 +3,7 @@
  */
 
 import { type ConversionContext } from './types';
-import { type FunctionDef, functionCategories } from '../../function-registry';
+import { type FunctionDef, functionCategories } from '../../function-catalog';
 
 /**
  * Looks up a built-in function by name.

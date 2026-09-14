@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position, useReactFlow } from '@xyflow/react';
-import { GitBranch, Plus, X } from 'lucide-react';
+import { GitBranch, Plus } from 'lucide-react';
 import { Button } from '../primitives';
 import { JQNodeType, JQHandleIdPrefix } from '../enums';
 import type { JQConditionData, JQNodeData } from '../types';
@@ -10,6 +10,7 @@ import { TransformerNode } from './TransformerNode';
 import { TransformerHandle } from './TransformerHandle';
 import { CollapsedHandles } from './CollapsedHandles';
 import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { ConditionBranchRow } from './condition/ConditionBranchRow';
 import { useTransformerReadOnly } from '../TransformerContext';
 
 type ConditionNodeProps = NodeProps<Node<JQConditionData>>;
@@ -98,47 +99,14 @@ export const ConditionNode = memo(({ id, data, selected }: ConditionNodeProps) =
       ) : (
         <div className="jqs-jq-branches">
           {data.branches.map((branch, index) => (
-            <div key={branch.id} className="jqs-jq-branch">
-              <div className="jqs-jq-branch__row">
-                <span className="jqs-jq-branch__label">{index === 0 ? 'if' : 'else if'}</span>
-                {index > 0 && !readOnly && (
-                  <button
-                    type="button"
-                    className="jqs-jq-icon-btn"
-                    onClick={() => {
-                      removeBranch(branch.id);
-                    }}
-                    aria-label="Remove branch"
-                  >
-                    <X className="jqs-jq-icon-sm" />
-                  </button>
-                )}
-              </div>
-              <div className="jqs-jq-branch__handle jqs-jq-branch__handle--if">
-                <TransformerHandle
-                  nodeId={id}
-                  nodeType={JQNodeType.Condition}
-                  position={Position.Right}
-                  type="source"
-                  handleType="source"
-                  id={`${JQHandleIdPrefix.If}:${String(index)}`}
-                />
-              </div>
-
-              <div className="jqs-jq-branch__row">
-                <span className="jqs-jq-branch__label">then</span>
-              </div>
-              <div className="jqs-jq-branch__handle jqs-jq-branch__handle--then">
-                <TransformerHandle
-                  nodeId={id}
-                  nodeType={JQNodeType.Condition}
-                  position={Position.Right}
-                  type="source"
-                  handleType="source"
-                  id={`${JQHandleIdPrefix.Then}:${String(index)}`}
-                />
-              </div>
-            </div>
+            <ConditionBranchRow
+              key={branch.id}
+              nodeId={id}
+              branchId={branch.id}
+              index={index}
+              readOnly={readOnly}
+              onRemove={removeBranch}
+            />
           ))}
 
           <div className="jqs-jq-branch jqs-jq-branch--else">

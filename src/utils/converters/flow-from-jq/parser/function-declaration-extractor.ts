@@ -6,7 +6,7 @@
  * does not recognize `def` blocks.
  */
 
-import { commentEnd } from './utils';
+import { scanTopLevel } from '../../jq-lex';
 
 export interface FunctionDeclaration {
   name: string;
@@ -27,44 +27,9 @@ export interface ExtractionResult {
  * @returns Index of the closing `;` relative to `str`, or -1 if not found
  */
 function findBodyEnd(str: string): number {
-  let depth = 0;
-  let inString = false;
-  let escapeNext = false;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-
-    if (escapeNext) {
-      escapeNext = false;
-      continue;
-    }
-
-    if (char === '\\') {
-      escapeNext = true;
-      continue;
-    }
-
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-
-    if (inString) continue;
-
-    if (char === '#') {
-      i = commentEnd(str, i);
-      continue;
-    }
-
-    if (char === '(' || char === '[' || char === '{') {
-      depth++;
-    } else if (char === ')' || char === ']' || char === '}') {
-      depth--;
-    } else if (depth === 0 && char === ';') {
-      return i;
-    }
+  for (const { char, index, depth } of scanTopLevel(str)) {
+    if (depth === 0 && char === ';') return index;
   }
-
   return -1;
 }
 
@@ -89,6 +54,71 @@ function splitLeadingCommentLines(str: string): { comments: string[]; rest: stri
   }
 
   return { comments, rest: lines.slice(index).join('\n').trim() };
+}
+
+/**
+ * Reads one `def name(p1; p2): body;` declaration from the head of `source`.
+ *
+ * @param source - Text beginning with `def `
+ * @returns The declaration and the trimmed text that follows its closing `;`
+ * @throws {Error} If the declaration syntax is invalid
+ */
+function parseOneDeclaration(source: string): {
+  declaration: FunctionDeclaration;
+  rest: string;
+} {
+  // Skip 'def '
+  let pos = 4;
+
+  // Read function name (word characters)
+  const nameMatch = /^(\w+)/.exec(source.substring(pos));
+  if (!nameMatch) {
+    throw new Error('Invalid function declaration: missing function name');
+  }
+  const name = nameMatch[1] ?? '';
+  pos += name.length;
+
+  // Skip whitespace
+  while (pos < source.length && /\s/.test(source[pos] ?? '')) pos++;
+
+  // Read parameters (if present)
+  const params: string[] = [];
+  if (source[pos] === '(') {
+    pos++; // skip '('
+    const closeParenIdx = source.indexOf(')', pos);
+    if (closeParenIdx === -1) {
+      throw new Error(`Invalid function declaration: unclosed parentheses in def ${name}`);
+    }
+    const paramStr = source.substring(pos, closeParenIdx).trim();
+    if (paramStr.length > 0) {
+      params.push(...paramStr.split(';').map((p) => p.trim()));
+    }
+    pos = closeParenIdx + 1;
+  }
+
+  // Skip whitespace
+  while (pos < source.length && /\s/.test(source[pos] ?? '')) pos++;
+
+  // Expect ':'
+  if (source[pos] !== ':') {
+    throw new Error(`Invalid function declaration: expected ':' after parameters in def ${name}`);
+  }
+  pos++; // skip ':'
+
+  // Find the body end (matching ';' at depth 0)
+  const bodyStart = pos;
+  const bodyStr = source.substring(bodyStart);
+  const semiIdx = findBodyEnd(bodyStr);
+  if (semiIdx === -1) {
+    throw new Error(`Invalid function declaration: missing closing ';' for def ${name}`);
+  }
+
+  const body = bodyStr.substring(0, semiIdx).trim();
+
+  return {
+    declaration: { name, params, body },
+    rest: source.substring(bodyStart + semiIdx + 1).trim(),
+  };
 }
 
 /**
@@ -120,59 +150,10 @@ export function extractFunctionDeclarations(expression: string): ExtractionResul
     const { comments, rest } = splitLeadingCommentLines(remaining);
     if (!rest.startsWith('def ')) break;
     hoistedComments.push(...comments);
-    remaining = rest;
 
-    // Skip 'def '
-    let pos = 4;
-
-    // Read function name (word characters)
-    const nameMatch = /^(\w+)/.exec(remaining.substring(pos));
-    if (!nameMatch) {
-      throw new Error('Invalid function declaration: missing function name');
-    }
-    const name = nameMatch[1] ?? '';
-    pos += name.length;
-
-    // Skip whitespace
-    while (pos < remaining.length && /\s/.test(remaining[pos] ?? '')) pos++;
-
-    // Read parameters (if present)
-    const params: string[] = [];
-    if (remaining[pos] === '(') {
-      pos++; // skip '('
-      const closeParenIdx = remaining.indexOf(')', pos);
-      if (closeParenIdx === -1) {
-        throw new Error(`Invalid function declaration: unclosed parentheses in def ${name}`);
-      }
-      const paramStr = remaining.substring(pos, closeParenIdx).trim();
-      if (paramStr.length > 0) {
-        params.push(...paramStr.split(';').map((p) => p.trim()));
-      }
-      pos = closeParenIdx + 1;
-    }
-
-    // Skip whitespace
-    while (pos < remaining.length && /\s/.test(remaining[pos] ?? '')) pos++;
-
-    // Expect ':'
-    if (remaining[pos] !== ':') {
-      throw new Error(`Invalid function declaration: expected ':' after parameters in def ${name}`);
-    }
-    pos++; // skip ':'
-
-    // Find the body end (matching ';' at depth 0)
-    const bodyStart = pos;
-    const bodyStr = remaining.substring(bodyStart);
-    const semiIdx = findBodyEnd(bodyStr);
-    if (semiIdx === -1) {
-      throw new Error(`Invalid function declaration: missing closing ';' for def ${name}`);
-    }
-
-    const body = bodyStr.substring(0, semiIdx).trim();
-    declarations.push({ name, params, body });
-
-    // Advance past the ';'
-    remaining = remaining.substring(bodyStart + semiIdx + 1).trim();
+    const { declaration, rest: afterDeclaration } = parseOneDeclaration(rest);
+    declarations.push(declaration);
+    remaining = afterDeclaration;
   }
 
   const mainLines = [...hoistedComments, remaining].filter((line) => line !== '');

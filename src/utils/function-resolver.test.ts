@@ -1,19 +1,21 @@
 /**
- * @fileoverview Tests for function registry helpers.
+ * @fileoverview Tests for the jq function catalog and its resolver lookups.
  */
 
 import { describe, it, expect } from 'vitest';
+import { functionCategories } from './function-catalog';
 import {
-  functionCategories,
   getBuiltInFunctionNames,
   getFunctionDefById,
+  getFunctionOptions,
   resolveFunctionDef,
   visibleParams,
-} from './function-registry';
+} from './function-resolver';
+import type { FunctionDef } from './function-catalog';
 
 const builtins = functionCategories[0]!.functions;
 
-describe('function-registry', () => {
+describe('function catalog', () => {
   describe('functionCategories', () => {
     it('should have at least 1 category', () => {
       expect(functionCategories.length).toBeGreaterThanOrEqual(1);
@@ -27,6 +29,85 @@ describe('function-registry', () => {
     it('should have unique function IDs globally', () => {
       const allIds = functionCategories.flatMap((c) => c.functions.map((f) => f.id));
       expect(new Set(allIds).size).toBe(allIds.length);
+    });
+
+    it('lists the builtin functions in the picker-facing order', () => {
+      // The FunctionCall picker renders builtins in array order, so the sequence
+      // is observable; this pins it (split/join precede the regex ops, the rest
+      // of the string ops follow) so a catalog reshuffle cannot silently reorder.
+      const expectedOrder = [
+        'map',
+        'map_values',
+        'select',
+        'range_1',
+        'range_2',
+        'range_3',
+        'recurse_1',
+        'recurse_2',
+        'while',
+        'until',
+        'repeat',
+        'inputs',
+        'path',
+        'paths',
+        'leaf_paths',
+        'limit',
+        'first',
+        'last',
+        'nth',
+        'isempty',
+        'all',
+        'any',
+        'transpose',
+        'combinations_0',
+        'combinations_1',
+        'group_by',
+        'sort',
+        'sort_by',
+        'unique',
+        'unique_by',
+        'min_by',
+        'max_by',
+        'length',
+        'utf8bytelength',
+        'keys',
+        'keys_unsorted',
+        'has',
+        'in',
+        'del',
+        'tostring',
+        'tonumber',
+        'fromjson',
+        'tojson',
+        'type',
+        'error',
+        'halt',
+        'add',
+        'split',
+        'join',
+        'test',
+        'match',
+        'sub',
+        'gsub',
+        'startswith',
+        'endswith',
+        'contains',
+        'ascii_downcase',
+        'ascii_upcase',
+        'now',
+        'strftime',
+        'strptime',
+        'fromdate',
+        'todate',
+        'floor',
+        'sqrt',
+        'pow',
+        'min',
+        'max',
+        'debug',
+        'stderr',
+      ];
+      expect(builtins.map((f) => f.id)).toEqual(expectedOrder);
     });
 
     it('should have non-empty labels and descriptions', () => {
@@ -151,6 +232,26 @@ describe('function-registry', () => {
 
     it('is empty for a null def', () => {
       expect(visibleParams(null, 3)).toHaveLength(0);
+    });
+  });
+
+  describe('getFunctionOptions', () => {
+    const customFunctions: FunctionDef[] = [
+      { id: 'my_fn', name: 'my_fn', description: 'Custom function: my_fn', params: [] },
+    ];
+
+    it('returns the catalog functions for a known category id', () => {
+      expect(getFunctionOptions('builtin', customFunctions)).toBe(builtins);
+    });
+
+    it('returns the flow custom functions for the "custom" call type', () => {
+      expect(getFunctionOptions('custom', customFunctions)).toBe(customFunctions);
+    });
+
+    it('throws for an unknown call type', () => {
+      expect(() => getFunctionOptions('nope', customFunctions)).toThrow(
+        /Unknown function call type/,
+      );
     });
   });
 });

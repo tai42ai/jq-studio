@@ -21,6 +21,21 @@ export function postPositionAdjustments(
   edges: JQEdge[],
   layoutCtx: LayoutContext,
 ): void {
+  const edgesBySource = buildEdgesBySource(edges);
+
+  for (const node of nodes) {
+    if (node.data.type === JQNodeType.Condition || node.data.type === JQNodeType.TryCatch) {
+      recordBranchGroup(node, edgesBySource, layoutCtx);
+    } else if (node.data.type === JQNodeType.FunctionDecl) {
+      recordFunctionGroup(node, edgesBySource, layoutCtx);
+    }
+  }
+
+  positionOrphans(nodes, layoutCtx);
+}
+
+/** Groups edges by their source node id. */
+function buildEdgesBySource(edges: JQEdge[]): Map<string, JQEdge[]> {
   const edgesBySource = new Map<string, JQEdge[]>();
   for (const edge of edges) {
     let bucket = edgesBySource.get(edge.source);
@@ -30,42 +45,48 @@ export function postPositionAdjustments(
     }
     bucket.push(edge);
   }
+  return edgesBySource;
+}
 
-  // Record branch groups (Condition and TryCatch nodes → their branch targets)
-  for (const node of nodes) {
-    if (node.data.type === JQNodeType.Condition || node.data.type === JQNodeType.TryCatch) {
-      const outgoing = edgesBySource.get(node.id) ?? [];
-      const branchTargets: string[] = [];
-      for (const edge of outgoing) {
-        const handle = edge.sourceHandle ?? '';
-        if (
-          handle.startsWith(JQHandleIdPrefix.Then) ||
-          handle.startsWith(JQHandleIdPrefix.Else) ||
-          handle.startsWith(JQHandleIdPrefix.Try) ||
-          handle.startsWith(JQHandleIdPrefix.Catch)
-        ) {
-          branchTargets.push(edge.target);
-        }
-      }
-      if (branchTargets.length > 0) {
-        layoutCtx.branchGroups.set(node.id, branchTargets);
-      }
-    }
-
-    // Record function groups (FunctionDecl → logic sub-graph)
-    if (node.data.type === JQNodeType.FunctionDecl) {
-      const outgoing = edgesBySource.get(node.id) ?? [];
-      const logicEdge = outgoing.find((e) =>
-        (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.Logic),
-      );
-      if (logicEdge) {
-        const logicNodes = collectConnectedNodes(logicEdge.target, edgesBySource);
-        layoutCtx.functionGroups.set(node.id, logicNodes);
-      }
+/** Records a Condition or TryCatch node's then/else/try/catch branch targets. */
+function recordBranchGroup(
+  node: JQNode,
+  edgesBySource: Map<string, JQEdge[]>,
+  layoutCtx: LayoutContext,
+): void {
+  const branchTargets: string[] = [];
+  for (const edge of edgesBySource.get(node.id) ?? []) {
+    const handle = edge.sourceHandle ?? '';
+    if (
+      handle.startsWith(JQHandleIdPrefix.Then) ||
+      handle.startsWith(JQHandleIdPrefix.Else) ||
+      handle.startsWith(JQHandleIdPrefix.Try) ||
+      handle.startsWith(JQHandleIdPrefix.Catch)
+    ) {
+      branchTargets.push(edge.target);
     }
   }
+  if (branchTargets.length > 0) {
+    layoutCtx.branchGroups.set(node.id, branchTargets);
+  }
+}
 
-  // Position any orphan nodes not reached by Phase 4
+/** Records a FunctionDecl node's logic sub-graph as its function group. */
+function recordFunctionGroup(
+  node: JQNode,
+  edgesBySource: Map<string, JQEdge[]>,
+  layoutCtx: LayoutContext,
+): void {
+  const logicEdge = (edgesBySource.get(node.id) ?? []).find((e) =>
+    (e.sourceHandle ?? '').startsWith(JQHandleIdPrefix.Logic),
+  );
+  if (logicEdge) {
+    layoutCtx.functionGroups.set(node.id, collectConnectedNodes(logicEdge.target, edgesBySource));
+  }
+}
+
+/** Lays out any node the Phase 4 tree-walk never reached in a spare row below. */
+function positionOrphans(nodes: JQNode[], layoutCtx: LayoutContext): void {
   let orphanY = LAYOUT_CONFIG.START_Y;
   for (const pos of layoutCtx.nodePositions.values()) {
     orphanY = Math.max(orphanY, pos.y);

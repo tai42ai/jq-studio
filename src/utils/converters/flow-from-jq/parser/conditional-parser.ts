@@ -5,7 +5,7 @@
  */
 
 import { type ASTConditionalNode, type ASTNode } from '../types';
-import { commentEnd, controlKeywordAt } from './utils';
+import { scanTopLevel } from '../../jq-lex';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */
 type ParseExpressionFn = (expression: string) => ASTNode;
@@ -22,65 +22,16 @@ type ParseExpressionFn = (expression: string) => ASTNode;
  * @returns Index of keyword, or -1 if not found
  */
 export function findTopLevelKeyword(str: string, keyword: string, startIndex = 0): number {
-  let inString = false;
-  let escapeNext = false;
-  let depth = 0;
+  // A nested `if … end` carries its own then/elif/else, so they bound its
+  // branches, not the branches of the conditional being read here.
+  for (const { index, depth } of scanTopLevel(str, { countKeywords: true, start: startIndex })) {
+    if (depth !== 0 || !str.startsWith(keyword, index)) continue;
 
-  for (let i = startIndex; i < str.length; i++) {
-    const char = str[i];
-
-    if (escapeNext) {
-      escapeNext = false;
-      continue;
-    }
-
-    if (char === '\\') {
-      escapeNext = true;
-      continue;
-    }
-
-    if (char === '"') {
-      inString = !inString;
-      continue;
-    }
-
-    if (inString) continue;
-
-    // A keyword written inside a comment is text, not a branch boundary
-    if (char === '#') {
-      i = commentEnd(str, i);
-      continue;
-    }
-
-    // A nested `if … end` carries its own then/elif/else — they bound its
-    // branches, not the branches of the conditional being read here
-    if (controlKeywordAt(str, i, 'if')) {
-      depth++;
-      i += 1;
-      continue;
-    }
-    if (controlKeywordAt(str, i, 'end')) {
-      depth--;
-      i += 2;
-      continue;
-    }
-
-    if (char === '(' || char === '[' || char === '{') {
-      depth++;
-    } else if (char === ')' || char === ']' || char === '}') {
-      depth--;
-    } else if (depth === 0) {
-      // Check if keyword matches at this position
-      const remaining = str.substring(i);
-      if (remaining.startsWith(keyword)) {
-        // Ensure it's a complete word (not part of a longer identifier)
-        const before = i === 0 || /\s/.test(str[i - 1] ?? '');
-        const after = i + keyword.length >= str.length || /\s/.test(str[i + keyword.length] ?? '');
-        if (before && after) {
-          return i;
-        }
-      }
-    }
+    // Ensure it's a complete word (not part of a longer identifier)
+    const before = index === 0 || /\s/.test(str[index - 1] ?? '');
+    const after =
+      index + keyword.length >= str.length || /\s/.test(str[index + keyword.length] ?? '');
+    if (before && after) return index;
   }
 
   return -1;

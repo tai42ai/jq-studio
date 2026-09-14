@@ -5,7 +5,7 @@
 import { type JQNode } from '../../../../types';
 import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
 import { type ConversionContext, type ASTNode } from '../types';
-import { type FunctionDef, functionCategories } from '../../../function-registry';
+import { type FunctionDef, functionCategories } from '../../../function-catalog';
 import { generateNodeId, createEdge } from './utils';
 
 /**

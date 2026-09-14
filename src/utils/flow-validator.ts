@@ -7,9 +7,10 @@
  */
 
 import { type Node, type Edge } from '@xyflow/react';
-import { JQNodeType, JQHandleIdPrefix, VALID_NAME_PATTERN, JQ_RESERVED_KEYWORDS } from '../enums';
+import { JQNodeType, JQHandleIdPrefix } from '../enums';
 import { type JQNodeData } from '../types';
-import { getFunctionDefById, getBuiltInFunctionNames } from './function-registry';
+import { getFunctionDefById } from './function-resolver';
+import { buildReservedNames, nameVerdict } from './name-validation';
 import { UNARY_OPERATORS } from '../operator-catalog';
 
 export interface ValidationError {
@@ -42,8 +43,6 @@ function addError(
   existing.push({ message, severity });
   map.set(nodeId, existing);
 }
-
-// VALID_NAME_PATTERN imported from enums.ts
 
 // ---------------------------------------------------------------------------
 // Rule 1: No orphan nodes
@@ -217,31 +216,21 @@ function validateTryCatch(nodes: Node<JQNodeData>[], edges: Edge[]): ValidationE
 function validateNodeNames(nodes: Node<JQNodeData>[]): ValidationErrorMap {
   const errors: ValidationErrorMap = new Map();
 
-  // Build name frequency map (exclude Start, Comment, and unnamed nodes)
-  const nameCount = new Map<string, string[]>();
-  for (const node of nodes) {
-    if (node.data.type === JQNodeType.Start || node.data.type === JQNodeType.Comment) continue;
-    const name = node.data.name;
-    if (!name) continue;
-    const ids = nameCount.get(name) ?? [];
-    ids.push(node.id);
-    nameCount.set(name, ids);
-  }
+  // Named nodes only (Start and Comment carry no name); name uniqueness is
+  // judged against the other named nodes.
+  const named = nodes.filter(
+    (n) => n.data.type !== JQNodeType.Start && n.data.type !== JQNodeType.Comment && !!n.data.name,
+  );
 
-  for (const node of nodes) {
-    if (node.data.type === JQNodeType.Start || node.data.type === JQNodeType.Comment) continue;
-    const name = node.data.name;
+  for (const node of named) {
+    const name = node.data.name ?? '';
+    const siblings = named.filter((n) => n.id !== node.id).map((n) => n.data.name ?? '');
+    const verdict = nameVerdict(name, siblings, []);
 
-    // Name is optional — skip validation for unnamed nodes
-    if (!name) continue;
-
-    if (!VALID_NAME_PATTERN.test(name)) {
+    if (!verdict.valid) {
       addError(errors, node.id, 'Invalid name — use letters, numbers, and underscores');
     }
-
-    // Duplicate check
-    const ids = nameCount.get(name);
-    if (ids && ids.length > 1) {
+    if (!verdict.unique) {
       addError(errors, node.id, `Duplicate name "${name}"`, 'warning');
     }
   }
@@ -277,17 +266,18 @@ function validateStartNode(nodes: Node<JQNodeData>[], edges: Edge[]): Validation
 
 function validateFunctionDecls(nodes: Node<JQNodeData>[], edges: Edge[]): ValidationErrorMap {
   const errors: ValidationErrorMap = new Map();
-  const reservedNames = [...getBuiltInFunctionNames(), ...JQ_RESERVED_KEYWORDS];
+  const reservedNames = buildReservedNames();
 
   for (const node of nodes) {
     if (node.data.type !== JQNodeType.FunctionDecl) continue;
     const data = node.data;
 
-    // Function name is required (it's the function identifier)
-    if (!data.name) {
+    // Function name is required (it's the function identifier) and may not be reserved.
+    const nameCheck = nameVerdict(data.name ?? '', [], reservedNames);
+    if (nameCheck.empty) {
       addError(errors, node.id, 'Function name is required');
-    } else if (reservedNames.includes(data.name)) {
-      addError(errors, node.id, `Function name "${data.name}" is a reserved word`);
+    } else if (nameCheck.reserved) {
+      addError(errors, node.id, `Function name "${data.name ?? ''}" is a reserved word`);
     }
 
     // Must have logic body connected
@@ -301,13 +291,14 @@ function validateFunctionDecls(nodes: Node<JQNodeData>[], edges: Edge[]): Valida
     if (data.parameters) {
       const seen = new Set<string>();
       for (const param of data.parameters) {
-        if (!param || param.length === 0) {
+        const verdict = nameVerdict(param, [...seen], reservedNames);
+        if (verdict.empty) {
           addError(errors, node.id, 'Parameter name is required');
-        } else if (!VALID_NAME_PATTERN.test(param)) {
+        } else if (!verdict.valid) {
           addError(errors, node.id, `Invalid parameter name "${param}"`);
-        } else if (reservedNames.includes(param)) {
+        } else if (verdict.reserved) {
           addError(errors, node.id, `Parameter "${param}" is a reserved word`);
-        } else if (seen.has(param)) {
+        } else if (!verdict.unique) {
           addError(errors, node.id, `Duplicate parameter "${param}"`);
         }
         if (param) seen.add(param);

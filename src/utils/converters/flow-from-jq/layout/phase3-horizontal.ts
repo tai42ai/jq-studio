@@ -15,6 +15,81 @@ import { type JQNode } from '../../../../types';
 import { type LayoutContext } from './types';
 import { LAYOUT_CONFIG } from '../constants';
 
+/** A sub-tree's bounding box. */
+interface Size {
+  width: number;
+  height: number;
+}
+
+/** Computes (and memoizes) the sub-tree bounding box rooted at a node. */
+type ComputeFn = (nodeId: string) => Size;
+
+/** A node's own dimensions, falling back to the base size when unknown. */
+function nodeDim(layoutCtx: LayoutContext, nodeId: string): Size {
+  return (
+    layoutCtx.nodeDimensions.get(nodeId) ?? {
+      width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
+      height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
+    }
+  );
+}
+
+/** Extent of the branch sub-trees stacked vertically to the right of a node. */
+function branchColumn(nodeId: string, layoutCtx: LayoutContext, compute: ComputeFn): Size {
+  let width = 0;
+  let height = 0;
+  const branchEdges = layoutCtx.branchEdgesBySource.get(nodeId) ?? [];
+  for (const edge of branchEdges) {
+    const branchSize = compute(edge.target);
+    width = Math.max(width, branchSize.width);
+    height += branchSize.height + LAYOUT_CONFIG.BRANCH_GAP_Y;
+  }
+  // Remove trailing gap
+  if (branchEdges.length > 0) {
+    height -= LAYOUT_CONFIG.BRANCH_GAP_Y;
+  }
+  return { width, height };
+}
+
+/**
+ * Extent of a node's operator operands — those hanging to its left and right,
+ * plus, when the node is itself a left operand, the operator and its right
+ * operand (computed directly to avoid a cycle through the operator node).
+ */
+function operandExtent(nodeId: string, layoutCtx: LayoutContext, compute: ComputeFn): Size {
+  let width = 0;
+  let height = 0;
+
+  const operatorEntry = layoutCtx.operatorEdgesByTarget.get(nodeId);
+  if (operatorEntry?.left) {
+    const leftSize = compute(operatorEntry.left.source);
+    width += leftSize.width + LAYOUT_CONFIG.OPERAND_GAP;
+    height = Math.max(height, leftSize.height);
+  }
+  if (operatorEntry?.right) {
+    const rightSize = compute(operatorEntry.right.source);
+    width += rightSize.width + LAYOUT_CONFIG.OPERAND_GAP;
+    height = Math.max(height, rightSize.height);
+  }
+
+  const operatorChainId = layoutCtx.operatorChainBySource.get(nodeId);
+  if (operatorChainId) {
+    const opDim = nodeDim(layoutCtx, operatorChainId);
+    let chainWidth = LAYOUT_CONFIG.OPERAND_GAP + opDim.width;
+    let chainHeight = opDim.height;
+    const opEntry = layoutCtx.operatorEdgesByTarget.get(operatorChainId);
+    if (opEntry?.right) {
+      const rightSize = compute(opEntry.right.source);
+      chainWidth += LAYOUT_CONFIG.OPERAND_GAP + rightSize.width;
+      chainHeight = Math.max(chainHeight, rightSize.height);
+    }
+    width += chainWidth;
+    height = Math.max(height, chainHeight);
+  }
+
+  return { width, height };
+}
+
 /**
  * Phase 3: Computes sub-tree bounding boxes for all nodes.
  *
@@ -26,98 +101,36 @@ import { LAYOUT_CONFIG } from '../constants';
  * - Flow children continuing below
  */
 export function computeSubTreeSizes(nodes: JQNode[], layoutCtx: LayoutContext): void {
-  const nodeMap = new Map<string, JQNode>();
-  for (const node of nodes) {
-    nodeMap.set(node.id, node);
-  }
-
   // Track nodes being computed to prevent infinite loops with shared nodes
   const computing = new Set<string>();
 
-  function compute(nodeId: string): { width: number; height: number } {
+  function compute(nodeId: string): Size {
     // Return cached result
     const cachedSize = layoutCtx.subTreeSizes.get(nodeId);
     if (cachedSize) {
       return cachedSize;
     }
 
+    const dim = nodeDim(layoutCtx, nodeId);
+
     // Prevent infinite recursion on shared nodes (variables)
     if (computing.has(nodeId)) {
-      const dim = layoutCtx.nodeDimensions.get(nodeId) ?? {
-        width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
-        height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
-      };
       return { width: dim.width, height: dim.height };
     }
     computing.add(nodeId);
 
-    const dim = layoutCtx.nodeDimensions.get(nodeId) ?? {
-      width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
-      height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
-    };
-
-    // Compute branch sub-tree sizes (stacked vertically to the right)
-    let branchColumnWidth = 0;
-    let branchColumnHeight = 0;
-    const branchEdges = layoutCtx.branchEdgesBySource.get(nodeId) ?? [];
-    for (const edge of branchEdges) {
-      const branchSize = compute(edge.target);
-      branchColumnWidth = Math.max(branchColumnWidth, branchSize.width);
-      branchColumnHeight += branchSize.height + LAYOUT_CONFIG.BRANCH_GAP_Y;
-    }
-    // Remove trailing gap
-    if (branchEdges.length > 0) {
-      branchColumnHeight -= LAYOUT_CONFIG.BRANCH_GAP_Y;
-    }
-
-    // Compute operator operand sub-tree sizes (to the left and right)
-    let operandTotalWidth = 0;
-    let operandMaxHeight = 0;
-    const operatorEntry = layoutCtx.operatorEdgesByTarget.get(nodeId);
-    if (operatorEntry) {
-      if (operatorEntry.left) {
-        const leftSize = compute(operatorEntry.left.source);
-        operandTotalWidth += leftSize.width + LAYOUT_CONFIG.OPERAND_GAP;
-        operandMaxHeight = Math.max(operandMaxHeight, leftSize.height);
-      }
-      if (operatorEntry.right) {
-        const rightSize = compute(operatorEntry.right.source);
-        operandTotalWidth += rightSize.width + LAYOUT_CONFIG.OPERAND_GAP;
-        operandMaxHeight = Math.max(operandMaxHeight, rightSize.height);
-      }
-    }
-
-    // If this node is a left operand, include operator + right operand width
-    // (computed directly to avoid circular dependency with compute(operatorId))
-    const operatorChainId = layoutCtx.operatorChainBySource.get(nodeId);
-    if (operatorChainId) {
-      const opDim = layoutCtx.nodeDimensions.get(operatorChainId) ?? {
-        width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
-        height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
-      };
-      let chainWidth = LAYOUT_CONFIG.OPERAND_GAP + opDim.width;
-      let chainHeight = opDim.height;
-      const opEntry = layoutCtx.operatorEdgesByTarget.get(operatorChainId);
-      if (opEntry?.right) {
-        const rightSize = compute(opEntry.right.source);
-        chainWidth += LAYOUT_CONFIG.OPERAND_GAP + rightSize.width;
-        chainHeight = Math.max(chainHeight, rightSize.height);
-      }
-      operandTotalWidth += chainWidth;
-      operandMaxHeight = Math.max(operandMaxHeight, chainHeight);
-    }
+    const branches = branchColumn(nodeId, layoutCtx, compute);
+    const operands = operandExtent(nodeId, layoutCtx, compute);
 
     // Width with branches: node width + gap + branch column width
     const widthWithBranches =
-      branchColumnWidth > 0
-        ? dim.width + LAYOUT_CONFIG.BRANCH_OFFSET_X + branchColumnWidth
-        : dim.width;
+      branches.width > 0 ? dim.width + LAYOUT_CONFIG.BRANCH_OFFSET_X + branches.width : dim.width;
 
     // Width with operands: operand widths + node width
-    const widthWithOperands = operandTotalWidth > 0 ? operandTotalWidth + dim.width : 0;
+    const widthWithOperands = operands.width > 0 ? operands.width + dim.width : 0;
 
     // Local height: max of own height, branch column, operand height
-    const localHeight = Math.max(dim.height, branchColumnHeight, operandMaxHeight);
+    const localHeight = Math.max(dim.height, branches.height, operands.height);
 
     // Compute flow child sub-tree size
     const flowChildId = layoutCtx.flowChildren.get(nodeId);
@@ -129,10 +142,10 @@ export function computeSubTreeSizes(nodes: JQNode[], layoutCtx: LayoutContext): 
       childHeight = LAYOUT_CONFIG.LAYER_SPACING + childSize.height;
     }
 
-    const totalWidth = Math.max(widthWithBranches, widthWithOperands, childWidth);
-    const totalHeight = localHeight + childHeight;
-
-    const result = { width: totalWidth, height: totalHeight };
+    const result: Size = {
+      width: Math.max(widthWithBranches, widthWithOperands, childWidth),
+      height: localHeight + childHeight,
+    };
     layoutCtx.subTreeSizes.set(nodeId, result);
     computing.delete(nodeId);
     return result;

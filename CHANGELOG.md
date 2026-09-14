@@ -1,39 +1,8 @@
 # Changelog
 
-## [0.1.4](https://github.com/tai42ai/jq-studio/compare/v0.1.3...v0.1.4) (2026-09-03)
+All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Features
-
-* **converters:** variable postfix paths, group-postfix lowering, and chain-loss fixes ([#8](https://github.com/tai42ai/jq-studio/issues/8)) ([0aeca2f](https://github.com/tai42ai/jq-studio/commit/0aeca2f42714d141bdeced4939a30f4fa9ff9730))
-
-## [0.1.3](https://github.com/tai42ai/jq-studio/compare/v0.1.2...v0.1.3) (2026-08-31)
-
-
-### Bug Fixes
-
-* return focus to the opener when the built-in dialog closes ([#5](https://github.com/tai42ai/jq-studio/issues/5)) ([abbdfc7](https://github.com/tai42ai/jq-studio/commit/abbdfc7e07a9634422258f482135514f78a038fe))
-
-## [0.1.2](https://github.com/tai42ai/jq-studio/compare/v0.1.1...v0.1.2) (2026-08-30)
-
-
-### Features
-
-* JqField gains a compact density variant for dense host rows ([8e7ab84](https://github.com/tai42ai/jq-studio/commit/8e7ab84c9668a65dd57656098da56cb15861915b))
-
-## [0.1.1](https://github.com/tai42ai/jq-studio/compare/v0.1.0...v0.1.1) (2026-08-30)
-
-
-### Features
-
-* JqField notifies editor open-state; the dirty guard baselines the loaded graph ([d606377](https://github.com/tai42ai/jq-studio/commit/d606377f6206a23f999f656d017bb4e8660bcc1d))
-
-## 0.1.0 (2026-08-30)
-
-
-### Features
-
-* initial open-source release of jq-studio ([3eee23b](https://github.com/tai42ai/jq-studio/commit/3eee23bc49021a0a99437db4292167e818a036fc))
-* JqField gains a live sampleInput provider and a11y-linked description/error slots ([3921c6e](https://github.com/tai42ai/jq-studio/commit/3921c6e1f181143a0dedf9ef5af16437dde25ddd))
-* the visual-editor door carries a per-field accessible name ([ffe843e](https://github.com/tai42ai/jq-studio/commit/ffe843e550db95377936379a466860cb7ca48a5b))
-* theme tokens inherit an ancestor :root data-theme stamp ([115f391](https://github.com/tai42ai/jq-studio/commit/115f391a842add452ea073b30162179ad8c5a6e8))
+## [Unreleased]

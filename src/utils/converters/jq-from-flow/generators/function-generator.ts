@@ -9,7 +9,7 @@ import { validateVariableName, edgeTargetNode } from '../utils/validators';
 import { classifyEdge } from '../utils/edge-classifier';
 import { shouldCreateVariable } from '../utils/variable-checker';
 import { findOutermostOperator, findPipeChainEnd } from '../utils/operator-resolver';
-import { getFunctionDefById } from '../../../function-registry';
+import { getFunctionDefById } from '../../../function-resolver';
 import { isMultiline } from '../utils/formatter';
 import {
   type ExpressionPart,

@@ -18,11 +18,13 @@
  * a11y-linked helper slots under the control (wired via `aria-describedby`, with
  * `aria-invalid` set while an error is present).
  */
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { Pencil } from 'lucide-react';
 
-import { Button, TextInput, Textarea } from './primitives';
+import { Button } from './primitives';
 import { JQEditorDialog } from './JQEditorDialog';
+import { JqRestingControl } from './components/JqRestingControl';
+import { useEditorOpenNotifier } from './hooks/use-editor-open-notifier';
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
@@ -89,6 +91,20 @@ export interface JqFieldProps {
   readonly onEditorOpenChange?: (open: boolean) => void;
 }
 
+/** The a11y wiring for the resting control: the description/error slot ids, the
+ *  `aria-describedby` listing only the ids actually rendered (a dangling id is
+ *  worse than none), and `aria-invalid` mirroring an error's presence. */
+const ariaWiring = (controlId: string, description?: ReactNode, error?: ReactNode) => {
+  const descriptionId = description != null ? `${controlId}-description` : undefined;
+  const errorId = error != null ? `${controlId}-error` : undefined;
+  return {
+    descriptionId,
+    errorId,
+    describedBy: [descriptionId, errorId].filter(Boolean).join(' ') || undefined,
+    invalid: error != null ? (true as const) : undefined,
+  };
+};
+
 export function JqField({
   label,
   value,
@@ -109,53 +125,13 @@ export function JqField({
   const controlId = id ?? generatedId;
   const [open, setOpen] = useState(false);
 
-  // Notify a host on every open-state transition. Keying an effect on the single
-  // `open` state — the one place EVERY open/close route mutates (the door button,
-  // Save, Cancel, Escape, the overlay, the discard-confirm, and the parse-failure
-  // fallback's Close all land here) — means no path, present or future, can slip
-  // past the notify; a per-callsite wrapper could. The ref skips the mount frame
-  // and any non-transition re-render, so the callback fires only on a real flip:
-  // it reports NET COMMITTED transitions, so StrictMode's double-invoked mount
-  // never yields a spurious call.
-  const previousOpenRef = useRef(open);
-  useEffect(() => {
-    if (previousOpenRef.current !== open) {
-      previousOpenRef.current = open;
-      onEditorOpenChange?.(open);
-    }
-  }, [open, onEditorOpenChange]);
+  useEditorOpenNotifier(open, onEditorOpenChange);
 
-  // Live mirrors the unmount cleanup below reads: an empty-dep cleanup captures
-  // its closure at mount, so it must reach the CURRENT open state and callback
-  // through refs rather than stale mount-time values.
-  const openRef = useRef(open);
-  const onEditorOpenChangeRef = useRef(onEditorOpenChange);
-  useEffect(() => {
-    openRef.current = open;
-    onEditorOpenChangeRef.current = onEditorOpenChange;
-  });
-
-  // Unmount counts as a close for the muting contract: if the field is torn down
-  // while the editor is open (a host route swap, an error boundary above), none
-  // of the normal close paths run — so without this a host would leave its global
-  // shortcuts muted forever. Empty deps means this fires ONLY at unmount; it can
-  // never double-fire with a normal close, which flips `open` to false first, so
-  // `openRef.current` already reads false here.
-  useEffect(
-    () => () => {
-      if (openRef.current) onEditorOpenChangeRef.current?.(false);
-    },
-    [],
+  const { descriptionId, errorId, describedBy, invalid } = ariaWiring(
+    controlId,
+    description,
+    error,
   );
-
-  // Only reference the ids that are actually rendered, so `aria-describedby`
-  // never dangles at an absent node (a dangling id is worse than none). The
-  // control lists both when both slots are present; `aria-invalid` mirrors the
-  // presence of an error.
-  const descriptionId = description != null ? `${controlId}-description` : undefined;
-  const errorId = error != null ? `${controlId}-error` : undefined;
-  const describedBy = [descriptionId, errorId].filter(Boolean).join(' ') || undefined;
-  const invalid = error != null ? true : undefined;
 
   // Install the default worker once, so a runaway expression the Test panel runs
   // is terminated on a deadline rather than freezing the tab.
@@ -163,37 +139,16 @@ export function JqField({
     installDefaultJqWorker();
   }, []);
 
-  const resting = multiline ? (
-    <Textarea
+  const resting = (
+    <JqRestingControl
       id={controlId}
-      className="jqs-field__control"
       value={value}
-      onChange={(event) => {
-        onChange(event.target.value);
-      }}
+      onChange={onChange}
+      multiline={multiline}
       readOnly={readOnly}
       placeholder={placeholder}
-      spellCheck={false}
-      rows={3}
-      aria-describedby={describedBy}
-      aria-invalid={invalid}
-    />
-  ) : (
-    <TextInput
-      id={controlId}
-      className="jqs-field__control"
-      value={value}
-      onChange={(event) => {
-        onChange(event.target.value);
-      }}
-      readOnly={readOnly}
-      placeholder={placeholder}
-      spellCheck={false}
-      autoComplete="off"
-      autoCapitalize="off"
-      autoCorrect="off"
-      aria-describedby={describedBy}
-      aria-invalid={invalid}
+      describedBy={describedBy}
+      invalid={invalid}
     />
   );
 

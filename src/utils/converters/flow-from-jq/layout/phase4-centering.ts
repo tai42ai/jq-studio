@@ -62,6 +62,102 @@ export function positionAllNodes(layoutCtx: LayoutContext): void {
   }
 }
 
+/** A sub-tree's bounding box. */
+interface Size {
+  width: number;
+  height: number;
+}
+
+/** A node's own dimensions, falling back to the base size when unknown. */
+function dimOf(layoutCtx: LayoutContext, nodeId: string): Size {
+  return (
+    layoutCtx.nodeDimensions.get(nodeId) ?? {
+      width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
+      height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
+    }
+  );
+}
+
+/**
+ * Positions a node's branch sub-trees, stacked top-to-bottom to its right.
+ *
+ * @returns The widest branch and the total height the column occupies
+ */
+function positionBranches(
+  nodeId: string,
+  x: number,
+  y: number,
+  dim: Size,
+  layoutCtx: LayoutContext,
+): { maxWidth: number; totalHeight: number } {
+  const branchEdges = layoutCtx.branchEdgesBySource.get(nodeId) ?? [];
+  if (branchEdges.length === 0) return { maxWidth: 0, totalHeight: 0 };
+
+  const branchX = x + dim.width + LAYOUT_CONFIG.BRANCH_OFFSET_X;
+  let branchY = y;
+  let maxWidth = 0;
+
+  // Sort branch edges by handle index for consistent ordering
+  for (const branchEdge of sortBranchEdges(branchEdges)) {
+    const result = positionSubTree(branchEdge.target, branchX, branchY, layoutCtx);
+    maxWidth = Math.max(maxWidth, result.width);
+    branchY += result.height + LAYOUT_CONFIG.BRANCH_GAP_Y;
+  }
+
+  return { maxWidth, totalHeight: branchY - y - LAYOUT_CONFIG.BRANCH_GAP_Y };
+}
+
+/**
+ * Positions a node's operator operands — the left operand to its left, the right
+ * operand (or the operator chain, when this node is itself a left operand) to
+ * its right. Operands already placed via a shared variable are left in place.
+ *
+ * @returns The width consumed left and right of the node and the tallest operand
+ */
+function positionOperands(
+  nodeId: string,
+  x: number,
+  y: number,
+  dim: Size,
+  layoutCtx: LayoutContext,
+): { leftWidth: number; rightWidth: number; maxHeight: number } {
+  let leftWidth = 0;
+  let rightWidth = 0;
+  let maxHeight = 0;
+
+  const operatorEntry = layoutCtx.operatorEdgesByTarget.get(nodeId);
+
+  // Left operand: position to the LEFT of this node
+  const leftId = operatorEntry?.left?.source;
+  if (leftId !== undefined && !layoutCtx.positionedNodes.has(leftId)) {
+    const leftDim = dimOf(layoutCtx, leftId);
+    const leftX = x - LAYOUT_CONFIG.OPERAND_GAP - leftDim.width;
+    const leftResult = positionSubTree(leftId, leftX, y, layoutCtx);
+    leftWidth = leftResult.width + LAYOUT_CONFIG.OPERAND_GAP;
+    maxHeight = Math.max(maxHeight, leftResult.height);
+  }
+
+  // Right operand: position to the RIGHT of this node
+  const rightId = operatorEntry?.right?.source;
+  if (rightId !== undefined && !layoutCtx.positionedNodes.has(rightId)) {
+    const rightX = x + dim.width + LAYOUT_CONFIG.OPERAND_GAP;
+    const rightResult = positionSubTree(rightId, rightX, y, layoutCtx);
+    rightWidth = rightResult.width + LAYOUT_CONFIG.OPERAND_GAP;
+    maxHeight = Math.max(maxHeight, rightResult.height);
+  }
+
+  // Operator chain to the right, when this node is a left operand
+  const operatorChainId = layoutCtx.operatorChainBySource.get(nodeId);
+  if (operatorChainId && !layoutCtx.positionedNodes.has(operatorChainId)) {
+    const opX = x + dim.width + LAYOUT_CONFIG.OPERAND_GAP;
+    const opResult = positionSubTree(operatorChainId, opX, y, layoutCtx);
+    rightWidth = LAYOUT_CONFIG.OPERAND_GAP + opResult.width;
+    maxHeight = Math.max(maxHeight, opResult.height);
+  }
+
+  return { leftWidth, rightWidth, maxHeight };
+}
+
 /**
  * Positions a sub-tree rooted at nodeId, starting at (x, y).
  *
@@ -73,103 +169,25 @@ export function positionAllNodes(layoutCtx: LayoutContext): void {
  *
  * @returns Bounding box of the positioned sub-tree
  */
-function positionSubTree(
-  nodeId: string,
-  x: number,
-  y: number,
-  layoutCtx: LayoutContext,
-): { width: number; height: number } {
+function positionSubTree(nodeId: string, x: number, y: number, layoutCtx: LayoutContext): Size {
   // Skip already-positioned nodes (shared via variables)
   if (layoutCtx.positionedNodes.has(nodeId)) {
-    const dim = layoutCtx.nodeDimensions.get(nodeId) ?? {
-      width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
-      height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
-    };
+    const dim = dimOf(layoutCtx, nodeId);
     return { width: dim.width, height: dim.height };
   }
 
   // Position this node
   setPosition(nodeId, x, y, layoutCtx);
+  const dim = dimOf(layoutCtx, nodeId);
 
-  const dim = layoutCtx.nodeDimensions.get(nodeId) ?? {
-    width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
-    height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
-  };
+  const branches = positionBranches(nodeId, x, y, dim, layoutCtx);
+  const operands = positionOperands(nodeId, x, y, dim, layoutCtx);
 
-  // --- 1. Position BRANCHES to the right ---
-  const branchEdges = layoutCtx.branchEdgesBySource.get(nodeId) ?? [];
-  let branchMaxWidth = 0;
-  let branchTotalHeight = 0;
-
-  if (branchEdges.length > 0) {
-    const branchX = x + dim.width + LAYOUT_CONFIG.BRANCH_OFFSET_X;
-    let branchY = y;
-
-    // Sort branch edges by handle index for consistent ordering
-    const sortedBranches = sortBranchEdges(branchEdges);
-
-    for (const branchEdge of sortedBranches) {
-      const result = positionSubTree(branchEdge.target, branchX, branchY, layoutCtx);
-      branchMaxWidth = Math.max(branchMaxWidth, result.width);
-      branchY += result.height + LAYOUT_CONFIG.BRANCH_GAP_Y;
-    }
-
-    branchTotalHeight = branchY - y;
-    if (sortedBranches.length > 0) {
-      branchTotalHeight -= LAYOUT_CONFIG.BRANCH_GAP_Y;
-    }
-  }
-
-  // --- 2. Position OPERATOR OPERANDS to left and right ---
-  let operandLeftWidth = 0;
-  let operandRightWidth = 0;
-  let operandMaxHeight = 0;
-
-  const operatorEntry = layoutCtx.operatorEdgesByTarget.get(nodeId);
-  if (operatorEntry) {
-    // Left operand: position to the LEFT of this node
-    if (operatorEntry.left) {
-      const leftId = operatorEntry.left.source;
-      if (!layoutCtx.positionedNodes.has(leftId)) {
-        const leftDim = layoutCtx.nodeDimensions.get(leftId) ?? {
-          width: LAYOUT_CONFIG.NODE_BASE_WIDTH,
-          height: LAYOUT_CONFIG.NODE_BASE_HEIGHT,
-        };
-        const leftX = x - LAYOUT_CONFIG.OPERAND_GAP - leftDim.width;
-        const leftResult = positionSubTree(leftId, leftX, y, layoutCtx);
-        operandLeftWidth = leftResult.width + LAYOUT_CONFIG.OPERAND_GAP;
-        operandMaxHeight = Math.max(operandMaxHeight, leftResult.height);
-      }
-    }
-
-    // Right operand: position to the RIGHT of this node
-    if (operatorEntry.right) {
-      const rightId = operatorEntry.right.source;
-      if (!layoutCtx.positionedNodes.has(rightId)) {
-        const rightX = x + dim.width + LAYOUT_CONFIG.OPERAND_GAP;
-        const rightResult = positionSubTree(rightId, rightX, y, layoutCtx);
-        operandRightWidth = rightResult.width + LAYOUT_CONFIG.OPERAND_GAP;
-        operandMaxHeight = Math.max(operandMaxHeight, rightResult.height);
-      }
-    }
-  }
-
-  // --- 2b. Position OPERATOR CHAIN to the right (when this node is left operand) ---
-  const operatorChainId = layoutCtx.operatorChainBySource.get(nodeId);
-  if (operatorChainId && !layoutCtx.positionedNodes.has(operatorChainId)) {
-    const opX = x + dim.width + LAYOUT_CONFIG.OPERAND_GAP;
-    const opResult = positionSubTree(operatorChainId, opX, y, layoutCtx);
-    operandRightWidth = LAYOUT_CONFIG.OPERAND_GAP + opResult.width;
-    operandMaxHeight = Math.max(operandMaxHeight, opResult.height);
-  }
-
-  // --- 3. Position FLOW CHILD below ---
-  const localHeight = Math.max(dim.height, branchTotalHeight, operandMaxHeight);
+  const localHeight = Math.max(dim.height, branches.totalHeight, operands.maxHeight);
   const flowChildId = layoutCtx.flowChildren.get(nodeId);
 
   let childWidth = 0;
   let childHeight = 0;
-
   if (flowChildId && !layoutCtx.positionedNodes.has(flowChildId)) {
     const childY = y + localHeight + LAYOUT_CONFIG.LAYER_SPACING;
     const childResult = positionSubTree(flowChildId, x, childY, layoutCtx);
@@ -178,16 +196,16 @@ function positionSubTree(
   }
 
   // Compute total bounding box
-  const branchWidth = branchMaxWidth > 0 ? LAYOUT_CONFIG.BRANCH_OFFSET_X + branchMaxWidth : 0;
+  const branchWidth = branches.maxWidth > 0 ? LAYOUT_CONFIG.BRANCH_OFFSET_X + branches.maxWidth : 0;
 
-  const totalWidth = Math.max(
-    dim.width + branchWidth,
-    operandLeftWidth + dim.width + operandRightWidth,
-    childWidth,
-  );
-  const totalHeight = localHeight + childHeight;
-
-  return { width: totalWidth, height: totalHeight };
+  return {
+    width: Math.max(
+      dim.width + branchWidth,
+      operands.leftWidth + dim.width + operands.rightWidth,
+      childWidth,
+    ),
+    height: localHeight + childHeight,
+  };
 }
 
 /**

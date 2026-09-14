@@ -15,7 +15,7 @@ import type { JQNode } from '../types';
 import { TransformerProvider } from '../TransformerContext';
 import { ValidationProvider } from '../ValidationContext';
 import { SnapshotProvider } from '../SnapshotContext';
-import { getFunctionDefById } from '../utils/function-registry';
+import { getFunctionDefById } from '../utils/function-resolver';
 import {
   createConditionNode,
   createFunctionCallNode,

@@ -83,6 +83,117 @@ const ContextChip = ({ shape }: { shape: JqInputShapeDescriptor }) => (
   </Tooltip>
 );
 
+interface EditorHeaderProps {
+  title: string;
+  shape?: JqInputShapeDescriptor;
+  readOnly?: boolean;
+  saveDisabled: boolean;
+  saveTitle: string;
+  onRequestClose: () => void;
+  onSave: () => void;
+}
+
+/** The full-screen editor's toolbar: title + context chip, a Legend, and the
+ *  Cancel / Save actions (Save enabled when logic-less so its click surfaces the
+ *  refusal message; disabled only when the graph has logic but other errors). */
+const EditorHeader = ({
+  title,
+  shape,
+  readOnly,
+  saveDisabled,
+  saveTitle,
+  onRequestClose,
+  onSave,
+}: EditorHeaderProps) => (
+  <div className="jqs-jq-fullscreen__header">
+    <div className="jqs-jq-fullscreen__title-group">
+      <h2 className="jqs-jq-fullscreen__title">{title}</h2>
+      {shape && <ContextChip shape={shape} />}
+    </div>
+    <div className="jqs-jq-fullscreen__actions">
+      <JqLegendDialog />
+      <span className="jqs-jq-fullscreen__divider" aria-hidden />
+      <Button onClick={onRequestClose}>
+        <X className="jqs-jq-icon" />
+        {readOnly ? 'Close' : 'Cancel'}
+      </Button>
+      {!readOnly && (
+        <Button variant="primary" onClick={onSave} disabled={saveDisabled} title={saveTitle}>
+          <Save className="jqs-jq-icon" />
+          Save
+        </Button>
+      )}
+    </div>
+  </div>
+);
+
+interface EditorBodyProps {
+  initialExpression: string;
+  readOnly?: boolean;
+  onExpressionChange: (expression: string) => void;
+  onSave: () => void;
+  onHasErrorsChange: (hasErrors: boolean) => void;
+  onHasLogicNodeChange: (hasLogicNode: boolean) => void;
+  onLogicLessSave: () => void;
+  onRequestClose: () => void;
+  shape?: JqInputShapeDescriptor;
+  sampleInput?: SampleInputProvider;
+  serverValidate?: ServerValidateHook;
+}
+
+/** The editor surface. In read-only mode the edit/save/validation callbacks are
+ *  withheld so the canvas renders as a viewer. */
+const EditorBody = ({
+  initialExpression,
+  readOnly,
+  onExpressionChange,
+  onSave,
+  onHasErrorsChange,
+  onHasLogicNodeChange,
+  onLogicLessSave,
+  onRequestClose,
+  shape,
+  sampleInput,
+  serverValidate,
+}: EditorBodyProps) => (
+  <div className="jqs-jq-fullscreen__body">
+    <TransformerEditor
+      initialExpression={initialExpression}
+      onChange={readOnly ? undefined : onExpressionChange}
+      onSave={readOnly ? undefined : onSave}
+      onHasErrorsChange={readOnly ? undefined : onHasErrorsChange}
+      onHasLogicNodeChange={readOnly ? undefined : onHasLogicNodeChange}
+      onLogicLessSave={readOnly ? undefined : onLogicLessSave}
+      shape={shape}
+      sampleInput={sampleInput}
+      serverValidate={serverValidate}
+      onRequestClose={onRequestClose}
+      readOnly={readOnly}
+    />
+  </div>
+);
+
+/** Guards a close that would drop unsaved edits. */
+const DiscardConfirmDialog = ({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => (
+  <ConfirmDialog
+    title="Discard unsaved changes?"
+    confirmLabel="Discard"
+    pendingLabel="Discarding"
+    confirmVariant="danger"
+    isPending={false}
+    onConfirm={onConfirm}
+    onClose={onCancel}
+  >
+    <p>Your edits to this expression have not been saved. Closing will lose them.</p>
+  </ConfirmDialog>
+);
+
 export const JQEditorDialog = ({
   open,
   initialExpression,
@@ -165,8 +276,7 @@ export const JQEditorDialog = ({
   }, [readOnly, currentExpression, onClose]);
 
   // An em-dash separates the field's own label from the mode suffix so a long
-  // field title (e.g. "Fill expression for … items") never runs straight into
-  // the word "Editor"/"Viewer" as one string.
+  // field title never runs straight into the word "Editor"/"Viewer" as one string.
   const title = `${fieldLabel ?? 'Expression'} — ${readOnly ? 'Viewer' : 'Editor'}`;
   // Save is disabled only when the graph HAS logic but carries other errors — the
   // reason rides the button title (the toolbar idiom: the title says why).
@@ -186,33 +296,15 @@ export const JQEditorDialog = ({
       contentClassName={JQ_EDITOR_CONTENT_CLASS}
       title={title}
     >
-      <div className="jqs-jq-fullscreen__header">
-        <div className="jqs-jq-fullscreen__title-group">
-          <h2 className="jqs-jq-fullscreen__title">{title}</h2>
-          {shape && <ContextChip shape={shape} />}
-        </div>
-        <div className="jqs-jq-fullscreen__actions">
-          <JqLegendDialog />
-          <span className="jqs-jq-fullscreen__divider" aria-hidden />
-          <Button onClick={requestClose}>
-            <X className="jqs-jq-icon" />
-            {readOnly ? 'Close' : 'Cancel'}
-          </Button>
-          {!readOnly && (
-            // Enabled when logic-less so the click surfaces the refusal message;
-            // disabled only when the graph has logic but carries other errors.
-            <Button
-              variant="primary"
-              onClick={handleSave}
-              disabled={saveDisabled}
-              title={saveTitle}
-            >
-              <Save className="jqs-jq-icon" />
-              Save
-            </Button>
-          )}
-        </div>
-      </div>
+      <EditorHeader
+        title={title}
+        shape={shape}
+        readOnly={readOnly}
+        saveDisabled={saveDisabled}
+        saveTitle={saveTitle}
+        onRequestClose={requestClose}
+        onSave={handleSave}
+      />
 
       {!readOnly && saveError && (
         <div className="jqs-jq-fullscreen__save-error jqs-jq-error-box" role="alert">
@@ -221,39 +313,30 @@ export const JQEditorDialog = ({
         </div>
       )}
 
-      <div className="jqs-jq-fullscreen__body">
-        <TransformerEditor
-          initialExpression={initialExpression}
-          onChange={readOnly ? undefined : handleExpressionChange}
-          onSave={readOnly ? undefined : handleSave}
-          onHasErrorsChange={readOnly ? undefined : setHasErrors}
-          onHasLogicNodeChange={readOnly ? undefined : setHasLogicNode}
-          onLogicLessSave={readOnly ? undefined : refuseLogicLessSave}
-          shape={shape}
-          sampleInput={sampleInput}
-          serverValidate={serverValidate}
-          onRequestClose={requestClose}
-          readOnly={readOnly}
-        />
-      </div>
+      <EditorBody
+        initialExpression={initialExpression}
+        readOnly={readOnly}
+        onExpressionChange={handleExpressionChange}
+        onSave={handleSave}
+        onHasErrorsChange={setHasErrors}
+        onHasLogicNodeChange={setHasLogicNode}
+        onLogicLessSave={refuseLogicLessSave}
+        onRequestClose={requestClose}
+        shape={shape}
+        sampleInput={sampleInput}
+        serverValidate={serverValidate}
+      />
 
       {confirmDiscard && (
-        <ConfirmDialog
-          title="Discard unsaved changes?"
-          confirmLabel="Discard"
-          pendingLabel="Discarding"
-          confirmVariant="danger"
-          isPending={false}
+        <DiscardConfirmDialog
           onConfirm={() => {
             setConfirmDiscard(false);
             onClose();
           }}
-          onClose={() => {
+          onCancel={() => {
             setConfirmDiscard(false);
           }}
-        >
-          <p>Your edits to this expression have not been saved. Closing will lose them.</p>
-        </ConfirmDialog>
+        />
       )}
     </Dialog>
   );

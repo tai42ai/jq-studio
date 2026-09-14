@@ -1,13 +1,14 @@
 import { memo } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Position } from '@xyflow/react';
-import { AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
 import { JQNodeType } from '../enums';
 import { jqNodeColorVar } from '../colors';
 import { JQ_KIND_REGISTRY, jqKindHasSharedHue } from '../jq-kind-registry';
 import { useValidationErrors } from '../ValidationContext';
 import { TransformerHandle } from './TransformerHandle';
+import { NodeCardHeader } from './card/NodeCardHeader';
+import { NodeErrorList } from './card/NodeErrorList';
 
 interface TransformerNodeProps {
   id: string;
@@ -21,6 +22,28 @@ interface TransformerNodeProps {
   hasTargetHandle?: boolean;
   hasSourceHandle?: boolean;
 }
+
+/** The card's error severity: whether any problem holds, and whether they are all
+ *  warnings (a warning-only card reads muted rather than as an error). */
+const nodeErrorState = (errors: { severity: 'error' | 'warning' }[]) => {
+  const hasErrors = errors.length > 0;
+  return { hasErrors, hasWarningsOnly: hasErrors && errors.every((e) => e.severity === 'warning') };
+};
+
+/** The card's root class list: base card plus the comment / selection / severity
+ *  modifiers (selection and error rings are ADDITIVE — they never drop the lift). */
+const nodeCardClass = (
+  nodeType: JQNodeType,
+  selected: boolean,
+  hasErrors: boolean,
+  hasWarningsOnly: boolean,
+): string =>
+  clsx(
+    'jqs-jq-node',
+    nodeType === JQNodeType.Comment && 'jqs-jq-node--comment',
+    selected && 'jqs-jq-node--selected',
+    hasErrors && (hasWarningsOnly ? 'jqs-jq-node--warning' : 'jqs-jq-node--error'),
+  );
 
 /**
  * The shared jq node card. It ports the flow canvas's `.jqs-node` grammar: a
@@ -47,8 +70,7 @@ export const TransformerNode = memo(
     hasSourceHandle = true,
   }: TransformerNodeProps) => {
     const errors = useValidationErrors(id);
-    const hasErrors = errors.length > 0;
-    const hasWarningsOnly = hasErrors && errors.every((e) => e.severity === 'warning');
+    const { hasErrors, hasWarningsOnly } = nodeErrorState(errors);
 
     const accentStyle = { '--jqs-jq-accent': jqNodeColorVar[nodeType] } as CSSProperties;
     const badge = jqKindHasSharedHue(nodeType) ? JQ_KIND_REGISTRY[nodeType].badge : null;
@@ -57,12 +79,7 @@ export const TransformerNode = memo(
 
     return (
       <div
-        className={clsx(
-          'jqs-jq-node',
-          nodeType === JQNodeType.Comment && 'jqs-jq-node--comment',
-          selected && 'jqs-jq-node--selected',
-          hasErrors && (hasWarningsOnly ? 'jqs-jq-node--warning' : 'jqs-jq-node--error'),
-        )}
+        className={nodeCardClass(nodeType, selected, hasErrors, hasWarningsOnly)}
         style={accentStyle}
       >
         {hasTargetHandle && (
@@ -77,54 +94,20 @@ export const TransformerNode = memo(
           </div>
         )}
 
-        <div className="jqs-jq-node__body">
-          {icon && (
-            <div
-              className={clsx(
-                'jqs-jq-node__icon',
-                diamond && 'jqs-jq-node__icon--diamond',
-                round && 'jqs-jq-node__icon--round',
-              )}
-            >
-              {icon}
-            </div>
-          )}
-          <div className="jqs-jq-node__text">
-            <h2 className="jqs-jq-node__type-label">
-              <span className="jqs-jq-node__type-name">{title}</span>
-              {badge && <span className="jqs-jq-node__kind-badge">{badge}</span>}
-              {hasErrors && (
-                <AlertTriangle
-                  className={clsx(
-                    'jqs-jq-node__title-alert',
-                    hasWarningsOnly && 'jqs-jq-node__title-alert--warning',
-                  )}
-                  aria-label={hasWarningsOnly ? 'Node has warnings' : 'Node has errors'}
-                />
-              )}
-            </h2>
-            {summary && <h3 className="jqs-jq-node__name">{summary}</h3>}
-          </div>
-        </div>
+        <NodeCardHeader
+          title={title}
+          icon={icon}
+          badge={badge}
+          summary={summary}
+          diamond={diamond}
+          round={round}
+          hasErrors={hasErrors}
+          hasWarningsOnly={hasWarningsOnly}
+        />
 
         {collapsed ? children : <div className="jqs-jq-node__form">{children}</div>}
 
-        {!collapsed && hasErrors && (
-          <div className="jqs-jq-node__errors">
-            {errors.map((err, i) => (
-              <div
-                key={i}
-                className={clsx(
-                  'jqs-jq-node__error',
-                  err.severity === 'warning' && 'jqs-jq-node__error--warning',
-                )}
-              >
-                <AlertTriangle className="jqs-jq-node__error-icon" />
-                <span>{err.message}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {!collapsed && hasErrors && <NodeErrorList errors={errors} />}
 
         {hasSourceHandle && (
           <div className="jqs-jq-node__handle jqs-jq-node__handle--bottom">

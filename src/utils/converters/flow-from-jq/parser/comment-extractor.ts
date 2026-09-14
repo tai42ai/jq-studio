@@ -13,6 +13,8 @@
  * a multiline Comment node renders.
  */
 
+import { lexJq } from '../../jq-lex';
+
 /** A `#` comment and the span it occupies in the segment. */
 interface CommentSpan {
   start: number;
@@ -54,45 +56,24 @@ export function splitChainComments(segment: string): ChainSegmentComments {
   const comments: CommentSpan[] = [];
   let firstExpression = -1;
   let lastExpression = -1;
-  let inString = false;
-  let escapeNext = false;
 
   const markExpression = (index: number) => {
     if (firstExpression === -1) firstExpression = index;
     lastExpression = index;
   };
 
-  for (let i = 0; i < segment.length; i++) {
-    const char = segment[i] ?? '';
-
-    if (inString) {
-      if (escapeNext) {
-        escapeNext = false;
-      } else if (char === '\\') {
-        escapeNext = true;
-      } else if (char === '"') {
-        inString = false;
-      }
-      markExpression(i);
-      continue;
-    }
-
-    if (char === '"') {
-      inString = true;
-      markExpression(i);
-      continue;
-    }
-
-    if (char === '#') {
-      const lineEnd = segment.indexOf('\n', i);
-      const end = lineEnd === -1 ? segment.length : lineEnd;
-      comments.push({ start: i, text: segment.substring(i + 1, end).trim() });
-      i = end - 1;
-      continue;
-    }
-
-    if (!/\s/.test(char)) {
-      markExpression(i);
+  for (const lexeme of lexJq(segment)) {
+    if (lexeme.kind === 'comment') {
+      comments.push({
+        start: lexeme.index,
+        text: segment.substring(lexeme.index + 1, lexeme.end).trim(),
+      });
+    } else if (lexeme.kind === 'string') {
+      // A string literal is expression text from its opening quote to its close.
+      markExpression(lexeme.index);
+      markExpression(lexeme.end - 1);
+    } else if (!/\s/.test(lexeme.char)) {
+      markExpression(lexeme.index);
     }
   }
 

@@ -3,7 +3,7 @@
  */
 
 import { type ASTArrayNode, type ASTObjectNode, type ASTNode } from '../types';
-import { findTopLevelOperator, splitTopLevel } from './utils';
+import { findTopLevelOperator, splitTopLevel } from './top-level-scan';
 import { splitChainComments } from './comment-extractor';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */

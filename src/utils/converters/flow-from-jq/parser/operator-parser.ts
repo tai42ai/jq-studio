@@ -5,7 +5,7 @@
  */
 
 import { type ASTOperatorNode, type ASTNode } from '../types';
-import { findTopLevelOperator } from './utils';
+import { findTopLevelOperator } from './top-level-scan';
 import { isUnrepresentableOperand } from '../pipe-utils';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */

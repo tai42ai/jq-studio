@@ -4,7 +4,7 @@ import { useReactFlow, useNodes } from '@xyflow/react';
 import type { Node } from '@xyflow/react';
 import { Checkbox, TextInput } from '../primitives';
 import type { JQNodeData } from '../types';
-import { VALID_NAME_PATTERN } from '../enums';
+import { nameVerdict } from '../utils/name-validation';
 import { useTransformerReadOnly } from '../TransformerContext';
 import { useSnapshot } from '../SnapshotContext';
 import { InfoTooltip, NodeLabel } from '../ui';
@@ -22,6 +22,21 @@ interface NodeNameFieldProps {
 
 const errorInputStyle: CSSProperties = { borderColor: 'var(--jq-color-danger)' };
 
+/** The single error line for a name, keyed off its verdict flags (required-empty
+ *  first, then invalid, reserved, non-unique), or null when the name is fine. */
+const nameErrorMessage = (
+  verdict: ReturnType<typeof nameVerdict>,
+  required: boolean,
+): string | null => {
+  if (verdict.empty) return required ? 'Name is required' : null;
+  if (!verdict.valid) {
+    return 'Name must be a valid variable name (start with letter or underscore, followed by letters, numbers, or underscores)';
+  }
+  if (verdict.reserved) return 'Name conflicts with a built-in function';
+  if (!verdict.unique) return 'Name must be unique';
+  return null;
+};
+
 export const NodeNameField = memo(
   ({
     id,
@@ -38,22 +53,16 @@ export const NodeNameField = memo(
     const readOnly = useTransformerReadOnly();
     const takeSnapshot = useSnapshot();
 
-    const hasName = name.length > 0;
-
-    const isValidVariableName = useMemo(
-      () => !hasName || VALID_NAME_PATTERN.test(name),
-      [name, hasName],
+    const siblingNames = useMemo(
+      () => allNodes.filter((node) => node.id !== id).map((node) => node.data.name ?? ''),
+      [allNodes, id],
     );
 
-    const isNotReserved = useMemo(
-      () => !hasName || !reservedNames.includes(name),
-      [name, hasName, reservedNames],
+    const verdict = useMemo(
+      () => nameVerdict(name, siblingNames, reservedNames),
+      [name, siblingNames, reservedNames],
     );
-
-    const isUnique = useMemo(() => {
-      if (!hasName) return true;
-      return !allNodes.some((node) => node.id !== id && node.data.name === name);
-    }, [id, name, hasName, allNodes]);
+    const errorMessage = nameErrorMessage(verdict, required);
 
     const updateName = useCallback(
       (value: string) => {
@@ -78,9 +87,6 @@ export const NodeNameField = memo(
       },
       [id, setNodes],
     );
-
-    const hasError =
-      (required && !hasName) || (hasName && (!isUnique || !isValidVariableName || !isNotReserved));
 
     const displayLabel = label ?? (required ? 'Name' : 'Name (optional)');
     const displayTooltip =
@@ -107,22 +113,10 @@ export const NodeNameField = memo(
           }}
           readOnly={readOnly}
           placeholder={displayPlaceholder}
-          style={hasError ? errorInputStyle : undefined}
+          style={errorMessage ? errorInputStyle : undefined}
         />
-        {required && !hasName && <p className="jqs-jq-field__error">Name is required</p>}
-        {hasName && !isValidVariableName && (
-          <p className="jqs-jq-field__error">
-            Name must be a valid variable name (start with letter or underscore, followed by
-            letters, numbers, or underscores)
-          </p>
-        )}
-        {hasName && isValidVariableName && !isNotReserved && (
-          <p className="jqs-jq-field__error">Name conflicts with a built-in function</p>
-        )}
-        {hasName && isValidVariableName && isNotReserved && !isUnique && (
-          <p className="jqs-jq-field__error">Name must be unique</p>
-        )}
-        {hasName && pipeAfterDeclare !== undefined && (
+        {errorMessage && <p className="jqs-jq-field__error">{errorMessage}</p>}
+        {!verdict.empty && pipeAfterDeclare !== undefined && (
           <div className="jqs-jq-field__checkbox-row">
             <Checkbox
               checked={pipeAfterDeclare}
