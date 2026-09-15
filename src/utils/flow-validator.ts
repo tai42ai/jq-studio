@@ -6,12 +6,13 @@
  * The main `validateFlow` function runs all rules and merges results.
  */
 
-import { type Node, type Edge } from '@xyflow/react';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
+import { type Edge, type Node } from '@xyflow/react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
+import { UNARY_OPERATORS } from '../operator-catalog';
 import { type JQNodeData } from '../types';
 import { getFunctionDefById } from './function-resolver';
 import { buildReservedNames, nameVerdict } from './name-validation';
-import { UNARY_OPERATORS } from '../operator-catalog';
 
 export interface ValidationError {
   message: string;

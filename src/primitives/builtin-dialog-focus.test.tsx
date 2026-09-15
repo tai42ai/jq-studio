@@ -10,9 +10,9 @@
  * pins the OTHER half of the contract: a host that injects its own `Dialog`
  * through {@link PrimitivesProvider} is untouched.
  */
-import { useState } from 'react';
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { useState } from 'react';
+import { describe, expect, it } from 'vitest';
 
 import { Dialog as DialogSlot, PrimitivesProvider } from './index';
 import type { DialogProps } from './types';

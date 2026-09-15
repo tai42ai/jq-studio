@@ -2,7 +2,8 @@
  * @fileoverview Tests for function declaration extractor.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { extractFunctionDeclarations } from './function-declaration-extractor';
 
 describe('extractFunctionDeclarations', () => {

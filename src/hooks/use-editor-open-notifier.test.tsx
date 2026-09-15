@@ -6,9 +6,9 @@
  * these drive the REAL dialog through `JqField` so each close route is exercised
  * end-to-end.
  */
-import { StrictMode } from 'react';
-import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { StrictMode } from 'react';
+import { describe, expect, it, vi } from 'vitest';
 
 // The Test panel preloads the jq WASM runner on open; jsdom has no WASM fetch, so
 // stub the runner (the transitions under test need no evaluation).

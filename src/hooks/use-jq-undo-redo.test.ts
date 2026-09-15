@@ -5,8 +5,9 @@
  * neither pollutes history nor clears redo. A real structural change still pushes.
  */
 import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
 import type { Edge, Node } from '@xyflow/react';
+import { describe, expect, it, vi } from 'vitest';
+
 import { useJqUndoRedo } from './use-jq-undo-redo';
 
 type Data = Record<string, unknown>;

@@ -2,9 +2,9 @@
  * @fileoverview Array and object literal parsers.
  */
 
-import { type ASTArrayNode, type ASTObjectNode, type ASTNode } from '../types';
-import { findTopLevelOperator, splitTopLevel } from './top-level-scan';
+import { type ASTArrayNode, type ASTNode, type ASTObjectNode } from '../types';
 import { splitChainComments } from './comment-extractor';
+import { findTopLevelOperator, splitTopLevel } from './top-level-scan';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */
 type ParseExpressionFn = (expression: string) => ASTNode;

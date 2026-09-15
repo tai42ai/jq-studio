@@ -4,9 +4,10 @@
  * declarations, and the custom functions declared off the Start node.
  */
 
-import type { Node, Edge } from '@xyflow/react';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
-import type { JQNodeData, JQFunctionDeclData } from '../types';
+import type { Edge, Node } from '@xyflow/react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
+import type { JQFunctionDeclData, JQNodeData } from '../types';
 import type { FunctionDef } from './function-catalog';
 
 /**

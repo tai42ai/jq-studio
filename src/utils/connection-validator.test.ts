@@ -3,9 +3,10 @@
  * from a handle may reach, and whether a concrete source→target is allowed.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { getValidJQNodeTypesForConnection, validateJQConnection } from './connection-validator';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
 
 describe('Connection Validation: FunctionCall as item/field/param/root target', () => {
   describe('getValidJQNodeTypesForConnection', () => {

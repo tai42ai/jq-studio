@@ -4,7 +4,8 @@
  * decides whether two jq programs behave identically. Driven by the real jq WASM
  * runtime (via `execJq`), so the comparison is proven against actual jq.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { compareJqSemantics, FAITHFULNESS_SAMPLE_INPUTS } from './faithfulness';
 import { execJq } from './test-helpers';
 

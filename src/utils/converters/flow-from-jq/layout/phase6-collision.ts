@@ -7,8 +7,8 @@
  */
 
 import { type JQNode } from '../../../../types';
-import { type LayoutContext } from './types';
 import { LAYOUT_CONFIG } from '../constants';
+import { type LayoutContext } from './types';
 
 /** A node's width and height. */
 interface Size {

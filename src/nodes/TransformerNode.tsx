@@ -1,14 +1,15 @@
-import { memo } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
 import { Position } from '@xyflow/react';
 import clsx from 'clsx';
-import { JQNodeType } from '../enums';
+import type { CSSProperties, ReactNode } from 'react';
+import { memo } from 'react';
+
 import { jqNodeColorVar } from '../colors';
+import { JQNodeType } from '../enums';
 import { JQ_KIND_REGISTRY, jqKindHasSharedHue } from '../jq-kind-registry';
 import { useValidationErrors } from '../ValidationContext';
-import { TransformerHandle } from './TransformerHandle';
 import { NodeCardHeader } from './card/NodeCardHeader';
 import { NodeErrorList } from './card/NodeErrorList';
+import { TransformerHandle } from './TransformerHandle';
 
 interface TransformerNodeProps {
   id: string;

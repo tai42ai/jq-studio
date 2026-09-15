@@ -14,10 +14,11 @@
  * covered end to end in `../index.test.ts`.
  */
 
-import { describe, it, expect } from 'vitest';
-import { validateInputs } from './validators';
-import { MAX_GRAPH_NODES } from '../constants';
+import { describe, expect, it } from 'vitest';
+
 import { createNumberNode, createStartNode } from '../../test-helpers';
+import { MAX_GRAPH_NODES } from '../constants';
+import { validateInputs } from './validators';
 
 describe('validateInputs', () => {
   it('should reject a graph with no nodes', () => {

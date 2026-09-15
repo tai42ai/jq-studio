@@ -10,8 +10,9 @@
  * once, on the card edge, by the collapsed-handle rail (see `PortLabels`) — so
  * there is no `edgeChipLabel` to test here and no duplicate label per port.
  */
-import { describe, expect, it } from 'vitest';
 import { Position } from '@xyflow/react';
+import { describe, expect, it } from 'vitest';
+
 import { resolveExitPosition } from './jq-gradient-edge';
 
 describe('resolveExitPosition', () => {

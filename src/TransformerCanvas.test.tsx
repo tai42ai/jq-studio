@@ -7,9 +7,10 @@
  */
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TransformerProvider } from './TransformerContext';
-import { TransformerCanvas, UNFAITHFUL_ENTRY_MESSAGE } from './TransformerCanvas';
+
 import { JQNodeType } from './enums';
+import { TransformerCanvas, UNFAITHFUL_ENTRY_MESSAGE } from './TransformerCanvas';
+import { TransformerProvider } from './TransformerContext';
 
 // The entry guard's verdict is driven deterministically here; the real oracle is
 // exercised by the converter/faithfulness suites. Default: faithful, so a loaded

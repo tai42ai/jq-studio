@@ -2,7 +2,7 @@
  * @fileoverview Creates the node an `expr as $name` assignment binds to.
  */
 
-import { type ConversionContext, type ASTNode, type ASTAssignmentNode } from '../types';
+import { type ASTAssignmentNode, type ASTNode, type ConversionContext } from '../types';
 
 /** Converts a child AST node and returns its visual node id. */
 type ConvertFn = (astNode: ASTNode, context: ConversionContext) => string;

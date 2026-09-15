@@ -2,14 +2,14 @@
  * @fileoverview Main node expression generator (dispatcher).
  */
 
-import { type JQNode } from '../../../../types';
 import { JQNodeType } from '../../../../enums';
+import { type JQNode } from '../../../../types';
 import { type ConversionContext } from '../types';
-import { generateValueExpression } from './value-generator';
+import { generateConditionExpression } from './condition-generator';
 import { generateFunctionCallExpression } from './function-generator';
 import { generateOperatorExpression } from './operator-generator';
-import { generateConditionExpression } from './condition-generator';
 import { generateTryCatchExpression } from './trycatch-generator';
+import { generateValueExpression } from './value-generator';
 
 /**
  * Generates a jq expression for any node based on its type.

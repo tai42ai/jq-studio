@@ -2,10 +2,10 @@
  * @fileoverview Creates Operator nodes with left and right operand connections.
  */
 
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
 import { type JQNode } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext, type ASTNode } from '../types';
-import { generateNodeId, createEdge } from './utils';
+import { type ASTNode, type ConversionContext } from '../types';
+import { createEdge, generateNodeId } from './utils';
 
 /**
  * Creates an Operator node with left and right operand connections.

@@ -16,75 +16,75 @@
 import './styles.css';
 
 // --- The drop-in field ----------------------------------------------------
-export { JqField } from './JqField';
 export type { JqFieldProps } from './JqField';
+export { JqField } from './JqField';
 
 // --- The embeddable editor + canvas surface -------------------------------
-export { JQEditorDialog, JQEditorDialog as JqEditorDialog } from './JQEditorDialog';
+export { JQEditorProvider, useJQEditorState } from './editor-context';
 export type {
   JQEditorDialogProps,
   JQEditorDialogProps as JqEditorDialogProps,
 } from './JQEditorDialog';
-export { JQEditorProvider, useJQEditorState } from './editor-context';
-export { TransformerPreview } from './TransformerPreview';
+export { JQEditorDialog, JQEditorDialog as JqEditorDialog } from './JQEditorDialog';
 export { TransformerEditor } from './transformer-editor';
+export { TransformerPreview } from './TransformerPreview';
 
 // --- Primitives injection (a host substitutes its own components) ---------
-export { PrimitivesProvider, usePrimitives, builtinPrimitives } from './primitives';
 export type {
-  Primitives,
-  PrimitivesProviderProps,
+  AnyButtonProps,
+  AnySelectProps,
+  BadgeProps,
   ButtonProps,
   ButtonVariant,
-  LinkButtonProps,
-  AnyButtonProps,
-  TextInputProps,
-  TextareaProps,
-  SelectProps,
-  SelectGroupsProps,
-  AnySelectProps,
-  SelectOption,
-  SelectGroup,
   CheckboxProps,
-  TooltipProps,
-  DialogProps,
   ConfirmDialogProps,
-  BadgeProps,
+  DialogProps,
+  LinkButtonProps,
+  Primitives,
+  PrimitivesProviderProps,
+  SelectGroup,
+  SelectGroupsProps,
+  SelectOption,
+  SelectProps,
+  TextareaProps,
+  TextInputProps,
+  TooltipProps,
 } from './primitives';
+export { builtinPrimitives, PrimitivesProvider, usePrimitives } from './primitives';
 
 // --- jq WASM runtime ------------------------------------------------------
-export { preloadJq, runJq } from './utils/jq-loader';
-export type { JqResult } from './utils/jq-loader';
-export { setJqWorkerFactory } from './utils/jq-worker-client';
-export type { JqWorkerFactory } from './utils/jq-worker-client';
 export { installDefaultJqWorker } from './utils/install-default-worker';
+export type { JqResult } from './utils/jq-loader';
+export { preloadJq, runJq } from './utils/jq-loader';
+export type { JqWorkerFactory } from './utils/jq-worker-client';
+export { setJqWorkerFactory } from './utils/jq-worker-client';
 
 // --- Graph model + round-trip converters ----------------------------------
 export { JQNodeType, ValueType } from './enums';
-export type { JQNodeData, JQNode, JQEdge, TransformersProps } from './types';
+export type { JQEdge, JQNode, JQNodeData, TransformersProps } from './types';
 export { convertJQToFlow } from './utils/converters/flow-from-jq';
 export { convertFlowToJQ } from './utils/converters/jq-from-flow';
 
 // --- Node vocabulary (kind registry) --------------------------------------
-export { JQ_KIND_REGISTRY, ALL_JQ_NODE_KINDS, legendJqKindRows } from './jq-kind-registry';
 export type { JqKindEntry, JqKindIcon, JqKindIconProps } from './jq-kind-registry';
+export { ALL_JQ_NODE_KINDS, JQ_KIND_REGISTRY, legendJqKindRows } from './jq-kind-registry';
 
 // --- Agnostic field declaration -------------------------------------------
 export type {
   ExpressionLanguage,
+  JqFieldDeclaration,
   JqInputKey,
   JqInputShapeDescriptor,
   SampleInputProvider,
-  ServerValidationResult,
   ServerValidateHook,
-  JqFieldDeclaration,
+  ServerValidationResult,
 } from './declaration';
 
 // --- Faithfulness + validity guard API ------------------------------------
+export type { JqValidity, RoundTripVerdict } from './guard';
 export {
-  roundTripVerdict,
-  clearRoundTripVerdictCache,
-  checkJqValidity,
   canRepresentFaithfully,
+  checkJqValidity,
+  clearRoundTripVerdictCache,
+  roundTripVerdict,
 } from './guard';
-export type { RoundTripVerdict, JqValidity } from './guard';

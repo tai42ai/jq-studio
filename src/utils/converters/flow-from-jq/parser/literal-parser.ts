@@ -2,8 +2,8 @@
  * @fileoverview Parses a jq scalar literal — string, number, boolean or null.
  */
 
-import { type ASTNode } from '../types';
 import { unescapeJqString } from '../../jq-string';
+import { type ASTNode } from '../types';
 
 /**
  * Reports whether a string literal's raw content holds a jq interpolation `\(…)`.

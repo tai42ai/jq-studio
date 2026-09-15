@@ -3,11 +3,12 @@
  * dialog with an expression input; on load the expression is parsed and, on
  * success, replaces the canvas. Parse failures render verbatim and load nothing.
  */
-import { useState, useCallback } from 'react';
-import { Import, Upload, AlertCircle } from 'lucide-react';
-import { Button, Dialog, Textarea, Tooltip } from './primitives';
+import { AlertCircle, Import, Upload } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import type { JQNode, JQEdge } from './types';
+import { useCallback, useState } from 'react';
+
+import { Button, Dialog, Textarea, Tooltip } from './primitives';
+import type { JQEdge, JQNode } from './types';
 import { convertJQToFlow } from './utils/converters/flow-from-jq';
 
 interface LoadExpressionDialogProps {

@@ -5,6 +5,7 @@
  * on to stay tellable apart.
  */
 import { describe, expect, it } from 'vitest';
+
 import { JQNodeType } from './enums';
 import { JQ_KIND_REGISTRY, jqKindHasSharedHue } from './jq-kind-registry';
 

@@ -5,7 +5,7 @@
  * so the "what may connect to what" contract lives in one place.
  */
 
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 
 /** Pipeline node types that can appear in the main flow chain (bottom→top connections). */
 export const PIPELINE_NODE_TYPES: JQNodeType[] = [

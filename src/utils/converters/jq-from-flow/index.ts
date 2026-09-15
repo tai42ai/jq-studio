@@ -4,13 +4,13 @@
  * Converts visual JQ flow graphs to jq expression strings.
  */
 
-import { type JQNode, type JQEdge } from '../../../types';
-import { type ConversionContext } from './types';
-import { buildEdgeMaps } from './utils/edge-classifier';
-import { validateInputs, findStartNode } from './utils/validators';
-import { shouldCreateVariable, buildMainExpression } from './expression-builder';
+import { type JQEdge, type JQNode } from '../../../types';
+import { buildMainExpression, shouldCreateVariable } from './expression-builder';
 import { generateFunctionDeclarations } from './generators/function-generator';
 import { generateNodeExpression } from './generators/node-generator';
+import { type ConversionContext } from './types';
+import { buildEdgeMaps } from './utils/edge-classifier';
+import { findStartNode, validateInputs } from './utils/validators';
 
 /**
  * Converts a visual JQ flow graph to a jq expression string.

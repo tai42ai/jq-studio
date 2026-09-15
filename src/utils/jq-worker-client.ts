@@ -23,7 +23,7 @@
  * client logs once and falls back to the main thread too, preserving today's
  * behavior rather than breaking the panel.
  */
-import { runJq as mainRunJq, runJqValue as mainRunJqValue, type JqResult } from './jq-loader';
+import { type JqResult, runJq as mainRunJq, runJqValue as mainRunJqValue } from './jq-loader';
 import type { JqWorkerRequest, JqWorkerResponse } from './jq-worker-protocol';
 
 /** The whole-run deadline for the Test panel's Run action. */

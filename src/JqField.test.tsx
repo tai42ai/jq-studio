@@ -3,8 +3,8 @@
  * "Visual editor" button opens the editor dialog, and a host can substitute the
  * button through `PrimitivesProvider` (the injection seam).
  */
-import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
 // The Test panel preloads the jq WASM runner on open; jsdom has no WASM fetch, so
 // stub the runner (the seed path under test needs no evaluation) — mirrors
@@ -19,10 +19,10 @@ vi.mock('./hooks/useJqRunner', () => ({
   }),
 }));
 
-import { JqField } from './JqField';
-import { PrimitivesProvider } from './primitives';
-import type { AnyButtonProps } from './primitives';
 import type { JqInputShapeDescriptor } from './declaration';
+import { JqField } from './JqField';
+import type { AnyButtonProps } from './primitives';
+import { PrimitivesProvider } from './primitives';
 
 /** A minimal shape whose static skeleton the Test panel seeds from unless a live
  *  `sampleInput` overrides it. */

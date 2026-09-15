@@ -5,7 +5,8 @@
  * user triggers multiple runs in quick succession.
  */
 
-import { useState, useRef, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
+
 import { type JqResult, preloadJq } from '../utils/jq-loader';
 import { runJqViaWorker } from '../utils/jq-worker-client';
 

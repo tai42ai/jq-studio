@@ -1,4 +1,5 @@
 import { AlertTriangle } from 'lucide-react';
+
 import { Button } from './primitives';
 
 interface CanvasFallbackPanelProps {

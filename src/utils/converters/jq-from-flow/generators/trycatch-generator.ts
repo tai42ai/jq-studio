@@ -5,10 +5,10 @@
  * Each branch (try/catch) can connect to a chain of nodes via bottom handles.
  */
 
-import { type JQNode } from '../../../../types';
 import { JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext } from '../types';
+import { type JQNode } from '../../../../types';
 import { asTerm } from '../expression-builder';
+import { type ConversionContext } from '../types';
 import { edgeTargetNode } from '../utils/validators';
 import { buildBranchChainExpression, type NodeExpressionFn } from './branch-chain-builder';
 

@@ -1,13 +1,14 @@
-import { memo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 import { ShieldAlert } from 'lucide-react';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
+import { memo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import type { JQTryCatchData } from '../types';
-import { TransformerNode } from './TransformerNode';
-import { TransformerHandle } from './TransformerHandle';
-import { CollapsedHandles } from './CollapsedHandles';
 import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { CollapsedHandles } from './CollapsedHandles';
+import { TransformerHandle } from './TransformerHandle';
+import { TransformerNode } from './TransformerNode';
 
 type TryCatchNodeProps = NodeProps<Node<JQTryCatchData>>;
 

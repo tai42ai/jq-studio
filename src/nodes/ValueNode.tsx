@@ -1,22 +1,23 @@
-import { memo, useCallback, useMemo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position, useReactFlow } from '@xyflow/react';
 import { Hash } from 'lucide-react';
-import { Select } from '../primitives';
+import { memo, useCallback, useMemo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType, ValueType } from '../enums';
 import type { SelectOption } from '../primitives';
-import { NodeNameField } from './NodeNameField';
-import { TransformerNode } from './TransformerNode';
-import { OperatorHandles } from './OperatorHandles';
-import { CollapsedHandles } from './CollapsedHandles';
-import type { CollapsedHandleConfig } from './CollapsedHandles';
-import { useNodeConnectionState } from './useNodeConnectionState';
-import { ValueInput } from './value/ValueInput';
-import { getValueSummary, valueTypeBase } from './value/value-data';
-import { JQNodeType, JQHandleIdPrefix, ValueType } from '../enums';
-import type { JQValueData, JQNodeData } from '../types';
+import { Select } from '../primitives';
 import { useSnapshot } from '../SnapshotContext';
 import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQNodeData, JQValueData } from '../types';
 import { NodeLabel } from '../ui';
+import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { CollapsedHandles } from './CollapsedHandles';
+import { NodeNameField } from './NodeNameField';
+import { OperatorHandles } from './OperatorHandles';
+import { TransformerNode } from './TransformerNode';
+import { useNodeConnectionState } from './useNodeConnectionState';
+import { getValueSummary, valueTypeBase } from './value/value-data';
+import { ValueInput } from './value/ValueInput';
 
 type ValueNodeProps = NodeProps<Node<JQValueData>>;
 

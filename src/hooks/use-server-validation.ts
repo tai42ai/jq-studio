@@ -4,6 +4,7 @@
  * failure or a rejected hook surfaces as a failed verdict, never a silent drop.
  */
 import { useCallback, useState } from 'react';
+
 import type { ServerValidateHook, ServerValidationResult } from '../declaration';
 
 export interface ServerValidationState {

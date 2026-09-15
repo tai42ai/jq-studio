@@ -14,10 +14,10 @@
  * of the text, so one check per distinct expression suffices for the lifetime of
  * the tab, and repeated renders of the same field pay nothing.
  */
+import { runJqValueViaWorker } from '../jq-worker-client';
+import { compareJqSemantics, type JqExecutor } from './faithfulness';
 import { convertJQToFlow } from './flow-from-jq';
 import { convertFlowToJQ } from './jq-from-flow';
-import { compareJqSemantics, type JqExecutor } from './faithfulness';
-import { runJqValueViaWorker } from '../jq-worker-client';
 
 /**
  * The oracle executor: the worker-backed runner with a per-input deadline. Off the

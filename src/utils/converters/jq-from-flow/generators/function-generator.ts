@@ -2,24 +2,24 @@
  * @fileoverview Function call and declaration expression generators.
  */
 
-import { type JQNode, type JQFunctionCallData, type JQEdge } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix, OPERAND_NODE_TYPES } from '../../../../enums';
-import { type ConversionContext } from '../types';
-import { validateVariableName, edgeTargetNode } from '../utils/validators';
-import { classifyEdge } from '../utils/edge-classifier';
-import { shouldCreateVariable } from '../utils/variable-checker';
-import { findOutermostOperator, findPipeChainEnd } from '../utils/operator-resolver';
+import { JQHandleIdPrefix, JQNodeType, OPERAND_NODE_TYPES } from '../../../../enums';
+import { type JQEdge, type JQFunctionCallData, type JQNode } from '../../../../types';
 import { getFunctionDefById } from '../../../function-resolver';
-import { isMultiline } from '../utils/formatter';
 import {
-  type ExpressionPart,
-  type OpenBinding,
-  commentParts,
-  joinExpressionParts,
-  pushChainPart,
   closeOpenBinding,
+  commentParts,
+  type ExpressionPart,
+  joinExpressionParts,
   nextChainNode,
+  type OpenBinding,
+  pushChainPart,
 } from '../expression-builder';
+import { type ConversionContext } from '../types';
+import { classifyEdge } from '../utils/edge-classifier';
+import { isMultiline } from '../utils/formatter';
+import { findOutermostOperator, findPipeChainEnd } from '../utils/operator-resolver';
+import { edgeTargetNode, validateVariableName } from '../utils/validators';
+import { shouldCreateVariable } from '../utils/variable-checker';
 import { buildBranchChainExpression, type NodeExpressionFn } from './branch-chain-builder';
 
 /**

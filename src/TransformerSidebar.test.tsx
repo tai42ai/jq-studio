@@ -5,6 +5,7 @@
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
 import { TransformerEditor } from './transformer-editor';
 
 const nodeCount = (): number => document.querySelectorAll('.react-flow__node').length;

@@ -2,10 +2,10 @@
  * @fileoverview Creates TryCatch nodes with try/catch branch connections.
  */
 
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
 import { type JQNode } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext, type ASTNode } from '../types';
-import { generateNodeId, createEdge } from './utils';
+import { type ASTNode, type ConversionContext } from '../types';
+import { createEdge, generateNodeId } from './utils';
 
 /**
  * Creates a TryCatch node with try and optional catch connections.

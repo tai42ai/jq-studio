@@ -2,10 +2,10 @@
  * @fileoverview Creates Condition nodes with if/then/else branch connections.
  */
 
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
 import { type JQNode } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext, type ASTNode } from '../types';
-import { generateNodeId, createEdge } from './utils';
+import { type ASTNode, type ConversionContext } from '../types';
+import { createEdge, generateNodeId } from './utils';
 
 /**
  * Creates a Condition node with if/then/else branch connections.

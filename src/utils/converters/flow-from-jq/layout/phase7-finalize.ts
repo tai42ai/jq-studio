@@ -6,8 +6,8 @@
  */
 
 import { type JQNode } from '../../../../types';
-import { type LayoutContext } from './types';
 import { LAYOUT_CONFIG } from '../constants';
+import { type LayoutContext } from './types';
 
 /**
  * Phase 7: Finalizes positions by normalizing to positive space.

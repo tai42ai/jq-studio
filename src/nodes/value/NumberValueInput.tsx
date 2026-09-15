@@ -1,4 +1,5 @@
 import { memo, useEffect, useState } from 'react';
+
 import { TextInput } from '../../primitives';
 
 interface NumberValueInputProps {

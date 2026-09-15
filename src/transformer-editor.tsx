@@ -3,11 +3,12 @@
  * with a toggle to collapse the palette. Feeds the generated expression back to
  * the caller through `onChange` / `onSave`.
  */
-import { useState } from 'react';
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useState } from 'react';
+
 import { Button } from './primitives';
-import { TransformerProvider } from './TransformerContext';
 import { TransformerCanvas } from './TransformerCanvas';
+import { TransformerProvider } from './TransformerContext';
 import { TransformerSidebar } from './TransformerSidebar';
 import type { TransformersProps } from './types';
 

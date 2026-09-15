@@ -3,16 +3,16 @@
  * validation tests.
  */
 
-import { type ValidationErrorMap } from './flow-validator';
-import { type JQEdge } from '../types';
 import { ValueType } from '../enums';
+import { type JQEdge } from '../types';
 import {
-  createStartNode,
-  createValueNode,
+  createConditionNode,
   createFunctionCallNode,
   createOperatorNode,
-  createConditionNode,
+  createStartNode,
+  createValueNode,
 } from './converters/test-helpers';
+import { type ValidationErrorMap } from './flow-validator';
 
 /** The error messages recorded for `nodeId`. */
 export const errorsFor = (map: ValidationErrorMap, nodeId: string) =>

@@ -4,8 +4,8 @@
  * Uses tokenization so keywords inside string literals are not matched.
  */
 
-import { type ASTConditionalNode, type ASTNode } from '../types';
 import { scanTopLevel } from '../../jq-lex';
+import { type ASTConditionalNode, type ASTNode } from '../types';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */
 type ParseExpressionFn = (expression: string) => ASTNode;

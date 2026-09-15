@@ -2,7 +2,8 @@
  * @fileoverview Round-trip and semantic-equivalence integration tests across both converters.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { convertJQToFlow } from './flow-from-jq/index';
 import { convertFlowToJQ } from './jq-from-flow/index';
 

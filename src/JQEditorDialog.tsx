@@ -13,18 +13,19 @@
  * says why). While open it flips the editor open-gate so the surrounding flow
  * editor's save shortcut stays muted and Cmd/Ctrl+S saves the expression here.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertCircle, Save, X } from 'lucide-react';
-import { Badge, Button, ConfirmDialog, Dialog, Tooltip } from './primitives';
-import { TransformerEditor } from './transformer-editor';
-import { JqLegendDialog } from './JqLegendDialog';
-import { LOGIC_LESS_SAVE_MESSAGE } from './TransformerCanvas';
-import { useJQEditorState } from './editor-context';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
   ServerValidateHook,
 } from './declaration';
+import { useJQEditorState } from './editor-context';
+import { JqLegendDialog } from './JqLegendDialog';
+import { Badge, Button, ConfirmDialog, Dialog, Tooltip } from './primitives';
+import { TransformerEditor } from './transformer-editor';
+import { LOGIC_LESS_SAVE_MESSAGE } from './TransformerCanvas';
 
 /** Library root scoping class + the editor's full-screen layout class. */
 const JQ_EDITOR_CONTENT_CLASS = 'jq-studio-root jqs-jq-fullscreen';

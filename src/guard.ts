@@ -10,13 +10,13 @@
  *
  * Both are memoised, so a host can call them per keystroke cheaply.
  */
-export {
-  roundTripVerdict,
-  clearRoundTripVerdictCache,
-} from './utils/converters/faithfulness-guard';
 export type { RoundTripVerdict } from './utils/converters/faithfulness-guard';
-export { checkJqValidity } from './utils/jq-loader';
+export {
+  clearRoundTripVerdictCache,
+  roundTripVerdict,
+} from './utils/converters/faithfulness-guard';
 export type { JqValidity } from './utils/jq-loader';
+export { checkJqValidity } from './utils/jq-loader';
 
 import { roundTripVerdict } from './utils/converters/faithfulness-guard';
 

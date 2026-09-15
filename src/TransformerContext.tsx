@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, type ReactNode, useCallback, useRef } from 'react';
-import { type TransformerConnectionState } from './types';
+import { createContext, type ReactNode, useCallback, useContext, useRef, useState } from 'react';
+
 import { type JQNodeType } from './enums';
+import { type TransformerConnectionState } from './types';
 
 /** Drops a new node of `type` onto the canvas — the palette's click-to-add path. */
 type AddNodeFn = (type: JQNodeType) => void;

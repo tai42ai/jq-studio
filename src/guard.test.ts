@@ -7,7 +7,7 @@
  * which is not present in the node test host — so, exactly as the guard's own
  * unit test does, route the runtime at the disk-loaded WASM (`execJq`).
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./utils/jq-loader', async (importActual) => {
   const actual = await importActual<typeof import('./utils/jq-loader')>();
@@ -31,8 +31,8 @@ vi.mock('./utils/jq-loader', async (importActual) => {
 import {
   canRepresentFaithfully,
   checkJqValidity,
-  roundTripVerdict,
   clearRoundTripVerdictCache,
+  roundTripVerdict,
 } from './guard';
 
 describe('jq-studio guard API', () => {

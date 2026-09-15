@@ -1,15 +1,16 @@
-import { memo, useMemo } from 'react';
-import type { CSSProperties } from 'react';
-import { Handle, Position } from '@xyflow/react';
 import type { HandleProps } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
 import clsx from 'clsx';
-import { Tooltip } from '../primitives';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
-import type { TransformerConnectionState } from '../types';
+import type { CSSProperties } from 'react';
+import { memo, useMemo } from 'react';
+
 import { jqNodeColorVar } from '../colors';
-import { useTransformerConnection } from '../TransformerContext';
-import { getValidJQNodeTypesForConnection } from '../utils/connection-validator';
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { getJqHandleTooltip } from '../handle-tooltips';
+import { Tooltip } from '../primitives';
+import { useTransformerConnection } from '../TransformerContext';
+import type { TransformerConnectionState } from '../types';
+import { getValidJQNodeTypesForConnection } from '../utils/connection-validator';
 
 /** The handle's own id: an explicit `id`, else the inner-body id, else the
  *  node's default source (bottom) or target (top) port. */

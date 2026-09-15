@@ -1,14 +1,15 @@
-import { memo, useCallback } from 'react';
-import type { ChangeEvent } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { useReactFlow } from '@xyflow/react';
 import { MessageSquare } from 'lucide-react';
-import { Textarea } from '../primitives';
+import type { ChangeEvent } from 'react';
+import { memo, useCallback } from 'react';
+
 import { JQNodeType } from '../enums';
-import type { JQCommentData, JQNodeData } from '../types';
-import { TransformerNode } from './TransformerNode';
+import { Textarea } from '../primitives';
 import { useSnapshot } from '../SnapshotContext';
 import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQCommentData, JQNodeData } from '../types';
+import { TransformerNode } from './TransformerNode';
 
 type CommentNodeProps = NodeProps<Node<JQCommentData>>;
 

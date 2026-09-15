@@ -6,9 +6,10 @@
  */
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TransformerProvider } from './TransformerContext';
-import { TransformerCanvas } from './TransformerCanvas';
+
 import { JQNodeType } from './enums';
+import { TransformerCanvas } from './TransformerCanvas';
+import { TransformerProvider } from './TransformerContext';
 
 const { roundTripVerdictMock } = vi.hoisted(() => ({ roundTripVerdictMock: vi.fn() }));
 vi.mock('./utils/converters/faithfulness-guard', () => ({

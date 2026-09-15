@@ -1,7 +1,8 @@
 /**
  * @fileoverview Unit tests for the pipe-chain AST helpers.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { flattenPipeStages, isUnrepresentableOperand } from './pipe-utils';
 import { type ASTNode } from './types';
 

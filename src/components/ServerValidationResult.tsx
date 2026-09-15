@@ -1,5 +1,6 @@
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import clsx from 'clsx';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+
 import type { ServerValidationResult as ServerValidationVerdict } from '../declaration';
 
 interface ServerValidationResultProps {

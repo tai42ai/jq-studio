@@ -5,6 +5,7 @@
  * jq-loader is mocked — this proves the message wiring, not the WASM runtime.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import type { JqWorkerRequest, JqWorkerResponse } from './jq-worker-protocol';
 
 const { runJq, runJqValue } = vi.hoisted(() => ({

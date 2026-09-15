@@ -7,8 +7,9 @@
  * runtime guard could call a graph "faithful" on the very inputs it could not check.
  */
 import { describe, expect, it } from 'vitest';
-import { compareJqSemantics } from './faithfulness';
+
 import { JqTimeoutError } from '../jq-worker-client';
+import { compareJqSemantics } from './faithfulness';
 
 describe('faithfulness oracle — timeout is unfaithful-safe', () => {
   it('reports unfaithful when BOTH programs time out (a timeout never agrees)', async () => {

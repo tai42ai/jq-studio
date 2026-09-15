@@ -2,10 +2,10 @@
  * @fileoverview Validation utilities for JQ converter.
  */
 
-import { type JQNode, type JQEdge } from '../../../../types';
 import { JQNodeType } from '../../../../enums';
+import { type JQEdge, type JQNode } from '../../../../types';
+import { MAX_GRAPH_NODES, VALID_VARIABLE_NAME_REGEX } from '../constants';
 import { type ConversionContext } from '../types';
-import { VALID_VARIABLE_NAME_REGEX, MAX_GRAPH_NODES } from '../constants';
 
 /**
  * Validates that a variable name is a valid jq identifier.

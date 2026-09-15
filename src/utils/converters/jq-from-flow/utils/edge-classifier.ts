@@ -2,10 +2,10 @@
  * @fileoverview Edge classification utilities for determining connection types.
  */
 
-import { type JQEdge } from '../../../../types';
 import { JQHandleIdPrefix } from '../../../../enums';
-import { type EdgeClassification } from '../types';
+import { type JQEdge } from '../../../../types';
 import { SIDE_HANDLE_PREFIXES } from '../constants';
+import { type EdgeClassification } from '../types';
 
 /**
  * Classifies an edge to determine its connection type.

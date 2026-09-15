@@ -2,7 +2,9 @@
  * @fileoverview Tests for the jq function catalog and its resolver lookups.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
+import type { FunctionDef } from './function-catalog';
 import { functionCategories } from './function-catalog';
 import {
   getBuiltInFunctionNames,
@@ -11,7 +13,6 @@ import {
   resolveFunctionDef,
   visibleParams,
 } from './function-resolver';
-import type { FunctionDef } from './function-catalog';
 
 const builtins = functionCategories[0]!.functions;
 

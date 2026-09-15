@@ -1,4 +1,5 @@
 import { Position } from '@xyflow/react';
+
 import { JQNodeType } from '../enums';
 import { jqPortLabel } from '../handle-tooltips';
 import { TransformerHandle } from './TransformerHandle';

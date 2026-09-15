@@ -1,4 +1,4 @@
-import { TextInput, Textarea } from '../primitives';
+import { Textarea, TextInput } from '../primitives';
 
 interface JqRestingControlProps {
   id: string;

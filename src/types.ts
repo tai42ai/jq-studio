@@ -1,10 +1,11 @@
-import { type Node, type Edge } from '@xyflow/react';
-import { JQNodeType, ValueType } from './enums';
+import { type Edge, type Node } from '@xyflow/react';
+
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
   ServerValidateHook,
 } from './declaration';
+import { JQNodeType, ValueType } from './enums';
 
 export interface JQBaseNodeData {
   name?: string;

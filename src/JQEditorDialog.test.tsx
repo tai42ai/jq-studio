@@ -6,6 +6,7 @@
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+
 import { JQEditorDialog } from './JQEditorDialog';
 import { LOGIC_LESS_SAVE_MESSAGE } from './TransformerCanvas';
 

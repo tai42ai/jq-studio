@@ -3,24 +3,25 @@
  * @fileoverview Comment nodes inside object-field and array-item chains, and chains of comment nodes only.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { JQHandleIdPrefix, ValueType } from '../../../enums';
 import {
-  createStartNode,
-  createValueNode,
-  createStringNode,
-  createConditionNode,
-  createFunctionCallNode,
-  createFunctionDeclNode,
-  createTryCatchNode,
-  createCommentNode,
   createChainEdge,
+  createCommentNode,
+  createConditionNode,
   createEdge,
   createFlowEdge,
+  createFunctionCallNode,
+  createFunctionDeclNode,
+  createStartNode,
+  createStringNode,
+  createTryCatchNode,
+  createValueNode,
   execJq,
 } from '../test-helpers';
 import { fieldA } from './comment-fixtures';
+import { convertFlowToJQ } from './index';
 
 describe('Comment nodes in object field and array item chains', () => {
   it('should parenthesise an array item whose chain pipes across a comment', async () => {

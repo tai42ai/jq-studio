@@ -5,13 +5,14 @@
  * dialog. Only FunctionDecl nodes get a default `func_decl_N` name; all others
  * start nameless.
  */
-import { useCallback, useEffect } from 'react';
-import type { Dispatch, DragEvent, RefObject, SetStateAction } from 'react';
 import type { Edge, Node, NodeChange, ReactFlowInstance } from '@xyflow/react';
-import type { JQNode, JQEdge, JQNodeData } from '../types';
+import type { Dispatch, DragEvent, RefObject, SetStateAction } from 'react';
+import { useCallback, useEffect } from 'react';
+
 import { JQNodeType } from '../enums';
+import { createDefaultNodeData, NODE_TYPE_LABELS } from '../nodes/node-factory';
 import { useTransformerConnection } from '../TransformerContext';
-import { NODE_TYPE_LABELS, createDefaultNodeData } from '../nodes/node-factory';
+import type { JQEdge, JQNode, JQNodeData } from '../types';
 
 interface NodePlacementParams {
   setNodes: Dispatch<SetStateAction<Node<JQNodeData>[]>>;

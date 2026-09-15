@@ -5,10 +5,10 @@
  * and positions any orphan nodes that were not reached by the Phase 4 tree-walk.
  */
 
-import { type JQNode, type JQEdge } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
-import { type LayoutContext } from './types';
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
+import { type JQEdge, type JQNode } from '../../../../types';
 import { LAYOUT_CONFIG } from '../constants';
+import { type LayoutContext } from './types';
 
 /**
  * Phase 5: Post-positioning adjustments.

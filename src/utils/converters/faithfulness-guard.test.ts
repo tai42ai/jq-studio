@@ -10,7 +10,7 @@
  * when the drift is injected by a deliberately-corrupting serializer mock, i.e.
  * a stand-in for any future parser/serializer bug.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Route the guard's executor at the disk-loaded WASM runtime (the app's own
 // `runJqValue` resolves `jq.wasm` relative to the browser bundle, which is not
@@ -29,7 +29,7 @@ vi.mock('./jq-from-flow', async (importActual) => {
   return { ...actual, convertFlowToJQ: convertFlowToJQMock };
 });
 
-import { roundTripVerdict, clearRoundTripVerdictCache } from './faithfulness-guard';
+import { clearRoundTripVerdictCache, roundTripVerdict } from './faithfulness-guard';
 
 beforeEach(async () => {
   clearRoundTripVerdictCache();

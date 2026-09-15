@@ -3,24 +3,25 @@
  * whole-graph structural validation of flow graphs.
  */
 
-import { describe, it, expect } from 'vitest';
-import { validateFlow } from './flow-validator';
-import { type JQEdge } from '../types';
+import { describe, expect, it } from 'vitest';
+
 import { JQHandleIdPrefix } from '../enums';
+import { type JQEdge } from '../types';
 import {
-  createStartNode,
-  createFunctionDeclNode,
   createCommentNode,
+  createFunctionDeclNode,
+  createStartNode,
 } from './converters/test-helpers';
+import { validateFlow } from './flow-validator';
 import {
+  conditionNode,
+  edge,
   errorsFor,
+  functionCallNode,
+  operatorNode,
   severitiesFor,
   startNode,
   valueNode,
-  functionCallNode,
-  operatorNode,
-  conditionNode,
-  edge,
 } from './flow-validator-test-helpers';
 
 describe('validateFlow', () => {

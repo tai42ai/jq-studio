@@ -5,21 +5,21 @@
  * Used by the Condition, TryCatch and Value generators.
  */
 
-import { type JQNode, type JQEdge } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
+import { type JQEdge, type JQNode } from '../../../../types';
+import {
+  closeOpenBinding,
+  commentParts,
+  type ExpressionPart,
+  joinExpressionParts,
+  nextChainNode,
+  type OpenBinding,
+  pushChainPart,
+} from '../expression-builder';
 import { type ConversionContext } from '../types';
 import { classifyEdge } from '../utils/edge-classifier';
-import { shouldCreateVariable } from '../utils/variable-checker';
 import { findOutermostOperator, findPipeChainEnd } from '../utils/operator-resolver';
-import {
-  type ExpressionPart,
-  type OpenBinding,
-  commentParts,
-  joinExpressionParts,
-  pushChainPart,
-  closeOpenBinding,
-  nextChainNode,
-} from '../expression-builder';
+import { shouldCreateVariable } from '../utils/variable-checker';
 
 /** Signature of the recursive node generator the generators receive as an argument. */
 export type NodeExpressionFn = (

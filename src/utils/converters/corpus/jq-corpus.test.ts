@@ -19,12 +19,13 @@
  * test both asserts it holds and (with `GEN_CORPUS_VERDICTS=1`) regenerates it.
  */
 import { readFileSync, writeFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { describe, it, expect } from 'vitest';
+import { fileURLToPath } from 'url';
+import { describe, expect, it } from 'vitest';
+
+import { compareJqSemantics } from '../faithfulness';
 import { convertJQToFlow } from '../flow-from-jq';
 import { convertFlowToJQ } from '../jq-from-flow';
-import { compareJqSemantics } from '../faithfulness';
 import { execJq } from '../test-helpers';
 
 interface CorpusEntry {

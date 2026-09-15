@@ -2,24 +2,25 @@
  * @fileoverview Tests for convertFlowToJQ: chain cycles, variable creation, edge cases, parameter sub-flows and function-call root inputs.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { JQHandleIdPrefix } from '../../../enums';
 import { createChainEdge } from '../test-helpers';
 import {
+  arr,
+  bool,
+  edge,
+  flow,
+  func,
+  num,
+  op,
+  path,
+  seg,
   start,
   str,
-  num,
-  bool,
-  path,
-  arr,
-  func,
-  op,
   tryCatch,
-  seg,
-  flow,
-  edge,
 } from './flow-fixtures';
+import { convertFlowToJQ } from './index';
 
 describe('convertFlowToJQ', () => {
   describe('Chain Cycles', () => {

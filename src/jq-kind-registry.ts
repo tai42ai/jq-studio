@@ -19,7 +19,6 @@
  *
  * English only.
  */
-import type { ComponentType, CSSProperties } from 'react';
 import {
   Calculator,
   Code2,
@@ -30,6 +29,8 @@ import {
   MessageSquare,
   ShieldAlert,
 } from 'lucide-react';
+import type { ComponentType, CSSProperties } from 'react';
+
 import { JQNodeType } from './enums';
 
 /** Props every kind glyph accepts (a lucide component). */

@@ -1,14 +1,15 @@
-import { memo } from 'react';
 import { Position } from '@xyflow/react';
-import { Select } from '../../primitives';
+import { memo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../../enums';
 import type { SelectOption } from '../../primitives';
-import { JQNodeType, JQHandleIdPrefix } from '../../enums';
+import { Select } from '../../primitives';
 import type { JQFunctionCallData } from '../../types';
+import { InfoTooltip, NodeLabel } from '../../ui';
 import type { FunctionDef, FunctionParam } from '../../utils/function-catalog';
-import { TransformerHandle } from '../TransformerHandle';
 import { NodeNameField } from '../NodeNameField';
 import { OperatorHandles } from '../OperatorHandles';
-import { InfoTooltip, NodeLabel } from '../../ui';
+import { TransformerHandle } from '../TransformerHandle';
 
 interface FunctionCallFormProps {
   id: string;

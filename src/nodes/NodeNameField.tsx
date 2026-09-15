@@ -1,13 +1,14 @@
-import { memo, useCallback, useMemo } from 'react';
-import type { CSSProperties } from 'react';
-import { useReactFlow, useNodes } from '@xyflow/react';
 import type { Node } from '@xyflow/react';
+import { useNodes, useReactFlow } from '@xyflow/react';
+import type { CSSProperties } from 'react';
+import { memo, useCallback, useMemo } from 'react';
+
 import { Checkbox, TextInput } from '../primitives';
-import type { JQNodeData } from '../types';
-import { nameVerdict } from '../utils/name-validation';
-import { useTransformerReadOnly } from '../TransformerContext';
 import { useSnapshot } from '../SnapshotContext';
+import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQNodeData } from '../types';
 import { InfoTooltip, NodeLabel } from '../ui';
+import { nameVerdict } from '../utils/name-validation';
 
 interface NodeNameFieldProps {
   id: string;

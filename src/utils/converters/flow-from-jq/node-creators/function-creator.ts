@@ -2,11 +2,11 @@
  * @fileoverview Creates FunctionCall nodes with parameter connections.
  */
 
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
 import { type JQNode } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext, type ASTNode } from '../types';
-import { type FunctionDef, functionCategories } from '../../../function-catalog';
-import { generateNodeId, createEdge } from './utils';
+import { functionCategories, type FunctionDef } from '../../../function-catalog';
+import { type ASTNode, type ConversionContext } from '../types';
+import { createEdge, generateNodeId } from './utils';
 
 /**
  * Looks up a built-in function by name.

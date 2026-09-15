@@ -5,19 +5,19 @@
  * to their appropriate creator functions.
  */
 
-import { ValueType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext, type ASTNode } from '../types';
-import { createValueNode } from './value-creator';
+import { JQHandleIdPrefix, ValueType } from '../../../../enums';
+import { flattenPipeStages } from '../pipe-utils';
+import { type ASTNode, type ConversionContext } from '../types';
+import { type ASTPipeNode } from '../types';
+import { createArrayNode, createObjectNode } from './array-object-creator';
+import { createAssignmentNode } from './assignment-creator';
+import { createCommentNode } from './comment-creator';
+import { createConditionalNode } from './conditional-creator';
 import { createFunctionCallNode } from './function-creator';
 import { createOperatorNode } from './operator-creator';
-import { createConditionalNode } from './conditional-creator';
 import { createTryCatchNode } from './trycatch-creator';
-import { createArrayNode, createObjectNode } from './array-object-creator';
-import { createCommentNode } from './comment-creator';
-import { createAssignmentNode } from './assignment-creator';
 import { createEdge } from './utils';
-import { flattenPipeStages } from '../pipe-utils';
-import { type ASTPipeNode } from '../types';
+import { createValueNode } from './value-creator';
 
 /** Builds the visual node for one AST node kind and returns its id. */
 type AstNodeHandler<T extends ASTNode['type']> = (

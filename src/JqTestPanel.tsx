@@ -3,15 +3,16 @@
  * button opens a dialog with a read-only expression view, a JSON input, a Run
  * action (also Cmd/Ctrl+Enter), and a colour-coded output.
  */
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { FlaskConical, Play, Copy, Check, Loader2, ShieldCheck } from 'lucide-react';
+import { Check, Copy, FlaskConical, Loader2, Play, ShieldCheck } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { ServerValidationResult } from './components/ServerValidationResult';
+import { TestRunResult } from './components/TestRunResult';
+import type { ServerValidateHook } from './declaration';
+import { useServerValidation } from './hooks/use-server-validation';
+import { useJqRunner } from './hooks/useJqRunner';
 import { Button, Dialog, Textarea, Tooltip } from './primitives';
 import type { ValidationErrorMap } from './utils/flow-validator';
-import type { ServerValidateHook } from './declaration';
-import { useJqRunner } from './hooks/useJqRunner';
-import { useServerValidation } from './hooks/use-server-validation';
-import { TestRunResult } from './components/TestRunResult';
-import { ServerValidationResult } from './components/ServerValidationResult';
 
 /** The primitives `Dialog` portals its content to `document.body`, outside this
  *  library's `.jq-studio-root` scope. Hanging the root class on the content

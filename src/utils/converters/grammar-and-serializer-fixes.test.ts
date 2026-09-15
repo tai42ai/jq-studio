@@ -9,13 +9,14 @@
  *   - a parenthesised pipeline as a postfix-path target (`(.a | .b).c`),
  *     accepted only for input-free postfixes and refused otherwise.
  */
-import { describe, it, expect } from 'vitest';
-import { convertJQToFlow } from './flow-from-jq';
-import { convertFlowToJQ } from '../converters/jq-from-flow';
-import { compareJqSemantics } from './faithfulness';
-import { execJq } from './test-helpers';
+import { describe, expect, it } from 'vitest';
+
 import { JQNodeType, ValueType } from '../../enums';
 import type { JQValueData } from '../../types';
+import { convertFlowToJQ } from '../converters/jq-from-flow';
+import { compareJqSemantics } from './faithfulness';
+import { convertJQToFlow } from './flow-from-jq';
+import { execJq } from './test-helpers';
 
 /** Round-trips an expression and asserts the result behaves identically to it. */
 async function expectFaithful(expr: string): Promise<string> {

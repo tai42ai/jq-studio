@@ -12,8 +12,8 @@
  */
 
 import { type JQNode } from '../../../../types';
-import { type LayoutContext } from './types';
 import { LAYOUT_CONFIG } from '../constants';
+import { type LayoutContext } from './types';
 
 /** A sub-tree's bounding box. */
 interface Size {

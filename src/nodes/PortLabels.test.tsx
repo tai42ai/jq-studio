@@ -8,14 +8,13 @@
  * operator card carries no branch words) stay bare so no noise is added.
  */
 import { render, screen } from '@testing-library/react';
+import { type NodeTypes, ReactFlow } from '@xyflow/react';
 import { describe, expect, it } from 'vitest';
-import { ReactFlow, type NodeTypes } from '@xyflow/react';
+
 import { JQNodeType, ValueType } from '../enums';
-import type { JQNode } from '../types';
-import { TransformerProvider } from '../TransformerContext';
-import { ValidationProvider } from '../ValidationContext';
 import { SnapshotProvider } from '../SnapshotContext';
-import { getFunctionDefById } from '../utils/function-resolver';
+import { TransformerProvider } from '../TransformerContext';
+import type { JQNode } from '../types';
 import {
   createConditionNode,
   createFunctionCallNode,
@@ -25,13 +24,15 @@ import {
   createTryCatchNode,
   createValueNode,
 } from '../utils/converters/test-helpers';
+import { getFunctionDefById } from '../utils/function-resolver';
+import { ValidationProvider } from '../ValidationContext';
 import { ConditionNode } from './ConditionNode';
-import { TryCatchNode } from './TryCatchNode';
-import { FunctionDeclNode } from './FunctionDeclNode';
 import { FunctionCallNode } from './FunctionCallNode';
+import { FunctionDeclNode } from './FunctionDeclNode';
 import { OperatorNode } from './OperatorNode';
-import { ValueNode } from './ValueNode';
 import { StartNode } from './StartNode';
+import { TryCatchNode } from './TryCatchNode';
+import { ValueNode } from './ValueNode';
 
 const nodeTypes: NodeTypes = {
   [JQNodeType.Start]: StartNode,

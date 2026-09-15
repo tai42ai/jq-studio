@@ -3,18 +3,18 @@
  * keeping each test concise.
  */
 
-import { type JQEdge } from '../../../types';
 import { ValueType } from '../../../enums';
+import { type JQEdge } from '../../../types';
 import {
-  createStartNode,
-  createValueNode,
+  createConditionNode,
+  createEdge,
+  createFlowEdge,
   createFunctionCallNode,
   createOperatorNode,
-  createConditionNode,
-  createTryCatchNode,
   createPathSegment,
-  createFlowEdge,
-  createEdge,
+  createStartNode,
+  createTryCatchNode,
+  createValueNode,
 } from '../test-helpers';
 
 export const start = (id = 'start') => createStartNode(id);

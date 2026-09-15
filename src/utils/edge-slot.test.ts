@@ -5,9 +5,10 @@
  * of two duplicates arbitrarily.
  */
 import { describe, expect, it } from 'vitest';
-import { dropEdgesOnTargetSlot } from './edge-slot';
+
 import { JQHandleIdPrefix } from '../enums';
 import type { JQEdge } from '../types';
+import { dropEdgesOnTargetSlot } from './edge-slot';
 
 const edge = (id: string, source: string, target: string, targetHandle: string): JQEdge => ({
   id,

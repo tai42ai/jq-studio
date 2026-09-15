@@ -7,8 +7,8 @@
  * nodes without a name just pass their expression through the pipeline.
  */
 
-import { type JQNode } from '../../../../types';
 import { JQNodeType } from '../../../../enums';
+import { type JQNode } from '../../../../types';
 import { type ConversionContext } from '../types';
 
 /**

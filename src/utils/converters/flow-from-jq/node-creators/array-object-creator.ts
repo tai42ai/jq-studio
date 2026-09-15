@@ -2,10 +2,10 @@
  * @fileoverview Creates Array and Object Value nodes with item/field connections.
  */
 
+import { JQHandleIdPrefix, JQNodeType, ValueType } from '../../../../enums';
 import { type JQNode } from '../../../../types';
-import { JQNodeType, ValueType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext, type ASTNode } from '../types';
-import { generateNodeId, createEdge } from './utils';
+import { type ASTNode, type ConversionContext } from '../types';
+import { createEdge, generateNodeId } from './utils';
 
 /**
  * Creates an Array Value node with item connections.

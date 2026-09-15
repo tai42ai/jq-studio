@@ -4,7 +4,7 @@
  * Parses `try EXPR` and `try EXPR catch EXPR` constructs.
  */
 
-import { type ASTTryCatchNode, type ASTNode } from '../types';
+import { type ASTNode, type ASTTryCatchNode } from '../types';
 import { findTopLevelKeyword } from './conditional-parser';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */

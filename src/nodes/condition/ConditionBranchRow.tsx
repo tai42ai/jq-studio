@@ -1,7 +1,8 @@
-import { memo } from 'react';
 import { Position } from '@xyflow/react';
 import { X } from 'lucide-react';
-import { JQNodeType, JQHandleIdPrefix } from '../../enums';
+import { memo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../../enums';
 import { TransformerHandle } from '../TransformerHandle';
 
 interface ConditionBranchRowProps {

@@ -1,58 +1,60 @@
 import '@xyflow/react/dist/style.css';
 import './transformers.css';
-import { useRef } from 'react';
-import type { DragEvent } from 'react';
-import clsx from 'clsx';
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  MiniMap,
-  BackgroundVariant,
-  useNodesState,
-  useEdgesState,
-} from '@xyflow/react';
+
 import type {
-  Node,
   Edge,
+  EdgeTypes,
+  Node,
   NodeChange,
   NodeTypes,
-  EdgeTypes,
   OnEdgesChange,
   ReactFlowInstance,
 } from '@xyflow/react';
-import { useJqUndoRedo } from './hooks/use-jq-undo-redo';
-import { useFitScheduler } from './hooks/use-fit-scheduler';
-import { useInitialLoad } from './hooks/use-initial-load';
-import { useFlowExpression } from './hooks/use-flow-expression';
-import { useFlowProblems } from './hooks/use-flow-problems';
-import { useSaveShortcut } from './hooks/use-save-shortcut';
-import { useConnectionHandlers } from './hooks/use-connection-handlers';
-import type { ConnectionHandlers } from './hooks/use-connection-handlers';
-import { useNodePlacement } from './hooks/use-node-placement';
-import { useEdgeGradients } from './hooks/use-edge-gradients';
-import { JqGradientEdge } from './jq-gradient-edge';
-import { StartNode } from './nodes/StartNode';
-import { ValueNode } from './nodes/ValueNode';
-import { OperatorNode } from './nodes/OperatorNode';
-import { ConditionNode } from './nodes/ConditionNode';
-import { TryCatchNode } from './nodes/TryCatchNode';
-import { FunctionDeclNode } from './nodes/FunctionDeclNode';
-import { FunctionCallNode } from './nodes/FunctionCallNode';
-import { CommentNode } from './nodes/CommentNode';
-import type { JQNodeData } from './types';
+import {
+  Background,
+  BackgroundVariant,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+} from '@xyflow/react';
+import clsx from 'clsx';
+import type { DragEvent } from 'react';
+import { useRef } from 'react';
+
+import { CanvasFallbackPanel } from './CanvasFallbackPanel';
+import { CanvasToolbar } from './CanvasToolbar';
+import { jqNodeColorVar } from './colors';
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
   ServerValidateHook,
 } from './declaration';
-import { jqNodeColorVar } from './colors';
 import { JQNodeType } from './enums';
+import type { ConnectionHandlers } from './hooks/use-connection-handlers';
+import { useConnectionHandlers } from './hooks/use-connection-handlers';
+import { useEdgeGradients } from './hooks/use-edge-gradients';
+import { useFitScheduler } from './hooks/use-fit-scheduler';
+import { useFlowExpression } from './hooks/use-flow-expression';
+import { useFlowProblems } from './hooks/use-flow-problems';
+import { useInitialLoad } from './hooks/use-initial-load';
+import { useJqUndoRedo } from './hooks/use-jq-undo-redo';
+import { useNodePlacement } from './hooks/use-node-placement';
+import { useSaveShortcut } from './hooks/use-save-shortcut';
+import { JqGradientEdge } from './jq-gradient-edge';
+import { CommentNode } from './nodes/CommentNode';
+import { ConditionNode } from './nodes/ConditionNode';
+import { FunctionCallNode } from './nodes/FunctionCallNode';
+import { FunctionDeclNode } from './nodes/FunctionDeclNode';
+import { OperatorNode } from './nodes/OperatorNode';
+import { StartNode } from './nodes/StartNode';
+import { TryCatchNode } from './nodes/TryCatchNode';
+import { ValueNode } from './nodes/ValueNode';
+import { SnapshotProvider } from './SnapshotContext';
+import type { JQNodeData } from './types';
 import type { ValidationErrorMap } from './utils/flow-validator';
 import { ValidationProvider } from './ValidationContext';
-import { SnapshotProvider } from './SnapshotContext';
-import { CanvasToolbar } from './CanvasToolbar';
-import { CanvasFallbackPanel } from './CanvasFallbackPanel';
 
 /**
  * Shown when the visual editor's reading of the loaded expression does not match

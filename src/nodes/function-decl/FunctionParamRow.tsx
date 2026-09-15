@@ -1,6 +1,7 @@
-import { memo, useMemo } from 'react';
-import type { CSSProperties } from 'react';
 import { X } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { memo, useMemo } from 'react';
+
 import { TextInput } from '../../primitives';
 import { nameVerdict } from '../../utils/name-validation';
 

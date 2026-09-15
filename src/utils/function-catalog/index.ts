@@ -3,16 +3,16 @@
  * assembled from the per-concern function groups.
  */
 
-import type { FunctionCategory } from './types';
-import { iteratorFunctions } from './iterator-functions';
-import { transformationFunctions } from './transformation-functions';
-import { stringFunctions } from './string-functions';
-import { regexFunctions } from './regex-functions';
 import { dateFunctions } from './date-functions';
-import { mathFunctions } from './math-functions';
 import { debugFunctions } from './debug-functions';
+import { iteratorFunctions } from './iterator-functions';
+import { mathFunctions } from './math-functions';
+import { regexFunctions } from './regex-functions';
+import { stringFunctions } from './string-functions';
+import { transformationFunctions } from './transformation-functions';
+import type { FunctionCategory } from './types';
 
-export type { FunctionParam, FunctionDef, FunctionCategory } from './types';
+export type { FunctionCategory, FunctionDef, FunctionParam } from './types';
 
 // The picker dropdown lists builtins in this array's order, so the sequence is
 // part of the observable surface. jq's own builtin listing puts the split/join

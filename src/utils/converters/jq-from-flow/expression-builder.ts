@@ -2,15 +2,15 @@
  * @fileoverview Main expression chain builder for JQ from Flow converter.
  */
 
-import { type JQNode, type JQEdge } from '../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../enums';
+import { JQHandleIdPrefix, JQNodeType } from '../../../enums';
+import { type JQEdge, type JQNode } from '../../../types';
+import { scanTopLevel } from '../jq-lex';
+import { generateNodeExpression } from './generators/node-generator';
 import { type ConversionContext } from './types';
 import { classifyEdge } from './utils/edge-classifier';
-import { validateVariableName, enterChainNode, edgeTargetNode } from './utils/validators';
-import { shouldCreateVariable } from './utils/variable-checker';
-import { generateNodeExpression } from './generators/node-generator';
 import { findOutermostOperator, findPipeChainEnd } from './utils/operator-resolver';
-import { scanTopLevel } from '../jq-lex';
+import { edgeTargetNode, enterChainNode, validateVariableName } from './utils/validators';
+import { shouldCreateVariable } from './utils/variable-checker';
 
 // Re-export for consumers that import from expression-builder
 export { shouldCreateVariable };

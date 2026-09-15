@@ -8,8 +8,8 @@
  * idiom: call `takeSnapshot` BEFORE a mutating action; Ctrl/Cmd+Z undoes,
  * Ctrl/Cmd+Shift+Z or Ctrl+Y redoes, suppressed while focus is in a form control.
  */
-import { useCallback, useEffect, useState } from 'react';
 import type { Edge, Node } from '@xyflow/react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface HistoryItem<TNodeData extends Record<string, unknown>> {
   nodes: Node<TNodeData>[];

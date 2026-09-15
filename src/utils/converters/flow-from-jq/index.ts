@@ -4,19 +4,19 @@
  * Converts jq expression strings to visual JQ flow graphs with perfect auto-layout.
  */
 
-import { type JQNode, type JQEdge } from '../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../enums';
-import { type ConversionContext } from './types';
+import { JQHandleIdPrefix, JQNodeType } from '../../../enums';
+import { type JQEdge, type JQNode } from '../../../types';
 import { MAX_EXPRESSION_LENGTH } from './constants';
-import { initializeBuiltInFunctions } from './utils';
+import { applyAutoLayout } from './layout';
+import { convertASTNode } from './node-creators/ast-converter';
+import { createEdge, generateNodeId } from './node-creators/utils';
 import { parseJQExpression } from './parser';
 import {
   extractFunctionDeclarations,
   type FunctionDeclaration,
 } from './parser/function-declaration-extractor';
-import { convertASTNode } from './node-creators/ast-converter';
-import { generateNodeId, createEdge } from './node-creators/utils';
-import { applyAutoLayout } from './layout';
+import { type ConversionContext } from './types';
+import { initializeBuiltInFunctions } from './utils';
 
 /**
  * Creates a FunctionDecl node for each declaration, wires it to the Start node's

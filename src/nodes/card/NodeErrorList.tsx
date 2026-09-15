@@ -1,6 +1,7 @@
-import { memo } from 'react';
-import { AlertTriangle } from 'lucide-react';
 import clsx from 'clsx';
+import { AlertTriangle } from 'lucide-react';
+import { memo } from 'react';
+
 import type { ValidationError } from '../../utils/flow-validator';
 
 interface NodeErrorListProps {

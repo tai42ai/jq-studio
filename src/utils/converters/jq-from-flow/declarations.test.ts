@@ -2,16 +2,17 @@
  * @fileoverview Tests for convertFlowToJQ: function declarations, array/object children, try/catch and comment nodes.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
-import { ValueType, JQHandleIdPrefix } from '../../../enums';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, ValueType } from '../../../enums';
 import {
-  createValueNode,
-  createFunctionDeclNode,
-  createCommentNode,
   createChainEdge,
+  createCommentNode,
+  createFunctionDeclNode,
+  createValueNode,
 } from '../test-helpers';
-import { start, str, path, func, tryCatch, seg, flow, edge } from './flow-fixtures';
+import { edge, flow, func, path, seg, start, str, tryCatch } from './flow-fixtures';
+import { convertFlowToJQ } from './index';
 
 describe('convertFlowToJQ', () => {
   describe('Function Declarations', () => {

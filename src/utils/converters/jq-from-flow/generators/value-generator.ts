@@ -2,14 +2,14 @@
  * @fileoverview Value node expression generator.
  */
 
+import { JQHandleIdPrefix, ValueType } from '../../../../enums';
 import { type JQNode, type JQValueData } from '../../../../types';
-import { ValueType, JQHandleIdPrefix } from '../../../../enums';
 import { compilePathSegments } from '../../../path-segments';
 import { escapeJqString } from '../../jq-string';
+import { asTerm } from '../expression-builder';
 import { type ConversionContext } from '../types';
 import { formatArray, formatObject } from '../utils/formatter';
 import { edgeTargetNode } from '../utils/validators';
-import { asTerm } from '../expression-builder';
 import { buildBranchChainExpression, type NodeExpressionFn } from './branch-chain-builder';
 
 /**

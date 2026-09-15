@@ -12,10 +12,11 @@
  * wrong.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertJQToFlow } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { convertFlowToJQ } from '../jq-from-flow/index';
 import { execJq } from '../test-helpers';
+import { convertJQToFlow } from './index';
 
 /**
  * Reopens `original`, expects `regenerated` back, and runs both texts through jq

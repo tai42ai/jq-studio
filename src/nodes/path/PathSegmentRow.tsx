@@ -1,5 +1,6 @@
-import { memo } from 'react';
 import { X } from 'lucide-react';
+import { memo } from 'react';
+
 import { TextInput } from '../../primitives';
 import type { PathSegment } from '../../types';
 import { SegmentToggle } from '../SegmentToggle';

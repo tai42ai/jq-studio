@@ -2,7 +2,7 @@
  * @fileoverview Type definitions for JQ to Flow converter.
  */
 
-import { type JQNode, type JQEdge } from '../../../types';
+import { type JQEdge, type JQNode } from '../../../types';
 import { type FunctionDef } from '../../function-catalog';
 
 /**

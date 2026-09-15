@@ -3,8 +3,8 @@
  * disambiguation, visible-port selection, and call-type option resolution.
  */
 
-import { functionCategories } from './function-catalog';
 import type { FunctionDef, FunctionParam } from './function-catalog';
+import { functionCategories } from './function-catalog';
 
 /** Get all built-in function names (deduplicated) for conflict detection */
 export const getBuiltInFunctionNames = (): string[] => {

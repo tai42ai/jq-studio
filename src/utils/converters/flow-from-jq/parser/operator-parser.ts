@@ -4,9 +4,9 @@
  * Handles binary and unary ('not', '?') operators.
  */
 
-import { type ASTOperatorNode, type ASTNode } from '../types';
-import { findTopLevelOperator } from './top-level-scan';
 import { isUnrepresentableOperand } from '../pipe-utils';
+import { type ASTNode, type ASTOperatorNode } from '../types';
+import { findTopLevelOperator } from './top-level-scan';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */
 type ParseExpressionFn = (expression: string) => ASTNode;

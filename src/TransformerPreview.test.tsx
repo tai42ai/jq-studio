@@ -7,8 +7,8 @@
  * deterministically; the representability signal is the real converter, fed a
  * valid-but-not-drawable expression and genuinely broken jq.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { checkJqValidityMock, roundTripVerdictMock } = vi.hoisted(() => ({
   checkJqValidityMock: vi.fn(),

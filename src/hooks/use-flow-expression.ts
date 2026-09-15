@@ -5,8 +5,9 @@
  * rather than jq; the pre-settle empty-graph placeholder is suppressed so it is
  * never captured as the dialog's dirty baseline.
  */
-import { useEffect, useMemo } from 'react';
 import type { Edge, Node } from '@xyflow/react';
+import { useEffect, useMemo } from 'react';
+
 import type { JQNodeData } from '../types';
 import { convertFlowToJQ } from '../utils/converters/jq-from-flow';
 

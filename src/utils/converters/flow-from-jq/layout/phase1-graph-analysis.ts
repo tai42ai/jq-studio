@@ -7,10 +7,10 @@
  * 3. Estimates visual dimensions (width + height) for every node
  */
 
-import { type JQNode, type JQEdge } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix, ValueType } from '../../../../enums';
-import { type LayoutContext, type EdgeKind } from './types';
+import { JQHandleIdPrefix, JQNodeType, ValueType } from '../../../../enums';
+import { type JQEdge, type JQNode } from '../../../../types';
 import { LAYOUT_CONFIG } from '../constants';
+import { type EdgeKind, type LayoutContext } from './types';
 
 /**
  * Classifies an edge by inspecting its source and target handle IDs.

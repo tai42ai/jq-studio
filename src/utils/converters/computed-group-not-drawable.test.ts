@@ -9,7 +9,8 @@
  * language" rather than force-parsed: the editor must fall back to the neutral
  * "runs normally — edit as text" notice, never render a wrong graph.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { convertJQToFlow } from './flow-from-jq';
 import { execJq } from './test-helpers';
 

@@ -1,8 +1,9 @@
-import { memo } from 'react';
 import { Position } from '@xyflow/react';
 import { Plus, Trash2 } from 'lucide-react';
+import { memo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../../enums';
 import { Button } from '../../primitives';
-import { JQNodeType, JQHandleIdPrefix } from '../../enums';
 import type { ValueArrayItem } from '../../types';
 import { TransformerHandle } from '../TransformerHandle';
 

@@ -20,23 +20,24 @@
  * {@link asTerm} directly there: the answer it gives is the one that wraps.
  */
 
-import { describe, it, expect } from 'vitest';
-import { asTerm, firstExpressionLine } from './expression-builder';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { JQHandleIdPrefix, ValueType } from '../../../enums';
 import {
-  createStartNode,
-  createValueNode,
-  createStringNode,
-  createPathNode,
-  createPathSegment,
-  createFunctionCallNode,
-  createCommentNode,
   createChainEdge,
+  createCommentNode,
   createEdge,
   createFlowEdge,
+  createFunctionCallNode,
+  createPathNode,
+  createPathSegment,
+  createStartNode,
+  createStringNode,
+  createValueNode,
   execJq,
 } from '../test-helpers';
+import { asTerm, firstExpressionLine } from './expression-builder';
+import { convertFlowToJQ } from './index';
 
 /** `.a` as an unnamed Value node, so it contributes no `as $var` binding. */
 const fieldA = (id: string) =>

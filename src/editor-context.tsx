@@ -7,8 +7,8 @@
  * dialog's own Cmd/Ctrl+S saves the expression rather than bubbling to the
  * flow. The dialog flips it on open and off on close.
  */
-import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 interface JQEditorContextValue {
   isJQEditorOpen: boolean;

@@ -2,7 +2,7 @@
  * @fileoverview Type definitions for JQ from Flow converter.
  */
 
-import { type JQNode, type JQEdge } from '../../../types';
+import { type JQEdge, type JQNode } from '../../../types';
 
 /**
  * Context passed through the conversion process to maintain state

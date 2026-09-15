@@ -4,13 +4,14 @@
  * registry so it can never drift from what the canvas paints. Opened from the
  * editor toolbar (mirrors the flow canvas's Legend affordance).
  */
-import { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { BookOpen } from 'lucide-react';
 import clsx from 'clsx';
-import { Button, Dialog } from './primitives';
-import { JQ_KIND_REGISTRY, legendJqKindRows, jqKindHasSharedHue } from './jq-kind-registry';
+import { BookOpen } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { useState } from 'react';
+
 import { JQNodeType } from './enums';
+import { JQ_KIND_REGISTRY, jqKindHasSharedHue, legendJqKindRows } from './jq-kind-registry';
+import { Button, Dialog } from './primitives';
 
 /** The primitives `Dialog` portals its content to `document.body`, outside this
  *  library's `.jq-studio-root` scope. Hanging the root class on the content

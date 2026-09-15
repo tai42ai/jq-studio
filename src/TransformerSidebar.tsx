@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
-import type { CSSProperties, DragEvent } from 'react';
 import clsx from 'clsx';
+import type { CSSProperties, DragEvent } from 'react';
+import { useMemo } from 'react';
+
+import { jqNodeColorVar } from './colors';
 import { JQNodeType } from './enums';
 import { JQ_KIND_REGISTRY } from './jq-kind-registry';
-import { jqNodeColorVar } from './colors';
 import { useTransformerConnection } from './TransformerContext';
 import { getValidJQNodeTypesForConnection } from './utils/connection-validator';
 

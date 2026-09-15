@@ -2,10 +2,11 @@
  * @fileoverview Tests for convertJQToFlow: layout, edge creation, error handling, special cases, try/catch and inline comments.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertJQToFlow } from './index';
-import { JQNodeType, JQHandleIdPrefix } from '../../../enums';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, JQNodeType } from '../../../enums';
 import { type JQCommentData } from '../../../types';
+import { convertJQToFlow } from './index';
 
 describe('convertJQToFlow', () => {
   describe('Layout', () => {

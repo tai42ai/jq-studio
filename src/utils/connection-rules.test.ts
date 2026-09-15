@@ -3,9 +3,10 @@
  * exercise on their own — chiefly the single-output fan-out rule.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { allowsMultipleFromSource } from './connection-rules';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
 
 describe('allowsMultipleFromSource', () => {
   it('allows fan-out only from the Start node functions handle', () => {

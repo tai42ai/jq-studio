@@ -6,7 +6,7 @@
  * error, a runtime error, a runtime that will not load — is exercised
  * deterministically, without shipping the real binary through jsdom.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { jsonMock, factoryMock } = vi.hoisted(() => ({
   jsonMock: vi.fn(),

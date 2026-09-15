@@ -4,8 +4,9 @@
  * library root class because the primitives `Tooltip` portals outside the library
  * root subtree.
  */
-import type { ReactNode } from 'react';
 import { Info } from 'lucide-react';
+import type { ReactNode } from 'react';
+
 import { Tooltip } from './primitives';
 
 export function NodeLabel({ children }: { children: ReactNode }): ReactNode {

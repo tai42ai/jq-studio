@@ -6,8 +6,8 @@
  * is actually drawn; this pins that the redesigned card chrome renders for every
  * kind without throwing.
  */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, waitFor, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { roundTripVerdictMock, checkJqValidityMock } = vi.hoisted(() => ({
   roundTripVerdictMock: vi.fn(),

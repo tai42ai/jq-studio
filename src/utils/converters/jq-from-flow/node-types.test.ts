@@ -2,12 +2,13 @@
  * @fileoverview Tests for convertFlowToJQ: value, path, function-call, operator, conditional and complex-flow node types.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, ValueType } from '../../../enums';
 import { type JQEdge } from '../../../types';
-import { ValueType, JQHandleIdPrefix } from '../../../enums';
-import { createValueNode, createFunctionCallNode } from '../test-helpers';
-import { start, str, num, bool, nil, path, func, op, cond, seg, flow, edge } from './flow-fixtures';
+import { createFunctionCallNode, createValueNode } from '../test-helpers';
+import { bool, cond, edge, flow, func, nil, num, op, path, seg, start, str } from './flow-fixtures';
+import { convertFlowToJQ } from './index';
 
 describe('convertFlowToJQ', () => {
   describe('Basic Node Types', () => {

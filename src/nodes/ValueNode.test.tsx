@@ -4,14 +4,15 @@
  * into the node data.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import { type NodeTypes, ReactFlow, useNodes } from '@xyflow/react';
 import { describe, expect, it } from 'vitest';
-import { ReactFlow, useNodes, type NodeTypes } from '@xyflow/react';
+
 import { JQNodeType } from '../enums';
-import type { JQNode } from '../types';
-import { TransformerProvider } from '../TransformerContext';
-import { ValidationProvider } from '../ValidationContext';
 import { SnapshotProvider } from '../SnapshotContext';
+import { TransformerProvider } from '../TransformerContext';
+import type { JQNode } from '../types';
 import { createNumberNode, createStringNode } from '../utils/converters/test-helpers';
+import { ValidationProvider } from '../ValidationContext';
 import { ValueNode } from './ValueNode';
 
 const nodeTypes: NodeTypes = { [JQNodeType.Value]: ValueNode };

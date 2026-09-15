@@ -1,13 +1,14 @@
-import { useMemo } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { JqTestPanel } from './JqTestPanel';
-import { LoadExpressionDialog } from './LoadExpressionDialog';
-import type { JQNode, JQEdge } from './types';
+import { useMemo } from 'react';
+
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
   ServerValidateHook,
 } from './declaration';
+import { JqTestPanel } from './JqTestPanel';
+import { LoadExpressionDialog } from './LoadExpressionDialog';
+import type { JQEdge, JQNode } from './types';
 import type { ValidationErrorMap } from './utils/flow-validator';
 
 interface CanvasToolbarProps {

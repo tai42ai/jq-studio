@@ -1,20 +1,21 @@
-import { memo, useCallback, useMemo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position, useReactFlow } from '@xyflow/react';
 import { Code2, Plus } from 'lucide-react';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
-import type { JQFunctionDeclData } from '../types';
+import { memo, useCallback, useMemo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { useSnapshot } from '../SnapshotContext';
-import { TransformerNode } from './TransformerNode';
-import { NodeNameField } from './NodeNameField';
-import { CollapsedHandles } from './CollapsedHandles';
-import type { CollapsedHandleConfig } from './CollapsedHandles';
-import { TransformerHandle } from './TransformerHandle';
-import { FunctionParamRow } from './function-decl/FunctionParamRow';
-import { appendParam, removeParamAt, setParamAt } from './function-decl/function-decl-data';
-import { buildReservedNames } from '../utils/name-validation';
 import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQFunctionDeclData } from '../types';
 import { InfoTooltip, NodeLabel } from '../ui';
+import { buildReservedNames } from '../utils/name-validation';
+import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { CollapsedHandles } from './CollapsedHandles';
+import { appendParam, removeParamAt, setParamAt } from './function-decl/function-decl-data';
+import { FunctionParamRow } from './function-decl/FunctionParamRow';
+import { NodeNameField } from './NodeNameField';
+import { TransformerHandle } from './TransformerHandle';
+import { TransformerNode } from './TransformerNode';
 
 type FunctionDeclNodeProps = NodeProps<Node<JQFunctionDeclData>>;
 

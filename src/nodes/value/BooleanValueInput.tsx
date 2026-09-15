@@ -1,4 +1,5 @@
 import { memo } from 'react';
+
 import { Checkbox } from '../../primitives';
 
 interface BooleanValueInputProps {

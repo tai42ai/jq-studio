@@ -8,11 +8,12 @@
  *
  * Faithfulness is proven through the real jq WASM runtime, never by string match.
  */
-import { describe, it, expect } from 'vitest';
-import { convertJQToFlow } from './index';
-import { convertFlowToJQ } from '../jq-from-flow';
+import { describe, expect, it } from 'vitest';
+
 import { compareJqSemantics } from '../faithfulness';
+import { convertFlowToJQ } from '../jq-from-flow';
 import { execJq } from '../test-helpers';
+import { convertJQToFlow } from './index';
 
 /** Round-trips an expression and asserts the result behaves identically to it. */
 async function expectFaithful(expr: string): Promise<void> {

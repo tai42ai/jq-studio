@@ -2,11 +2,12 @@
  * @fileoverview Tests for convertJQToFlow: parsing of expressions, literals, paths, calls, operators, conditionals, structures, assignments and complex expressions.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertJQToFlow } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { JQNodeType, ValueType } from '../../../enums';
 import { type JQFunctionCallData } from '../../../types';
 import { MAX_EXPRESSION_LENGTH } from './constants';
+import { convertJQToFlow } from './index';
 
 describe('convertJQToFlow', () => {
   describe('Basic Expressions', () => {

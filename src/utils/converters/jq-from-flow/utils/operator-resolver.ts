@@ -2,11 +2,11 @@
  * @fileoverview Utility for finding the outermost operator in a nested operator chain.
  */
 
-import { type JQNode, type JQEdge } from '../../../../types';
 import { JQHandleIdPrefix } from '../../../../enums';
+import { type JQEdge, type JQNode } from '../../../../types';
 import { type ConversionContext } from '../types';
 import { classifyEdge } from './edge-classifier';
-import { enterChainNode, edgeTargetNode } from './validators';
+import { edgeTargetNode, enterChainNode } from './validators';
 
 /** Reports whether an edge leaves a node through an operator operand handle. */
 function isOperatorOperandEdge(edge: JQEdge): boolean {

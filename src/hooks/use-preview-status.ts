@@ -5,9 +5,10 @@
  * "checking" state until the faithfulness guard proves the round-trip matches.
  */
 import { useEffect, useMemo, useState } from 'react';
-import type { JQNode, JQEdge } from '../types';
-import { convertJQToFlow } from '../utils/converters/flow-from-jq';
+
+import type { JQEdge, JQNode } from '../types';
 import { roundTripVerdict } from '../utils/converters/faithfulness-guard';
+import { convertJQToFlow } from '../utils/converters/flow-from-jq';
 import { checkJqValidity, type JqValidity } from '../utils/jq-loader';
 
 export type PreviewStatus =

@@ -1,21 +1,22 @@
-import { memo, useMemo, useCallback } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
-import { Position, useReactFlow, useNodes, useEdges } from '@xyflow/react';
-import type { SelectOption } from '../primitives';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
+import { Position, useEdges, useNodes, useReactFlow } from '@xyflow/react';
+import { memo, useCallback, useMemo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { JQ_KIND_REGISTRY } from '../jq-kind-registry';
-import type { JQFunctionCallData, JQNodeData } from '../types';
+import type { SelectOption } from '../primitives';
 import { useSnapshot } from '../SnapshotContext';
-import { TransformerNode } from './TransformerNode';
-import { FunctionCallForm } from './function-call/FunctionCallForm';
-import { functionCategories } from '../utils/function-catalog';
+import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQFunctionCallData, JQNodeData } from '../types';
 import type { FunctionParam } from '../utils/function-catalog';
+import { functionCategories } from '../utils/function-catalog';
 import { getFunctionOptions, resolveFunctionDef, visibleParams } from '../utils/function-resolver';
 import { customFunctionDefs } from '../utils/graph-scope';
-import { CollapsedHandles } from './CollapsedHandles';
 import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { CollapsedHandles } from './CollapsedHandles';
+import { FunctionCallForm } from './function-call/FunctionCallForm';
+import { TransformerNode } from './TransformerNode';
 import { useNodeConnectionState } from './useNodeConnectionState';
-import { useTransformerReadOnly } from '../TransformerContext';
 
 type FunctionCallNodeProps = NodeProps<Node<JQFunctionCallData>>;
 

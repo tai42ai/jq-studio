@@ -2,12 +2,13 @@
  * @fileoverview Tests for convertFlowToJQ error handling.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, ValueType } from '../../../enums';
 import { type JQEdge } from '../../../types';
-import { ValueType, JQHandleIdPrefix } from '../../../enums';
 import { createValueNode } from '../test-helpers';
-import { start, str, num, path, func, tryCatch, seg, flow, edge } from './flow-fixtures';
+import { edge, flow, func, num, path, seg, start, str, tryCatch } from './flow-fixtures';
+import { convertFlowToJQ } from './index';
 
 describe('convertFlowToJQ', () => {
   describe('Error Handling', () => {

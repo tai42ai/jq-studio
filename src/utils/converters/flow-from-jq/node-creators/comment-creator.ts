@@ -4,7 +4,7 @@
 
 import { JQNodeType } from '../../../../enums';
 import { type JQNode } from '../../../../types';
-import { type ConversionContext, type ASTCommentNode } from '../types';
+import { type ASTCommentNode, type ConversionContext } from '../types';
 import { generateNodeId } from './utils';
 
 /**

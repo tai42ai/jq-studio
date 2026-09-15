@@ -2,8 +2,8 @@
  * @fileoverview Creates Value nodes with support for all value types including paths.
  */
 
-import { type JQNode, type PathSegment } from '../../../../types';
 import { JQNodeType, ValueType } from '../../../../enums';
+import { type JQNode, type PathSegment } from '../../../../types';
 import { type ConversionContext } from '../types';
 import { generateNodeId } from './utils';
 

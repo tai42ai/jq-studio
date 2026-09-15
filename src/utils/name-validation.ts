@@ -3,7 +3,7 @@
  * plus keywords) and a flag verdict for a single name against its siblings.
  */
 
-import { VALID_NAME_PATTERN, JQ_RESERVED_KEYWORDS } from '../enums';
+import { JQ_RESERVED_KEYWORDS, VALID_NAME_PATTERN } from '../enums';
 import { getBuiltInFunctionNames } from './function-resolver';
 
 /** The names a node or parameter may not take: every jq built-in plus keyword. */

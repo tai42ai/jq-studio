@@ -1,17 +1,18 @@
 import { memo, useCallback } from 'react';
+
 import { ValueType } from '../../enums';
 import type { JQValueData, PathSegment } from '../../types';
 import { compilePathSegments } from '../../utils/path-segments';
 import { PathSelector } from '../PathSelector';
-import { StringValueInput } from './StringValueInput';
-import { NumberValueInput } from './NumberValueInput';
-import { BooleanValueInput } from './BooleanValueInput';
 import { ArrayValueEditor } from './ArrayValueEditor';
+import { BooleanValueInput } from './BooleanValueInput';
+import { NumberValueInput } from './NumberValueInput';
 import { ObjectValueEditor } from './ObjectValueEditor';
+import { StringValueInput } from './StringValueInput';
 import {
   addArrayItem,
-  removeArrayItem,
   addObjectField,
+  removeArrayItem,
   removeObjectField,
   setObjectFieldName,
 } from './value-data';

@@ -3,11 +3,12 @@
  * @fileoverview Validates test expressions: flow loading and round-trip execution.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { convertJQToFlow } from './flow-from-jq';
 import { convertFlowToJQ } from './jq-from-flow';
-import { execJq } from './test-helpers';
 import testExpressions from './test-expressions.json';
+import { execJq } from './test-helpers';
 
 describe('Test Expressions: all expressions load into flow', () => {
   for (const entry of testExpressions) {

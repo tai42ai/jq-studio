@@ -2,8 +2,8 @@
  * @fileoverview Parses a jq variable assignment — `expr as $name`.
  */
 
-import { type ASTNode } from '../types';
 import { assignmentNameSplitsOperand } from '../pipe-utils';
+import { type ASTNode } from '../types';
 
 /** Signature of the recursive expression parser passed in to avoid a circular import. */
 type ParseExpressionFn = (expression: string) => ASTNode;

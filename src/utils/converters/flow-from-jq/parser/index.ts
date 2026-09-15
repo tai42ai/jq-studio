@@ -4,18 +4,18 @@
  * Production-ready parser with comprehensive support for jq syntax.
  */
 
-import { type ASTNode } from '../types';
 import { MAX_EXPRESSION_LENGTH } from '../constants';
-import { findTopLevelOperator } from './top-level-scan';
-import { splitChainComments } from './comment-extractor';
-import { tryParseOperator } from './operator-parser';
-import { parseConditional } from './conditional-parser';
-import { parseTryCatch } from './trycatch-parser';
+import { type ASTNode } from '../types';
 import { parseArray, parseObject } from './array-object-parser';
 import { parseAssignment } from './assignment-parser';
+import { parseAtom } from './atom-parser';
+import { splitChainComments } from './comment-extractor';
+import { parseConditional } from './conditional-parser';
 import { parseFunctionCall } from './function-call-parser';
 import { parseLiteral } from './literal-parser';
-import { parseAtom } from './atom-parser';
+import { tryParseOperator } from './operator-parser';
+import { findTopLevelOperator } from './top-level-scan';
+import { parseTryCatch } from './trycatch-parser';
 
 /**
  * Production-ready jq expression parser with comprehensive support.

@@ -12,10 +12,11 @@
  * emphasises it (+1.5 stroke and a soft focus-ring halo) so one wire stays
  * traceable through a dense expression tree.
  */
+import { type EdgeProps, getBezierPath, Position } from '@xyflow/react';
 import { memo, useState } from 'react';
-import { getBezierPath, Position, type EdgeProps } from '@xyflow/react';
-import { JQNodeType } from './enums';
+
 import { jqNodeColorVar } from './colors';
+import { JQNodeType } from './enums';
 
 /** The React Flow edge `type` value this renderer registers under. */
 export const JQ_GRADIENT_EDGE_TYPE = 'gradient';

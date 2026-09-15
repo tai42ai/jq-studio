@@ -9,23 +9,24 @@
  * a mis-bound operator sends the value.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { JQHandleIdPrefix, ValueType } from '../../../enums';
 import {
-  createStartNode,
-  createStringNode,
-  createValueNode,
-  createPathNode,
-  createFunctionCallNode,
-  createOperatorNode,
-  createTryCatchNode,
   createChainEdge,
   createEdge,
   createFlowEdge,
+  createFunctionCallNode,
+  createOperatorNode,
+  createPathNode,
   createPathSegment,
+  createStartNode,
+  createStringNode,
+  createTryCatchNode,
+  createValueNode,
   execJq,
 } from '../test-helpers';
+import { convertFlowToJQ } from './index';
 
 /** `.<field>` as a Value node, named only when `name` is given. */
 const field = (id: string, name: string, fieldName: string) =>

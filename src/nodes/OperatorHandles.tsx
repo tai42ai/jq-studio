@@ -1,5 +1,6 @@
 import { Position } from '@xyflow/react';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { TransformerHandle } from './TransformerHandle';
 
 interface OperatorHandlesProps {

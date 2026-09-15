@@ -1,11 +1,12 @@
-import { memo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position } from '@xyflow/react';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
+import { memo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { JQ_KIND_REGISTRY } from '../jq-kind-registry';
 import type { JQStartData } from '../types';
-import { TransformerNode } from './TransformerNode';
 import { TransformerHandle } from './TransformerHandle';
+import { TransformerNode } from './TransformerNode';
 
 type StartNodeProps = NodeProps<Node<JQStartData>>;
 

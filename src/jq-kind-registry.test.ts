@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { JQNodeType } from './enums';
-import { JQ_KIND_REGISTRY, ALL_JQ_NODE_KINDS, legendJqKindRows } from './jq-kind-registry';
+import { ALL_JQ_NODE_KINDS, JQ_KIND_REGISTRY, legendJqKindRows } from './jq-kind-registry';
 
 describe('jq kind registry completeness', () => {
   it('has exactly one entry per JQNodeType', () => {

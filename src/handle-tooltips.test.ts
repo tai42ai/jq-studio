@@ -4,7 +4,8 @@
  * fallback second), and an unknown id must resolve to nothing.
  */
 import { describe, expect, it } from 'vitest';
-import { JQNodeType, JQHandleIdPrefix } from './enums';
+
+import { JQHandleIdPrefix, JQNodeType } from './enums';
 import { getJqHandleTooltip, jqPortLabel, roleFromHandleId } from './handle-tooltips';
 
 describe('roleFromHandleId', () => {

@@ -5,8 +5,8 @@
  * can connect to a chain of nodes via bottom handles, producing piped expressions.
  */
 
-import { type JQNode, type JQConditionData } from '../../../../types';
 import { JQHandleIdPrefix } from '../../../../enums';
+import { type JQConditionData, type JQNode } from '../../../../types';
 import { type ConversionContext } from '../types';
 import { makeIndent } from '../utils/formatter';
 import { edgeTargetNode } from '../utils/validators';

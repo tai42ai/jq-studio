@@ -12,12 +12,13 @@
  * WASM runtime, which rejects a comment that swallowed the syntax after it.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertJQToFlow } from './index';
+import { describe, expect, it } from 'vitest';
+
+import { JQHandleIdPrefix, JQNodeType } from '../../../enums';
+import { type JQCommentData, type JQEdge, type JQNode } from '../../../types';
 import { convertFlowToJQ } from '../jq-from-flow/index';
 import { execJq } from '../test-helpers';
-import { JQNodeType, JQHandleIdPrefix } from '../../../enums';
-import { type JQNode, type JQEdge, type JQCommentData } from '../../../types';
+import { convertJQToFlow } from './index';
 
 /** The one Comment node of a converted graph, with the edge that reaches it. */
 function soleComment(nodes: JQNode[], edges: JQEdge[]) {

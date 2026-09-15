@@ -1,19 +1,20 @@
-import { memo, useCallback, useMemo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position, useReactFlow } from '@xyflow/react';
 import { Calculator } from 'lucide-react';
-import { Select } from '../primitives';
-import type { SelectGroup } from '../primitives';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
-import type { JQOperatorData, JQNodeData } from '../types';
+import { memo, useCallback, useMemo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { OPERATOR_CATALOG } from '../operator-catalog';
+import type { SelectGroup } from '../primitives';
+import { Select } from '../primitives';
 import { useSnapshot } from '../SnapshotContext';
-import { TransformerNode } from './TransformerNode';
-import { TransformerHandle } from './TransformerHandle';
-import { CollapsedHandles } from './CollapsedHandles';
-import type { CollapsedHandleConfig } from './CollapsedHandles';
 import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQNodeData, JQOperatorData } from '../types';
 import { NodeLabel } from '../ui';
+import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { CollapsedHandles } from './CollapsedHandles';
+import { TransformerHandle } from './TransformerHandle';
+import { TransformerNode } from './TransformerNode';
 
 type OperatorNodeProps = NodeProps<Node<JQOperatorData>>;
 

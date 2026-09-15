@@ -13,8 +13,8 @@ import type {
   CheckboxProps,
   ConfirmDialogProps,
   DialogProps,
-  TextInputProps,
   TextareaProps,
+  TextInputProps,
   TooltipProps,
 } from './types';
 
@@ -63,25 +63,25 @@ export function Badge(props: BadgeProps) {
   return <P.Badge {...props} />;
 }
 
-export { PrimitivesProvider, usePrimitives } from './context';
-export type { PrimitivesProviderProps } from './context';
 export { builtinPrimitives } from './builtin';
+export type { PrimitivesProviderProps } from './context';
+export { PrimitivesProvider, usePrimitives } from './context';
 export type {
-  Primitives,
+  AnyButtonProps,
+  AnySelectProps,
+  BadgeProps,
   ButtonProps,
   ButtonVariant,
-  LinkButtonProps,
-  AnyButtonProps,
-  TextInputProps,
-  TextareaProps,
-  SelectProps,
-  SelectGroupsProps,
-  AnySelectProps,
-  SelectOption,
-  SelectGroup,
   CheckboxProps,
-  TooltipProps,
-  DialogProps,
   ConfirmDialogProps,
-  BadgeProps,
+  DialogProps,
+  LinkButtonProps,
+  Primitives,
+  SelectGroup,
+  SelectGroupsProps,
+  SelectOption,
+  SelectProps,
+  TextareaProps,
+  TextInputProps,
+  TooltipProps,
 } from './types';

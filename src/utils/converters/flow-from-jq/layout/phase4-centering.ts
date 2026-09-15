@@ -8,10 +8,10 @@
  * - Function declarations are placed to the right of Start
  */
 
-import { type JQEdge } from '../../../../types';
 import { JQHandleIdPrefix } from '../../../../enums';
-import { type LayoutContext } from './types';
+import { type JQEdge } from '../../../../types';
 import { LAYOUT_CONFIG } from '../constants';
+import { type LayoutContext } from './types';
 
 /**
  * Phase 4: Positions all nodes via recursive tree-walk.

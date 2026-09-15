@@ -5,8 +5,9 @@
  * wall-clock timer. The live instance is mirrored in a ref so a fit queued from
  * an effect that captured a null instance still reaches the live one at frame time.
  */
-import { useCallback, useEffect, useRef } from 'react';
 import type { Node, ReactFlowInstance } from '@xyflow/react';
+import { useCallback, useEffect, useRef } from 'react';
+
 import type { JQNodeData } from '../types';
 
 export interface FitScheduler {

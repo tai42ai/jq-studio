@@ -2,17 +2,17 @@
  * @fileoverview Operator expression generator.
  */
 
-import { type JQNode, type JQEdge, type JQOperatorData } from '../../../../types';
-import { JQNodeType, JQHandleIdPrefix } from '../../../../enums';
-import { type ConversionContext } from '../types';
-import { classifyEdge } from '../utils/edge-classifier';
-import { enterChainNode, edgeSourceNode, edgeTargetNode } from '../utils/validators';
+import { JQHandleIdPrefix, JQNodeType } from '../../../../enums';
+import { type JQEdge, type JQNode, type JQOperatorData } from '../../../../types';
 import {
-  type ExpressionPart,
   asTerm,
   commentParts,
+  type ExpressionPart,
   joinExpressionParts,
 } from '../expression-builder';
+import { type ConversionContext } from '../types';
+import { classifyEdge } from '../utils/edge-classifier';
+import { edgeSourceNode, edgeTargetNode, enterChainNode } from '../utils/validators';
 import { type NodeExpressionFn } from './branch-chain-builder';
 
 /** Reports whether a source handle is an operator's left or right operand handle. */

@@ -25,10 +25,10 @@ vi.mock('./jq-loader', () => ({ runJq: mainRunJq, runJqValue: mainRunJqValue }))
 
 import {
   JqTimeoutError,
-  TIMEOUT_MESSAGE,
   runJqValueViaWorker,
   runJqViaWorker,
   setJqWorkerFactory,
+  TIMEOUT_MESSAGE,
 } from './jq-worker-client';
 import type { JqWorkerRequest, JqWorkerResponse } from './jq-worker-protocol';
 

@@ -2,7 +2,8 @@
  * @fileoverview Tests for the jq string-literal escape codec.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import { escapeJqString, unescapeJqString } from './jq-string';
 
 describe('escapeJqString', () => {

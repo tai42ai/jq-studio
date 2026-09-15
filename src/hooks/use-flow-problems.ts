@@ -6,11 +6,12 @@
  * as an error of its own, since the validator checks the graph, not the converter.
  * Frames the next errored node on demand.
  */
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import type { RefObject } from 'react';
 import type { Edge, Node, ReactFlowInstance } from '@xyflow/react';
-import type { JQNodeData } from '../types';
+import type { RefObject } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+
 import { JQNodeType } from '../enums';
+import type { JQNodeData } from '../types';
 import { validateFlow } from '../utils/flow-validator';
 
 interface FlowProblemsParams {

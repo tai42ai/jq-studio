@@ -8,8 +8,7 @@
  * - Operator operands are placed to the left and right
  */
 
-import { type JQNode, type JQEdge } from '../../../../types';
-import { type LayoutContext } from './types';
+import { type JQEdge, type JQNode } from '../../../../types';
 import { classifyEdges, computeFlowLayers, estimateNodeDimensions } from './phase1-graph-analysis';
 import { buildAdjacency } from './phase2-vertical';
 import { computeSubTreeSizes } from './phase3-horizontal';
@@ -17,6 +16,7 @@ import { positionAllNodes } from './phase4-centering';
 import { postPositionAdjustments } from './phase5-special-groups';
 import { resolveOverlaps } from './phase6-collision';
 import { finalizePositions } from './phase7-finalize';
+import { type LayoutContext } from './types';
 
 /**
  * Applies auto-layout algorithm to position all nodes.

@@ -2,25 +2,26 @@
  * @fileoverview Test helpers for converter tests.
  */
 
+import type { JqFactory, JqModule } from 'jq-web';
 import { createRequire } from 'module';
 import { dirname, join } from 'path';
-import type { JqFactory, JqModule } from 'jq-web';
+
+import { JQHandleIdPrefix, JQNodeType, ValueType } from '../../enums';
 import {
-  type JQNode,
+  type JQCommentData,
+  type JQConditionBranch,
+  type JQConditionData,
   type JQEdge,
-  type JQValueData,
   type JQFunctionCallData,
   type JQFunctionDeclData,
+  type JQNode,
   type JQOperatorData,
-  type JQConditionData,
   type JQTryCatchData,
-  type JQCommentData,
+  type JQValueData,
   type PathSegment,
   type ValueArrayItem,
   type ValueObjectField,
-  type JQConditionBranch,
 } from '../../types';
-import { JQNodeType, ValueType, JQHandleIdPrefix } from '../../enums';
 
 /**
  * Options for creating value nodes.

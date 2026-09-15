@@ -2,8 +2,9 @@
  * @fileoverview Tests for the shared jq lexical walk.
  */
 
-import { describe, it, expect } from 'vitest';
-import { lexJq, scanTopLevel, type JqLexeme, type ScanChar } from './jq-lex';
+import { describe, expect, it } from 'vitest';
+
+import { type JqLexeme, lexJq, type ScanChar, scanTopLevel } from './jq-lex';
 
 const lex = (str: string, start?: number): JqLexeme[] => [...lexJq(str, start)];
 const scan = (str: string, options?: { countKeywords?: boolean; start?: number }): ScanChar[] => [

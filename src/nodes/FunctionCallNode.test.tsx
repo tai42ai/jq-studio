@@ -4,14 +4,13 @@
  * `def` declarations, and the hard failure on a call type that is neither.
  */
 import { render, screen } from '@testing-library/react';
+import { type NodeTypes, ReactFlow } from '@xyflow/react';
 import { describe, expect, it } from 'vitest';
-import { ReactFlow, type NodeTypes } from '@xyflow/react';
+
 import { JQHandleIdPrefix, JQNodeType } from '../enums';
-import type { JQEdge, JQNode } from '../types';
-import { TransformerProvider } from '../TransformerContext';
-import { ValidationProvider } from '../ValidationContext';
 import { SnapshotProvider } from '../SnapshotContext';
-import { getFunctionDefById } from '../utils/function-resolver';
+import { TransformerProvider } from '../TransformerContext';
+import type { JQEdge, JQNode } from '../types';
 import {
   createEdge,
   createFunctionCallNode,
@@ -19,6 +18,8 @@ import {
   createNullNode,
   createStartNode,
 } from '../utils/converters/test-helpers';
+import { getFunctionDefById } from '../utils/function-resolver';
+import { ValidationProvider } from '../ValidationContext';
 import { FunctionCallNode } from './FunctionCallNode';
 import { FunctionDeclNode } from './FunctionDeclNode';
 import { StartNode } from './StartNode';

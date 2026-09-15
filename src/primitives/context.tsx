@@ -8,7 +8,7 @@
  * `./index`, which resolve through {@link usePrimitives} — so a provider swaps the
  * whole editor's controls at once, with no prop drilling.
  */
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, type ReactNode, useContext, useMemo } from 'react';
 
 import { builtinPrimitives } from './builtin';
 import type { Primitives } from './types';

@@ -18,18 +18,18 @@
  * a11y-linked helper slots under the control (wired via `aria-describedby`, with
  * `aria-invalid` set while an error is present).
  */
-import { useEffect, useId, useState, type ReactNode } from 'react';
 import { Pencil } from 'lucide-react';
+import { type ReactNode, useEffect, useId, useState } from 'react';
 
-import { Button } from './primitives';
-import { JQEditorDialog } from './JQEditorDialog';
 import { JqRestingControl } from './components/JqRestingControl';
-import { useEditorOpenNotifier } from './hooks/use-editor-open-notifier';
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
   ServerValidateHook,
 } from './declaration';
+import { useEditorOpenNotifier } from './hooks/use-editor-open-notifier';
+import { JQEditorDialog } from './JQEditorDialog';
+import { Button } from './primitives';
 import { installDefaultJqWorker } from './utils/install-default-worker';
 
 export interface JqFieldProps {

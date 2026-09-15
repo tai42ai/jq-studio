@@ -10,12 +10,13 @@
  * would be an expression the flow does not draw, or a walk with no end.
  */
 
-import { describe, it, expect } from 'vitest';
-import { type JQNode, type JQEdge } from '../../../../types';
+import { describe, expect, it } from 'vitest';
+
+import { type JQEdge, type JQNode } from '../../../../types';
+import { createChainEdge, createNumberNode } from '../../test-helpers';
 import { type ConversionContext } from '../types';
 import { buildEdgeMaps } from './edge-classifier';
 import { findOutermostOperator, findPipeChainEnd } from './operator-resolver';
-import { createNumberNode, createChainEdge } from '../../test-helpers';
 
 function makeContext(nodes: JQNode[], edges: JQEdge[]): ConversionContext {
   const { edgesByTarget, edgesBySource } = buildEdgeMaps(edges);

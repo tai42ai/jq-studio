@@ -5,9 +5,6 @@
  * where the rules permit (the Start node's `functions` port). Connection start
  * records the drag origin so handles can glow as valid drop targets.
  */
-import { useCallback } from 'react';
-import type { Dispatch, DragEvent, SetStateAction } from 'react';
-import { addEdge } from '@xyflow/react';
 import type {
   Connection,
   Edge,
@@ -16,10 +13,14 @@ import type {
   OnConnectEnd,
   OnConnectStart,
 } from '@xyflow/react';
-import type { JQNodeData } from '../types';
+import { addEdge } from '@xyflow/react';
+import type { Dispatch, DragEvent, SetStateAction } from 'react';
+import { useCallback } from 'react';
+
 import { useTransformerConnection } from '../TransformerContext';
-import { validateJQConnection } from '../utils/connection-validator';
+import type { JQNodeData } from '../types';
 import { allowsMultipleFromSource } from '../utils/connection-rules';
+import { validateJQConnection } from '../utils/connection-validator';
 import { dropEdgesOnTargetSlot } from '../utils/edge-slot';
 
 interface ConnectionHandlerParams {

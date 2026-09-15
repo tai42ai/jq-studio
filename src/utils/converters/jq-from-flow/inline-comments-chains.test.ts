@@ -3,27 +3,28 @@
  * @fileoverview Comment nodes inside inline-joined chains, condition/try-catch branches, function-call roots and operator operands.
  */
 
-import { describe, it, expect } from 'vitest';
-import { convertFlowToJQ } from './index';
+import { describe, expect, it } from 'vitest';
+
 import { JQHandleIdPrefix } from '../../../enums';
 import {
-  createStartNode,
-  createStringNode,
-  createNumberNode,
-  createPathNode,
-  createConditionNode,
-  createFunctionCallNode,
-  createFunctionDeclNode,
-  createOperatorNode,
-  createTryCatchNode,
-  createCommentNode,
   createChainEdge,
+  createCommentNode,
+  createConditionNode,
   createEdge,
   createFlowEdge,
+  createFunctionCallNode,
+  createFunctionDeclNode,
+  createNumberNode,
+  createOperatorNode,
+  createPathNode,
   createPathSegment,
+  createStartNode,
+  createStringNode,
+  createTryCatchNode,
   execJq,
 } from '../test-helpers';
 import { fieldA } from './comment-fixtures';
+import { convertFlowToJQ } from './index';
 
 describe('Comment nodes in inline-joined chains', () => {
   it('should end the comment line before the rest of a parameter chain', async () => {

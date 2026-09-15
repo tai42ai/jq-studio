@@ -27,8 +27,8 @@ import type {
   DialogProps,
   Primitives,
   SelectOption,
-  TextInputProps,
   TextareaProps,
+  TextInputProps,
   TooltipProps,
 } from './types';
 

@@ -4,16 +4,16 @@
  * whether a specific source→target connection is allowed.
  */
 
-import { JQNodeType, JQHandleIdPrefix, OPERAND_NODE_TYPES } from '../enums';
+import { JQHandleIdPrefix, JQNodeType, OPERAND_NODE_TYPES } from '../enums';
 import {
   classifyHandle,
+  HANDLE_TARGET_RULES,
   isOperatorSlotHandle,
   isSourceHandleId,
   isTargetHandleId,
-  HANDLE_TARGET_RULES,
+  PIPELINE_NODE_TYPES,
   SOURCE_DRAG_TARGETS,
   TARGET_DRAG_SOURCES,
-  PIPELINE_NODE_TYPES,
 } from './connection-rules';
 
 /**

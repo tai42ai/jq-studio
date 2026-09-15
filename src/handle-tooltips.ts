@@ -10,7 +10,7 @@
  * handle's explanation is a one-line edit here rather than scattered across the
  * node components.
  */
-import { JQNodeType, JQHandleIdPrefix } from './enums';
+import { JQHandleIdPrefix, JQNodeType } from './enums';
 
 export interface HandleTooltip {
   /** Short label — what this handle is. */

@@ -3,10 +3,11 @@
  * always paints a current gradient — and converter-built edges, which carry no
  * colours, pick up their gradient here too.
  */
-import { useMemo } from 'react';
 import type { Edge, Node } from '@xyflow/react';
-import type { JQNodeData } from '../types';
+import { useMemo } from 'react';
+
 import { JQNodeType } from '../enums';
+import type { JQNodeData } from '../types';
 
 export const useEdgeGradients = (nodes: Node<JQNodeData>[], edges: Edge[]): Edge[] => {
   const nodeTypeById = useMemo(() => {

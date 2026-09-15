@@ -1,17 +1,18 @@
-import { memo, useCallback, useMemo } from 'react';
 import type { Node, NodeProps } from '@xyflow/react';
 import { Position, useReactFlow } from '@xyflow/react';
 import { GitBranch, Plus } from 'lucide-react';
+import { memo, useCallback, useMemo } from 'react';
+
+import { JQHandleIdPrefix, JQNodeType } from '../enums';
 import { Button } from '../primitives';
-import { JQNodeType, JQHandleIdPrefix } from '../enums';
-import type { JQConditionData, JQNodeData } from '../types';
 import { useSnapshot } from '../SnapshotContext';
-import { TransformerNode } from './TransformerNode';
-import { TransformerHandle } from './TransformerHandle';
-import { CollapsedHandles } from './CollapsedHandles';
-import type { CollapsedHandleConfig } from './CollapsedHandles';
-import { ConditionBranchRow } from './condition/ConditionBranchRow';
 import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQConditionData, JQNodeData } from '../types';
+import type { CollapsedHandleConfig } from './CollapsedHandles';
+import { CollapsedHandles } from './CollapsedHandles';
+import { ConditionBranchRow } from './condition/ConditionBranchRow';
+import { TransformerHandle } from './TransformerHandle';
+import { TransformerNode } from './TransformerNode';
 
 type ConditionNodeProps = NodeProps<Node<JQConditionData>>;
 

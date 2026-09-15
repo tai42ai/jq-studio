@@ -6,8 +6,9 @@
  * an operator chain, or in the main flow.
  */
 
-import { useMemo } from 'react';
 import { useEdges } from '@xyflow/react';
+import { useMemo } from 'react';
+
 import { JQHandleIdPrefix } from '../enums';
 
 /**

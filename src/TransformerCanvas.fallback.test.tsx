@@ -15,8 +15,8 @@ vi.mock('./utils/converters/flow-from-jq', () => ({
   },
 }));
 
+import { PARSE_FAILURE_MESSAGE, TransformerCanvas } from './TransformerCanvas';
 import { TransformerProvider } from './TransformerContext';
-import { TransformerCanvas, PARSE_FAILURE_MESSAGE } from './TransformerCanvas';
 
 const UNPARSABLE = 'reduce . as $x (0; . + $x)';
 

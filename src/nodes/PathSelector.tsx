@@ -1,15 +1,16 @@
-import { memo, useCallback, useMemo } from 'react';
-import { useNodes, useEdges } from '@xyflow/react';
 import type { Node } from '@xyflow/react';
+import { useEdges, useNodes } from '@xyflow/react';
 import { Plus } from 'lucide-react';
-import { Button, Select } from '../primitives';
+import { memo, useCallback, useMemo } from 'react';
+
 import type { SelectGroup, SelectOption } from '../primitives';
-import type { PathSegment, JQNodeData } from '../types';
-import { compilePathSegments } from '../utils/path-segments';
-import { precedingNamedNodes, ancestorFunctionParams } from '../utils/graph-scope';
-import { PathSegmentRow } from './path/PathSegmentRow';
-import type { ArrayMode, SegmentMode } from './path/PathSegmentRow';
+import { Button, Select } from '../primitives';
 import { useTransformerReadOnly } from '../TransformerContext';
+import type { JQNodeData, PathSegment } from '../types';
+import { ancestorFunctionParams, precedingNamedNodes } from '../utils/graph-scope';
+import { compilePathSegments } from '../utils/path-segments';
+import type { ArrayMode, SegmentMode } from './path/PathSegmentRow';
+import { PathSegmentRow } from './path/PathSegmentRow';
 
 interface PathSelectorProps {
   nodeId: string;
