@@ -19,6 +19,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
+  SampleVariablesProvider,
   ServerValidateHook,
 } from './declaration';
 import { useJQEditorState } from './editor-context';
@@ -42,6 +43,10 @@ export interface JQEditorDialogProps {
    *  static `shape.sample` skeleton when it yields a defined value (the
    *  declaration's dynamic-sample contract). Absent = seed from `shape.sample`. */
   sampleInput?: SampleInputProvider;
+  /** A live sample-variables provider for the Test panel. Its entries take
+   *  precedence over each variable's static `sample` when binding the run's
+   *  `$name`s. */
+  sampleVariables?: SampleVariablesProvider;
   /** Pluggable server-validate hook surfaced in the Test panel when a host wires
    *  one (a consumer's `serverValidate` hook). */
   serverValidate?: ServerValidateHook;
@@ -112,7 +117,7 @@ const EditorHeader = ({
       {shape && <ContextChip shape={shape} />}
     </div>
     <div className="jqs-jq-fullscreen__actions">
-      <JqLegendDialog />
+      <JqLegendDialog shape={shape} />
       <span className="jqs-jq-fullscreen__divider" aria-hidden />
       <Button onClick={onRequestClose}>
         <X className="jqs-jq-icon" />
@@ -139,6 +144,7 @@ interface EditorBodyProps {
   onRequestClose: () => void;
   shape?: JqInputShapeDescriptor;
   sampleInput?: SampleInputProvider;
+  sampleVariables?: SampleVariablesProvider;
   serverValidate?: ServerValidateHook;
 }
 
@@ -155,6 +161,7 @@ const EditorBody = ({
   onRequestClose,
   shape,
   sampleInput,
+  sampleVariables,
   serverValidate,
 }: EditorBodyProps) => (
   <div className="jqs-jq-fullscreen__body">
@@ -167,6 +174,7 @@ const EditorBody = ({
       onLogicLessSave={readOnly ? undefined : onLogicLessSave}
       shape={shape}
       sampleInput={sampleInput}
+      sampleVariables={sampleVariables}
       serverValidate={serverValidate}
       onRequestClose={onRequestClose}
       readOnly={readOnly}
@@ -201,6 +209,7 @@ export const JQEditorDialog = ({
   fieldLabel,
   shape,
   sampleInput,
+  sampleVariables,
   serverValidate,
   onSave,
   onClose,
@@ -325,6 +334,7 @@ export const JQEditorDialog = ({
         onRequestClose={requestClose}
         shape={shape}
         sampleInput={sampleInput}
+        sampleVariables={sampleVariables}
         serverValidate={serverValidate}
       />
 

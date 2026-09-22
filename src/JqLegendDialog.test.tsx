@@ -8,6 +8,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import type { JqInputShapeDescriptor } from './declaration';
 import { JqLegendDialog } from './JqLegendDialog';
 
 describe('JqLegendDialog', () => {
@@ -43,5 +44,37 @@ describe('JqLegendDialog', () => {
     expect(
       screen.getByText(/a \/ b operands.*parameter names.*keys.*indices/s),
     ).toBeInTheDocument();
+  });
+
+  it('lists `.` and each declared variable in a Data section when a shape is given', () => {
+    const shape: JqInputShapeDescriptor = {
+      id: 'host:env',
+      label: 'record envelope',
+      blurb: 'What the record carries.',
+      keys: [],
+      returns: 'an object',
+      variables: [
+        {
+          name: 'account',
+          blurb: 'The account the expression reads.',
+          keys: [{ name: 'tags', gloss: "the account's tags" }],
+        },
+      ],
+    };
+    render(<JqLegendDialog shape={shape} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Legend' }));
+
+    expect(screen.getByText('Data')).toBeInTheDocument();
+    // The `.` row names the shape, and the variable row names `$account` + its keys.
+    expect(screen.getByText('record envelope')).toBeInTheDocument();
+    expect(screen.getByText('$account')).toBeInTheDocument();
+    expect(screen.getByText('The account the expression reads.')).toBeInTheDocument();
+    expect(screen.getByText(/Keys: tags/)).toBeInTheDocument();
+  });
+
+  it('omits the Data section when no shape is declared', () => {
+    render(<JqLegendDialog />);
+    fireEvent.click(screen.getByRole('button', { name: 'Legend' }));
+    expect(screen.queryByText('Data')).not.toBeInTheDocument();
   });
 });

@@ -1090,6 +1090,38 @@
   overflow-x: auto;
 }
 
+/* The Test panel's read-only Variables section: one row per declared variable —
+   its `$name` code token, its blurb, and the sample JSON the run binds. */
+.jq-studio-root .jqs-jq-test-vars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-3);
+}
+
+.jq-studio-root .jqs-jq-test-var {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jq-space-1);
+}
+
+.jq-studio-root .jqs-jq-test-var__head {
+  display: flex;
+  align-items: center;
+  gap: var(--jq-space-2);
+}
+
+.jq-studio-root .jqs-jq-test-var__name {
+  padding: 0 var(--jq-space-2);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface-raised);
+  color: var(--jq-color-text);
+  font: 600 var(--jq-text-sm) var(--jq-font-mono);
+}
+
+.jq-studio-root .jqs-jq-test-var__sample {
+  max-height: 8rem;
+}
+
 .jq-studio-root .jqs-jq-output {
   margin: 0;
   padding: var(--jq-space-2) var(--jq-space-3);
@@ -1294,6 +1326,25 @@
   height: 0;
   flex-shrink: 0;
   border-top: 2px solid var(--jq-color-text-muted);
+}
+
+/* The data-source rows label their source with its jq name (`.` or `$name`) in a
+   bordered monospace chip — a small rounded box on the code background with a
+   subtle border, a centred glyph and a fixed minimum width, so a lone `.` chip
+   carries the same visual weight as `$account`. */
+.jq-studio-root .jqs-jq-legend__data-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  padding: 0 var(--jq-space-2);
+  border: 1px solid var(--jq-color-border);
+  border-radius: var(--jq-radius-md);
+  background: var(--jq-color-surface);
+  color: var(--jq-color-text);
+  font: 600 var(--jq-text-md) var(--jq-font-mono);
 }
 
 .jq-studio-root .jqs-jq-legend__caption {

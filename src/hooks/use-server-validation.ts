@@ -18,6 +18,7 @@ export const useServerValidation = (
   serverValidate: ServerValidateHook | undefined,
   expression: string,
   jsonInput: string,
+  sampleVariables?: Record<string, unknown>,
 ): ServerValidationState => {
   const [serverResult, setServerResult] = useState<ServerValidationResult | null>(null);
   const [serverPending, setServerPending] = useState(false);
@@ -33,7 +34,7 @@ export const useServerValidation = (
     }
     setServerPending(true);
     setServerResult(null);
-    void serverValidate({ expression, sampleInput: parsed })
+    void serverValidate({ expression, sampleInput: parsed, sampleVariables: sampleVariables ?? {} })
       .then((res) => {
         setServerResult(res);
       })
@@ -46,7 +47,7 @@ export const useServerValidation = (
       .finally(() => {
         setServerPending(false);
       });
-  }, [serverValidate, expression, jsonInput]);
+  }, [serverValidate, expression, jsonInput, sampleVariables]);
 
   const reset = useCallback(() => {
     setServerResult(null);

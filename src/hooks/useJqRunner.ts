@@ -36,5 +36,14 @@ export function useJqRunner() {
     setIsRunning(false);
   }, []);
 
-  return { result, isRunning, run, clear, preload: preloadJq };
+  // Surface an error the run never reached — e.g. a host sample provider that
+  // threw — through the same failed-result path a jq error takes, and invalidate
+  // any in-flight run so its late result cannot overwrite this one.
+  const fail = useCallback((error: string) => {
+    runIdRef.current++;
+    setResult({ success: false, output: '', error, durationMs: 0 });
+    setIsRunning(false);
+  }, []);
+
+  return { result, isRunning, run, fail, clear, preload: preloadJq };
 }

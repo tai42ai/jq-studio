@@ -12,13 +12,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('./utils/jq-loader', async (importActual) => {
   const actual = await importActual<typeof import('./utils/jq-loader')>();
   const { execJq } = await import('./utils/converters/test-helpers');
+  const { bindJqVariables } = await import('./utils/jq-variable-binding');
   return {
     ...actual,
     runJqValue: (program: string, input: unknown) => execJq(program, input),
-    checkJqValidity: async (expression: string): Promise<'valid' | 'invalid'> => {
+    checkJqValidity: async (
+      expression: string,
+      declaredVariables: readonly string[] = [],
+    ): Promise<'valid' | 'invalid'> => {
       if (!expression.trim()) return 'valid';
+      const { program, input } = bindJqVariables(
+        expression,
+        'null',
+        Object.fromEntries(declaredVariables.map((name) => [name, null])),
+      );
       try {
-        await execJq(expression, null);
+        await execJq(program, JSON.parse(input));
         return 'valid';
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
@@ -58,11 +67,23 @@ describe('jq-studio guard API', () => {
     expect(await roundTripVerdict('.a.b')).toBe(first);
   });
 
+  it('judges a declared-variable expression faithful through the oracle, variables bound', async () => {
+    expect(await roundTripVerdict('$account.tier', ['account'])).toBe('faithful');
+    expect(await canRepresentFaithfully('map(. + $offset)', ['offset'])).toBe(true);
+  });
+
   it('compile-checks jq validity independent of faithfulness', async () => {
     expect(await checkJqValidity('.foo')).toBe('valid');
     expect(await checkJqValidity('')).toBe('valid');
     expect(await checkJqValidity('.a == 1')).toBe('valid');
     // A malformed program fails jq's compiler.
     expect(await checkJqValidity('.foo |')).toBe('invalid');
+  });
+
+  it('compiles a declared-variable reference as valid only when the name is declared', async () => {
+    const expression = '$account | reduce .[] as $x (0; . + $x)';
+    expect(await checkJqValidity(expression, ['account'])).toBe('valid');
+    // Undeclared, jq rejects the `$account` reference as a compile error.
+    expect(await checkJqValidity(expression)).toBe('invalid');
   });
 });

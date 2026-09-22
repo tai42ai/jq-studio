@@ -39,13 +39,17 @@ const blockingConstruct = (error: string | null): string | null => {
 const resolveStatus = (
   hasNodes: boolean,
   parsed: boolean,
-  faithful: 'checking' | 'faithful' | 'unfaithful',
+  faithful: 'checking' | 'faithful' | 'unfaithful' | 'invalid',
   drawFailed: boolean,
   validity: JqValidity | 'checking',
   error: string | null,
   hasExpression: boolean,
 ): PreviewStatus => {
   if (hasNodes && faithful === 'faithful') return { kind: 'graph' };
+  // The oracle's binder rejected the declared names (reserved/malformed): the
+  // expression cannot compile with them, the same loud invalid the validity door
+  // raises when the drawing fails.
+  if (parsed && faithful === 'invalid') return { kind: 'invalid' };
   if (parsed && faithful === 'unfaithful') return { kind: 'unfaithful' };
   if (parsed && faithful === 'checking') return { kind: 'checking' };
   if (drawFailed && validity === 'valid') {
@@ -60,16 +64,24 @@ const resolveStatus = (
   return { kind: 'placeholder', headline, showEmptyHint: !drawFailed };
 };
 
-export const usePreviewStatus = (expression: string): PreviewState => {
+export const usePreviewStatus = (
+  expression: string,
+  declaredVariables: readonly string[] = [],
+): PreviewState => {
+  // A stable key so the effects and memo below re-run when the accepted roots
+  // change, without a new array identity per render forcing a needless recompute.
+  const declaredKey = [...declaredVariables].sort().join(',');
   const result = useMemo(() => {
     if (!expression.trim()) return { nodes: [], edges: [], error: null as string | null };
     try {
-      const { nodes, edges } = convertJQToFlow(expression);
+      const { nodes, edges } = convertJQToFlow(expression, declaredVariables);
       return { nodes, edges, error: null as string | null };
     } catch (e) {
       return { nodes: [], edges: [], error: e instanceof Error ? e.message : 'parse error' };
     }
-  }, [expression]);
+    // `declaredKey` stands in for `declaredVariables` (a fresh array each render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expression, declaredKey]);
 
   // The graph converter answers ONE question — can the visual editor draw this? —
   // and a "no" (`result.error`) does NOT mean the jq is broken. Runtime validity is
@@ -81,13 +93,22 @@ export const usePreviewStatus = (expression: string): PreviewState => {
     if (!drawFailed) return;
     let cancelled = false;
     setValidity('checking');
-    void checkJqValidity(expression).then((next) => {
-      if (!cancelled) setValidity(next);
-    });
+    void checkJqValidity(expression, declaredVariables).then(
+      (next) => {
+        if (!cancelled) setValidity(next);
+      },
+      () => {
+        // The binder refuses a reserved or malformed declared name; surface that
+        // as the loud invalid verdict rather than leaving the preview checking.
+        if (!cancelled) setValidity('invalid');
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [expression, drawFailed]);
+    // `declaredKey` stands in for `declaredVariables` (a fresh array each render).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expression, drawFailed, declaredKey]);
 
   // A parse that SUCCEEDED is not enough to draw: the graph must also read back to
   // the SAME jq. The faithfulness guard serialises the parsed graph and compares
@@ -96,20 +117,31 @@ export const usePreviewStatus = (expression: string): PreviewState => {
   // becomes the thing a later save writes back). The check is async, so the graph
   // is withheld behind a neutral "checking" placeholder until it is proven faithful.
   const parsed = result.error === null && result.nodes.length > 0;
-  const [faithful, setFaithful] = useState<'checking' | 'faithful' | 'unfaithful'>('checking');
+  const [faithful, setFaithful] = useState<'checking' | 'faithful' | 'unfaithful' | 'invalid'>(
+    'checking',
+  );
   useEffect(() => {
     if (!parsed) return;
     let cancelled = false;
     setFaithful('checking');
-    void roundTripVerdict(expression).then((verdict) => {
-      // `unparseable` cannot occur here (the graph parsed); fold it into the
-      // safe side (do not draw) alongside `unfaithful`.
-      if (!cancelled) setFaithful(verdict === 'faithful' ? 'faithful' : 'unfaithful');
-    });
+    void roundTripVerdict(expression, declaredVariables).then(
+      (verdict) => {
+        // `unparseable` cannot occur here (the graph parsed); fold it into the
+        // safe side (do not draw) alongside `unfaithful`.
+        if (!cancelled) setFaithful(verdict === 'faithful' ? 'faithful' : 'unfaithful');
+      },
+      () => {
+        // The binder refuses a reserved or malformed declared name inside the
+        // oracle; surface that as the loud invalid state, matching the validity
+        // door, rather than leaving the check spinning on "checking".
+        if (!cancelled) setFaithful('invalid');
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [expression, parsed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expression, parsed, declaredKey]);
 
   const status = resolveStatus(
     result.nodes.length > 0,

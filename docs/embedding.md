@@ -38,17 +38,18 @@ function EditExpression({ value, onChange }: { value: string; onChange: (v: stri
 
 ### `JQEditorDialogProps`
 
-| Prop                | Type                           | Notes                                                |
-| ------------------- | ------------------------------ | ---------------------------------------------------- |
-| `open`              | `boolean`                      | Controlled open state.                               |
-| `initialExpression` | `string`                       | The expression the editor loads.                     |
-| `fieldLabel`        | `string`                       | Shown in the dialog title.                           |
-| `shape`             | `JqInputShapeDescriptor`       | What `.` is (context chip + Test-panel sample).      |
-| `sampleInput`       | `SampleInputProvider`          | Live Test-panel sample; overrides `shape.sample`.    |
-| `serverValidate`    | `ServerValidateHook`           | Host validator for the Test panel.                   |
-| `onSave`            | `(expression: string) => void` | Called when the user saves.                          |
-| `onClose`           | `() => void`                   | Called on cancel / Escape / overlay (dirty-guarded). |
-| `readOnly`          | `boolean`                      | Open as a viewer.                                    |
+| Prop                | Type                           | Notes                                                     |
+| ------------------- | ------------------------------ | --------------------------------------------------------- |
+| `open`              | `boolean`                      | Controlled open state.                                    |
+| `initialExpression` | `string`                       | The expression the editor loads.                          |
+| `fieldLabel`        | `string`                       | Shown in the dialog title.                                |
+| `shape`             | `JqInputShapeDescriptor`       | What `.` is, plus the variables bound beside it.          |
+| `sampleInput`       | `SampleInputProvider`          | Live Test-panel sample; overrides `shape.sample`.         |
+| `sampleVariables`   | `SampleVariablesProvider`      | Live variable samples; override each variable's `sample`. |
+| `serverValidate`    | `ServerValidateHook`           | Host validator for the Test panel.                        |
+| `onSave`            | `(expression: string) => void` | Called when the user saves.                               |
+| `onClose`           | `() => void`                   | Called on cancel / Escape / overlay (dirty-guarded).      |
+| `readOnly`          | `boolean`                      | Open as a viewer.                                         |
 
 The editor installs no worker of its own — call `installDefaultJqWorker()` once at
 startup, or provide your own via `setJqWorkerFactory` (see
@@ -59,12 +60,27 @@ startup, or provide your own via `setJqWorkerFactory` (see
 A host describes a field with generic, host-agnostic types — no shape enum is
 hard-coded, so any `.` document is expressible:
 
-- `JqFieldDeclaration` — `{ language, shape?, sampleInput?, serverValidate? }`.
-- `JqInputShapeDescriptor` — `{ id, label, blurb, keys, returns, caveats?, sample? }`.
+- `JqFieldDeclaration` — `{ language, shape?, sampleInput?, sampleVariables?, serverValidate? }`.
+- `JqInputShapeDescriptor` — `{ id, label, blurb, keys, returns, caveats?, sample?, variables? }`.
+- `JqVariableDescriptor` — `{ name, blurb, keys, sample? }`.
 - `JqInputKey` — `{ name, gloss }`.
 - `SampleInputProvider` — `() => unknown`.
-- `ServerValidateHook` — `(args: { expression, sampleInput }) => Promise<ServerValidationResult>`.
+- `SampleVariablesProvider` — `() => Record<string, unknown>`.
+- `ServerValidateHook` — `(args: { expression, sampleInput, sampleVariables }) => Promise<ServerValidationResult>`.
 - `ServerValidationResult` — `{ ok, compiles?, singleEmit?, message? }`.
+
+### Variables beside `.`
+
+`.` holds only the data an expression is about. Anything the host provides
+alongside it is a named variable, declared in `shape.variables` and reachable
+anywhere in the expression as `$name` — inside `map(...)` / `select(...)` too,
+where `.` is rebound. The editor lists each variable in its Legend, offers it as
+a path root, and the Test panel binds its sample: it evaluates the expression
+against an envelope `{ "v": { <name>: <value>, … }, "d": <data> }` under the
+preamble `. as $__in | $__in.v.<name> as $<name> | … | $__in.d | <expression>`,
+so `.` stays the data and each `$name` is bound. `sampleVariables()` supplies
+live values; a name it omits falls back to that variable's own `sample`. The
+names `__in`, `ENV` and `__loc__` are reserved and cannot be declared.
 
 ```ts
 const declaration: JqFieldDeclaration = {
@@ -75,11 +91,20 @@ const declaration: JqFieldDeclaration = {
     blurb: 'A record.',
     keys: [],
     returns: 'an object',
+    variables: [
+      {
+        name: 'account',
+        blurb: 'The account the expression reads.',
+        keys: [{ name: 'tier', gloss: 'the account tier' }],
+        sample: { tier: 'gold' },
+      },
+    ],
   },
-  serverValidate: async ({ expression, sampleInput }) => {
+  sampleVariables: () => ({ account: { tier: 'gold' } }),
+  serverValidate: async ({ expression, sampleInput, sampleVariables }) => {
     const res = await fetch('/api/validate-jq', {
       method: 'POST',
-      body: JSON.stringify({ expression, sampleInput }),
+      body: JSON.stringify({ expression, sampleInput, sampleVariables }),
     });
     return (await res.json()) as ServerValidationResult;
   },
@@ -99,7 +124,9 @@ const text = convertFlowToJQ(nodes, edges); // faithful re-serialization
 
 `convertJQToFlow` throws `Unable to parse jq expression: …` for constructs the
 visual language cannot draw — that is a normal, expected outcome, not a bug in the
-expression.
+expression. Pass the names of the variables the host binds beside `.` as the
+second argument — `convertJQToFlow('$account.tier', ['account'])` — so a
+reference to one is drawn as a path root instead of rejected as undefined.
 
 ## The faithfulness guard
 
@@ -114,9 +141,18 @@ await canRepresentFaithfully('.a + .b'); // cheap boolean: default this field to
 await checkJqValidity('.a +'); // 'valid' | 'invalid' — does the jq compile at all?
 ```
 
+`roundTripVerdict`, `canRepresentFaithfully` and `checkJqValidity` take the host's
+declared variable names as an optional second argument
+(`roundTripVerdict('$account.tier', ['account'])`,
+`checkJqValidity('$account | .x', ['account'])`), so an expression that reads one
+is judged faithful — and compiles as valid jq — rather than being rejected for an
+undefined `$name`.
+
 `TransformerPreview` is a static, read-only tile that uses the guard to draw a
 graph only when it is proven faithful, and a neutral notice otherwise. Mount it
-under a `.jq-studio-root` element so the scoped styles apply.
+under a `.jq-studio-root` element so the scoped styles apply. Pass the host's
+declared variable names as `declaredVariables` when the previewed expression may
+read a `$name`; without it such an expression falls to the neutral notice.
 
 ## The static preview + editor body
 

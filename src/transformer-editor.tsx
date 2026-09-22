@@ -4,7 +4,7 @@
  * the caller through `onChange` / `onSave`.
  */
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { Button } from './primitives';
 import { TransformerCanvas } from './TransformerCanvas';
@@ -21,6 +21,7 @@ export const TransformerEditor = ({
   onLogicLessSave,
   shape,
   sampleInput,
+  sampleVariables,
   serverValidate,
   onRequestClose,
   initialExpression,
@@ -28,9 +29,13 @@ export const TransformerEditor = ({
 }: TransformersProps) => {
   const [hasStartNode, setHasStartNode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(!readOnly);
+  const declaredVariables = useMemo(
+    () => (shape?.variables ?? []).map((variable) => variable.name),
+    [shape],
+  );
 
   return (
-    <TransformerProvider readOnly={readOnly}>
+    <TransformerProvider readOnly={readOnly} declaredVariables={declaredVariables}>
       <div className={className ? `jqs-jq-editor ${className}` : 'jqs-jq-editor'}>
         {!readOnly && (
           <div className="jqs-jq-editor__toggle">
@@ -60,6 +65,7 @@ export const TransformerEditor = ({
             onLogicLessSave={onLogicLessSave}
             shape={shape}
             sampleInput={sampleInput}
+            sampleVariables={sampleVariables}
             serverValidate={serverValidate}
             onRequestClose={onRequestClose}
             readOnly={readOnly}

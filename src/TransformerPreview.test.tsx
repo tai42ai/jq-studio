@@ -53,7 +53,24 @@ describe('TransformerPreview fallback messaging', () => {
     expect(screen.getByText(/runs normally — edit it as text in Plain/i)).toBeInTheDocument();
     // The blocking construct is named from the converter's own message.
     expect(screen.getByText(/\["identity"\]/)).toBeInTheDocument();
-    expect(checkJqValidityMock).toHaveBeenCalledWith(NOT_DRAWABLE_CONDITION);
+    expect(checkJqValidityMock).toHaveBeenCalledWith(NOT_DRAWABLE_CONDITION, []);
+  });
+
+  it('routes a declared-variable expression the editor cannot draw to the neutral notice, passing the declared names to the validity check', async () => {
+    // Valid jq that reads `$account` and uses `reduce` — a shape the converter
+    // cannot draw. The validity check, told the name is declared, reports it valid,
+    // so the preview shows the neutral "cannot draw" notice, never the loud alert.
+    checkJqValidityMock.mockResolvedValue('valid');
+    const expression = '$account | reduce .[] as $x (0; . + $x)';
+    render(<TransformerPreview expression={expression} declaredVariables={['account']} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Not shown here')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText('Invalid expression')).not.toBeInTheDocument();
+    expect(checkJqValidityMock).toHaveBeenCalledWith(expression, ['account']);
   });
 
   it('keeps the LOUD alerting error for genuinely malformed jq', async () => {
@@ -109,7 +126,7 @@ describe('TransformerPreview fallback messaging', () => {
     expect(screen.queryByText('Invalid expression')).not.toBeInTheDocument();
     expect(screen.queryByText('No expression yet')).not.toBeInTheDocument();
     // Faithfulness was consulted; runtime VALIDITY (the parse-fail path) was not.
-    expect(roundTripVerdictMock).toHaveBeenCalledWith('.states.record.identity');
+    expect(roundTripVerdictMock).toHaveBeenCalledWith('.states.record.identity', []);
     expect(checkJqValidityMock).not.toHaveBeenCalled();
   });
 
@@ -137,6 +154,24 @@ describe('TransformerPreview fallback messaging', () => {
     render(<TransformerPreview expression=".a.b.c" />);
     expect(await screen.findByText('Checking expression…')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText('Not shown here')).not.toBeInTheDocument();
+  });
+
+  it('shows the LOUD invalid state (never spins) when the oracle rejects a reserved declared name', async () => {
+    // A parseable expression reading `$ENV` with `ENV` declared: the graph builds,
+    // but the oracle's binder refuses the reserved name and the verdict promise
+    // rejects. The preview must settle to the loud invalid state, not spin, and
+    // leave no unhandled rejection (vitest fails the run on one).
+    roundTripVerdictMock.mockRejectedValue(
+      new Error('"$ENV" is a reserved jq variable name and cannot be bound.'),
+    );
+    render(<TransformerPreview expression="$ENV | .a" declaredVariables={['ENV']} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid expression')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.queryByText('Checking expression…')).not.toBeInTheDocument();
     expect(screen.queryByText('Not shown here')).not.toBeInTheDocument();
   });
 });

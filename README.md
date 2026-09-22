@@ -59,8 +59,9 @@ under [`e2e/`](e2e/) (it is also the browser test harness).
 - **Node vocabulary** — `JQ_KIND_REGISTRY`, `ALL_JQ_NODE_KINDS`,
   `legendJqKindRows`, `JqKindEntry`.
 - **Field declaration** — `JqFieldDeclaration`, `JqInputShapeDescriptor`,
-  `JqInputKey`, `SampleInputProvider`, `ServerValidateHook`,
-  `ServerValidationResult`, `ExpressionLanguage`.
+  `JqVariableDescriptor`, `JqInputKey`, `SampleInputProvider`,
+  `SampleVariablesProvider`, `ServerValidateHook`, `ServerValidationResult`,
+  `ExpressionLanguage`.
 - **Guard** — `roundTripVerdict`, `RoundTripVerdict`, `clearRoundTripVerdictCache`,
   `canRepresentFaithfully`, `checkJqValidity`, `JqValidity`.
 

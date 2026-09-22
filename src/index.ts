@@ -75,7 +75,9 @@ export type {
   JqFieldDeclaration,
   JqInputKey,
   JqInputShapeDescriptor,
+  JqVariableDescriptor,
   SampleInputProvider,
+  SampleVariablesProvider,
   ServerValidateHook,
   ServerValidationResult,
 } from './declaration';

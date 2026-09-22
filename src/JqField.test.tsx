@@ -14,6 +14,7 @@ vi.mock('./hooks/useJqRunner', () => ({
     result: null,
     isRunning: false,
     run: vi.fn(),
+    fail: vi.fn(),
     clear: vi.fn(),
     preload: vi.fn(),
   }),
@@ -123,7 +124,7 @@ describe('JqField', () => {
       expect(seed).toContain('"a": 1');
     });
 
-    it('falls back to shape.sample when the provider throws (a host seam must not break Test)', async () => {
+    it('blocks the run when the provider throws instead of falling back to shape.sample', async () => {
       render(
         <JqField
           label="Transform"
@@ -135,8 +136,21 @@ describe('JqField', () => {
           }}
         />,
       );
-      const seed = await readTestSeed();
-      expect(seed).toContain('"a": 1');
+      fireEvent.click(screen.getByRole('button', { name: /visual editor/i }));
+      await waitFor(() => {
+        expect(document.querySelectorAll('.react-flow__node').length).toBeGreaterThan(1);
+      });
+      const testButton = await screen.findByRole('button', { name: /Test/ });
+      await waitFor(() => {
+        expect(testButton).toBeEnabled();
+      });
+      fireEvent.click(testButton);
+
+      // The failure is not swallowed into the static skeleton: the input is not
+      // seeded with it, and the run is blocked.
+      const input = await screen.findByPlaceholderText<HTMLTextAreaElement>(/Sample record JSON/);
+      expect(input.value).not.toContain('"a": 1');
+      expect(screen.getByRole('button', { name: /Run/ })).toBeDisabled();
     });
   });
 

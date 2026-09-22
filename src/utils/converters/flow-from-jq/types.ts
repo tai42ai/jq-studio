@@ -24,6 +24,11 @@ export interface ConversionContext {
   /** Map of variable names to node IDs for reference resolution */
   variableMap: Map<string, string>;
 
+  /** Names of variables the host binds beside `.` (without the leading `$`).
+   *  A reference to one is a valid path root even though nothing in the
+   *  expression assigns it. */
+  declaredVariables: Set<string>;
+
   /** Map of function names to their definitions (for custom functions) */
   functionDefinitions: Map<string, { params: string[]; nodeId: string }>;
 

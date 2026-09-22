@@ -41,7 +41,7 @@ describe('faithfulness oracle: compareJqSemantics', () => {
   it('bounds an unbounded generator instead of hanging', async () => {
     // `recurse(.)` streams forever on a non-null input; the oracle's `limit`
     // wrapper keeps the comparison finite and fast.
-    const verdict = await compareJqSemantics('recurse(.)', 'recurse(.)', execJq, [{ a: 1 }]);
+    const verdict = await compareJqSemantics('recurse(.)', 'recurse(.)', execJq, [], [{ a: 1 }]);
     expect(verdict).toBe('faithful');
   });
 
@@ -54,5 +54,73 @@ describe('faithfulness oracle: compareJqSemantics', () => {
         (v) => typeof v === 'object' && v !== null && !Array.isArray(v),
       ),
     ).toBe(true);
+  });
+});
+
+describe('faithfulness oracle: declared variables', () => {
+  it('binds a declared variable in both texts so a wrong regeneration is UNFAITHFUL', async () => {
+    // `$account` is bound to each sample, so the two texts diverge on a sample
+    // carrying the read field — where unbound both would compile-error alike.
+    expect(
+      await compareJqSemantics(
+        '$account.tier',
+        '$account.tie',
+        execJq,
+        ['account'],
+        [{ tier: 'gold' }],
+      ),
+    ).toBe('unfaithful');
+  });
+
+  it('calls a behaviour-identical variable round-trip FAITHFUL', async () => {
+    expect(
+      await compareJqSemantics(
+        '$account.tier',
+        '$account | .tier',
+        execJq,
+        ['account'],
+        [{ tier: 'gold' }],
+      ),
+    ).toBe('faithful');
+  });
+
+  it('exercises a variable read inside map(...), where `.` is rebound to the item', async () => {
+    // `$n` is reachable inside `map(...)`; a commutative reformat stays faithful,
+    // an operator change is caught.
+    expect(
+      await compareJqSemantics(
+        'map(. + ($n | length))',
+        'map(($n | length) + .)',
+        execJq,
+        ['n'],
+        [[1, 2, 3]],
+      ),
+    ).toBe('faithful');
+    expect(
+      await compareJqSemantics(
+        'map(. + ($n | length))',
+        'map(. - ($n | length))',
+        execJq,
+        ['n'],
+        [[1, 2, 3]],
+      ),
+    ).toBe('unfaithful');
+  });
+
+  it('leaves the verdict unchanged when no variables are declared', async () => {
+    expect(await compareJqSemantics('.a + .b', '(.a + .b)', execJq, [])).toBe('faithful');
+    expect(await compareJqSemantics('.a', '.b', execJq, [])).toBe('unfaithful');
+  });
+
+  it('rejects with the binder’s error for a reserved declared name, never a verdict', async () => {
+    await expect(compareJqSemantics('$__in', '$__in', execJq, ['__in'])).rejects.toThrow(
+      /reserved/,
+    );
+  });
+
+  it('rejects with the binder’s error for a malformed declared name, never a verdict', async () => {
+    await expect(compareJqSemantics('.', '.', execJq, ['not a name'])).rejects.toThrow(
+      /valid jq variable/,
+    );
   });
 });

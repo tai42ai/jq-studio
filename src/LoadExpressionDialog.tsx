@@ -8,6 +8,7 @@ import type { CSSProperties } from 'react';
 import { useCallback, useState } from 'react';
 
 import { Button, Dialog, Textarea, Tooltip } from './primitives';
+import { useDeclaredVariables } from './TransformerContext';
 import type { JQEdge, JQNode } from './types';
 import { convertJQToFlow } from './utils/converters/flow-from-jq';
 
@@ -27,6 +28,10 @@ export const LoadExpressionDialog = ({ onLoad }: LoadExpressionDialogProps) => {
   const [open, setOpen] = useState(false);
   const [expression, setExpression] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // The variables the host binds beside `.`, offered as valid roots to every
+  // other converter door; the paste path accepts them the same way so
+  // `$account.tier` loads instead of being rejected as undefined.
+  const declaredVariables = useDeclaredVariables();
 
   const handleExpressionChange = useCallback(
     (value: string) => {
@@ -41,7 +46,7 @@ export const LoadExpressionDialog = ({ onLoad }: LoadExpressionDialogProps) => {
     if (!trimmed) return;
 
     try {
-      const { nodes, edges } = convertJQToFlow(trimmed);
+      const { nodes, edges } = convertJQToFlow(trimmed, declaredVariables);
       onLoad(nodes, edges);
       setOpen(false);
       setExpression('');
@@ -49,7 +54,7 @@ export const LoadExpressionDialog = ({ onLoad }: LoadExpressionDialogProps) => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse expression');
     }
-  }, [expression, onLoad]);
+  }, [expression, onLoad, declaredVariables]);
 
   const handleOpenChange = useCallback((isOpen: boolean) => {
     setOpen(isOpen);
