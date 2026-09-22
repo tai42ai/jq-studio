@@ -15,34 +15,34 @@ import type {
 describe('agnostic field declaration', () => {
   const shape: JqInputShapeDescriptor = {
     id: 'host:env',
-    label: 'node envelope',
-    blurb: 'The data a flow node receives when it runs.',
+    label: 'record envelope',
+    blurb: 'The data one record carries.',
     keys: [
-      { name: 'result', gloss: 'this node has no result yet — null' },
-      { name: 'prior_outputs', gloss: 'outputs of the nodes that ran before' },
+      { name: 'result', gloss: 'this record has no result yet — null' },
+      { name: 'history', gloss: 'the values recorded before this one' },
     ],
     returns: 'an object',
-    caveats: ['.iterate is the enclosing loop, not this one'],
+    caveats: ['.index is the outer position, not this one'],
     variables: [
       {
-        name: 'parked',
-        blurb: 'The parked interactions this run can resume.',
-        keys: [{ name: 'ids', gloss: 'the ids waiting to resume' }],
-        sample: { ids: [] },
+        name: 'account',
+        blurb: 'The account the expression reads.',
+        keys: [{ name: 'tags', gloss: "the account's tags" }],
+        sample: { tags: [] },
       },
     ],
   };
 
   it('accepts an arbitrary, host-namespaced input shape descriptor', () => {
     expect(shape.id).toBe('host:env');
-    expect(shape.keys.map((k) => k.name)).toContain('prior_outputs');
+    expect(shape.keys.map((k) => k.name)).toContain('history');
     expect(shape.caveats).toHaveLength(1);
   });
 
   it('describes the named variables the host binds beside `.`', () => {
-    expect(shape.variables?.map((v) => v.name)).toEqual(['parked']);
-    expect(shape.variables?.[0]?.keys.map((k) => k.name)).toEqual(['ids']);
-    expect(shape.variables?.[0]?.sample).toEqual({ ids: [] });
+    expect(shape.variables?.map((v) => v.name)).toEqual(['account']);
+    expect(shape.variables?.[0]?.keys.map((k) => k.name)).toEqual(['tags']);
+    expect(shape.variables?.[0]?.sample).toEqual({ tags: [] });
   });
 
   it('carries callable sample providers and a variable-aware server-validate hook', async () => {
@@ -50,24 +50,24 @@ describe('agnostic field declaration', () => {
     const declaration: JqFieldDeclaration = {
       language: 'jq',
       shape,
-      sampleInput: () => ({ result: null, prior_outputs: {} }),
-      sampleVariables: () => ({ parked: { ids: ['a-1'] } }),
+      sampleInput: () => ({ result: null, history: {} }),
+      sampleVariables: () => ({ account: { tags: ['a-1'] } }),
       serverValidate: ({ expression, sampleVariables }) =>
         Promise.resolve(
-          expression.trim() && 'parked' in sampleVariables
+          expression.trim() && 'account' in sampleVariables
             ? validation
             : { ok: false, message: 'empty' },
         ),
     };
 
     expect(declaration.language).toBe('jq');
-    expect(declaration.sampleInput?.()).toEqual({ result: null, prior_outputs: {} });
-    expect(declaration.sampleVariables?.()).toEqual({ parked: { ids: ['a-1'] } });
+    expect(declaration.sampleInput?.()).toEqual({ result: null, history: {} });
+    expect(declaration.sampleVariables?.()).toEqual({ account: { tags: ['a-1'] } });
     await expect(
       declaration.serverValidate?.({
-        expression: '$parked.ids',
+        expression: '$account.tags',
         sampleInput: {},
-        sampleVariables: { parked: { ids: [] } },
+        sampleVariables: { account: { tags: [] } },
       }),
     ).resolves.toEqual(validation);
     await expect(

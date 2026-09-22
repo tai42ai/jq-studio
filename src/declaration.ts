@@ -64,8 +64,8 @@ export interface JqInputShapeDescriptor {
  * author with its own shape and a sample the local Test run binds it to.
  */
 export interface JqVariableDescriptor {
-  /** The variable's name WITHOUT the leading `$` (e.g. `"parked"`, referenced as
-   *  `$parked`). Must be a jq identifier and may not be a reserved name. */
+  /** The variable's name WITHOUT the leading `$` (e.g. `"account"`, referenced as
+   *  `$account`). Must be a jq identifier and may not be a reserved name. */
   readonly name: string;
   /** One sentence: what this variable holds. */
   readonly blurb: string;

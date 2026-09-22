@@ -117,7 +117,7 @@ describe('JqTestPanel shape + server-validate surfaces', () => {
         expression="$account.tier"
         validationErrors={new Map()}
         sampleInput={'{"id":"r-1"}'}
-        variables={[{ name: 'account', blurb: 'The account this run belongs to.' }]}
+        variables={[{ name: 'account', blurb: 'The account the expression reads.' }]}
         sampleVariables={{ account: { tier: 'gold' } }}
       />,
     );
@@ -127,7 +127,7 @@ describe('JqTestPanel shape + server-validate surfaces', () => {
     expect(screen.getByText('Variables')).toBeInTheDocument();
     expect(screen.getByText('Bound on Run from the field’s declaration.')).toBeInTheDocument();
     expect(screen.getByText('$account')).toBeInTheDocument();
-    expect(screen.getByText('The account this run belongs to.')).toBeInTheDocument();
+    expect(screen.getByText('The account the expression reads.')).toBeInTheDocument();
     // The bound sample the run will use is shown, read-only.
     expect(screen.getByText(/"tier": "gold"/)).toBeInTheDocument();
   });

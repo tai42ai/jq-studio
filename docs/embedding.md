@@ -94,7 +94,7 @@ const declaration: JqFieldDeclaration = {
     variables: [
       {
         name: 'account',
-        blurb: 'The account this run belongs to.',
+        blurb: 'The account the expression reads.',
         keys: [{ name: 'tier', gloss: 'the account tier' }],
         sample: { tier: 'gold' },
       },

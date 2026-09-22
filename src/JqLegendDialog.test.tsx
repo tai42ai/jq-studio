@@ -49,15 +49,15 @@ describe('JqLegendDialog', () => {
   it('lists `.` and each declared variable in a Data section when a shape is given', () => {
     const shape: JqInputShapeDescriptor = {
       id: 'host:env',
-      label: 'node envelope',
-      blurb: 'What the node receives.',
+      label: 'record envelope',
+      blurb: 'What the record carries.',
       keys: [],
       returns: 'an object',
       variables: [
         {
-          name: 'parked',
-          blurb: 'The parked interactions this run can resume.',
-          keys: [{ name: 'ids', gloss: 'the waiting ids' }],
+          name: 'account',
+          blurb: 'The account the expression reads.',
+          keys: [{ name: 'tags', gloss: "the account's tags" }],
         },
       ],
     };
@@ -65,11 +65,11 @@ describe('JqLegendDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Legend' }));
 
     expect(screen.getByText('Data')).toBeInTheDocument();
-    // The `.` row names the shape, and the variable row names `$parked` + its keys.
-    expect(screen.getByText('node envelope')).toBeInTheDocument();
-    expect(screen.getByText('$parked')).toBeInTheDocument();
-    expect(screen.getByText('The parked interactions this run can resume.')).toBeInTheDocument();
-    expect(screen.getByText(/Keys: ids/)).toBeInTheDocument();
+    // The `.` row names the shape, and the variable row names `$account` + its keys.
+    expect(screen.getByText('record envelope')).toBeInTheDocument();
+    expect(screen.getByText('$account')).toBeInTheDocument();
+    expect(screen.getByText('The account the expression reads.')).toBeInTheDocument();
+    expect(screen.getByText(/Keys: tags/)).toBeInTheDocument();
   });
 
   it('omits the Data section when no shape is declared', () => {
