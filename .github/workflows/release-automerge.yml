@@ -9,11 +9,14 @@
 # is off, so arming turns on the moment an admin enables the setting, with no
 # workflow edit. Branch protection with required status checks is what makes
 # --auto HOLD the merge until CI is green.
+#
+# Release PRs open as drafts, and a draft cannot be armed: the job skips a draft
+# and runs again when the PR is marked ready for review.
 name: release-automerge
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions: {}
 
@@ -22,7 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       startsWith(github.head_ref, 'release-please--') &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      !github.event.pull_request.draft
     steps:
       - name: Enable auto-merge on the release PR
         env:
