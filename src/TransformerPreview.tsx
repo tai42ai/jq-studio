@@ -56,14 +56,18 @@ interface TransformerPreviewProps {
    *  host that frames the tile differently (e.g. a plain "text only" tile) can
    *  substitute its own line; absent, the built-in hints stand. */
   unshownHint?: string;
+  /** Names (without `$`) of variables the host binds beside `.`; each is
+   *  accepted as a valid path root so an expression that reads one still draws. */
+  declaredVariables?: readonly string[];
 }
 
 export const TransformerPreview = ({
   expression,
   emptyHint,
   unshownHint,
+  declaredVariables,
 }: TransformerPreviewProps) => {
-  const { nodes, edges, status } = usePreviewStatus(expression);
+  const { nodes, edges, status } = usePreviewStatus(expression, declaredVariables);
 
   // The parsed graph is drawn only once proven faithful; every other state routes
   // to a non-graph placeholder.

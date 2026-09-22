@@ -17,6 +17,7 @@ vi.mock('./useJqRunner', () => ({
     result: null,
     isRunning: false,
     run: vi.fn(),
+    fail: vi.fn(),
     clear: vi.fn(),
     preload: vi.fn(),
   }),

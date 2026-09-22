@@ -21,7 +21,7 @@ import {
 } from '@xyflow/react';
 import clsx from 'clsx';
 import type { DragEvent } from 'react';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { CanvasFallbackPanel } from './CanvasFallbackPanel';
 import { CanvasToolbar } from './CanvasToolbar';
@@ -29,6 +29,7 @@ import { jqNodeColorVar } from './colors';
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
+  SampleVariablesProvider,
   ServerValidateHook,
 } from './declaration';
 import { JQNodeType } from './enums';
@@ -119,6 +120,9 @@ interface TransformerCanvasProps {
   /** Live sample-input provider; its defined result takes precedence over
    *  `shape.sample` when seeding the Test panel. */
   sampleInput?: SampleInputProvider;
+  /** Live sample-variables provider; its entries take precedence over each
+   *  variable's static `sample` when binding the Test run's `$name`s. */
+  sampleVariables?: SampleVariablesProvider;
   /** Pluggable server-side validator surfaced in the Test panel when a host
    *  provides one (a consumer's `serverValidate` hook). */
   serverValidate?: ServerValidateHook;
@@ -205,11 +209,18 @@ export const TransformerCanvas = ({
   onLogicLessSave,
   shape,
   sampleInput,
+  sampleVariables,
   serverValidate,
   onRequestClose,
   readOnly,
 }: TransformerCanvasProps) => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  // The names of the variables the host binds beside `.` — valid path roots
+  // the converter must accept and the guard must not read as undefined.
+  const declaredVariables = useMemo(
+    () => (shape?.variables ?? []).map((variable) => variable.name),
+    [shape],
+  );
   const { instanceRef, scheduleFit } = useFitScheduler();
   const nodeCountersRef = useRef<Record<string, number>>({});
   const [nodes, setNodes, handleNodesChange] = useNodesState<Node<JQNodeData>>([]);
@@ -219,6 +230,7 @@ export const TransformerCanvas = ({
 
   const { entryUnfaithful, parseFailed, initialLoadSettled, startEmpty } = useInitialLoad({
     initialExpression,
+    declaredVariables,
     setNodes,
     setEdges,
     nodeCountersRef,
@@ -303,6 +315,7 @@ export const TransformerCanvas = ({
           validationErrors={validationErrors}
           shape={shape}
           sampleInput={sampleInput}
+          sampleVariables={sampleVariables}
           serverValidate={serverValidate}
         />
       )}

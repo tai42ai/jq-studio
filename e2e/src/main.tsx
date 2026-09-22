@@ -13,7 +13,7 @@
 import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { JqField, PrimitivesProvider } from '@tai42/jq-studio';
-import type { AnyButtonProps } from '@tai42/jq-studio';
+import type { AnyButtonProps, JqInputShapeDescriptor } from '@tai42/jq-studio';
 import '@tai42/jq-studio/styles.css';
 
 /** A host's own button — visibly distinct, tagged so the test can find it. */
@@ -46,6 +46,42 @@ function InjectedScenario() {
   );
 }
 
+/** A field whose shape declares a variable the host binds beside `.`. The
+ *  expression reads `$account` as a path root, and the Test run binds the sample
+ *  the same way the editor binds them. */
+const ACCOUNT_SHAPE: JqInputShapeDescriptor = {
+  id: 'example:account-envelope',
+  label: 'request',
+  blurb: 'The data this expression is about.',
+  keys: [{ name: 'id', gloss: 'the request id' }],
+  returns: 'any value',
+  variables: [
+    {
+      name: 'account',
+      blurb: 'The account this run belongs to.',
+      keys: [{ name: 'tier', gloss: 'the account tier' }],
+      sample: { tier: 'gold' },
+    },
+  ],
+};
+
+function VariablesScenario() {
+  const [value, setValue] = useState('$account.tier');
+  return (
+    <section id="variables">
+      <h2>Variables</h2>
+      <JqField
+        label="Route"
+        value={value}
+        onChange={setValue}
+        shape={ACCOUNT_SHAPE}
+        sampleVariables={() => ({ account: { tier: 'gold' } })}
+      />
+      <pre data-testid="variables-value">{value}</pre>
+    </section>
+  );
+}
+
 function ThemeScenario() {
   return (
     <section id="theme">
@@ -72,6 +108,7 @@ createRoot(document.getElementById('root')!).render(
       <h1>@tai42/jq-studio consumer example</h1>
       <DefaultScenario />
       <InjectedScenario />
+      <VariablesScenario />
       <ThemeScenario />
     </main>
   </StrictMode>,

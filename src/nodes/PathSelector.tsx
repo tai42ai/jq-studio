@@ -5,7 +5,7 @@ import { memo, useCallback, useMemo } from 'react';
 
 import type { SelectGroup, SelectOption } from '../primitives';
 import { Button, Select } from '../primitives';
-import { useTransformerReadOnly } from '../TransformerContext';
+import { useDeclaredVariables, useTransformerReadOnly } from '../TransformerContext';
 import type { JQNodeData, PathSegment } from '../types';
 import { ancestorFunctionParams, precedingNamedNodes } from '../utils/graph-scope';
 import { compilePathSegments } from '../utils/path-segments';
@@ -25,6 +25,7 @@ export const PathSelector = memo(({ nodeId, segments, onSegmentsChange }: PathSe
   const allNodes = useNodes<Node<JQNodeData>>();
   const allEdges = useEdges();
   const readOnly = useTransformerReadOnly();
+  const declaredVariables = useDeclaredVariables();
 
   const precedingNodeNames = useMemo(
     () => precedingNamedNodes(allNodes, allEdges, nodeId),
@@ -103,13 +104,25 @@ export const PathSelector = memo(({ nodeId, segments, onSegmentsChange }: PathSe
     () => [{ value: '.', label: '.' }, ...precedingNodeNames.map((n) => ({ value: n, label: n }))],
     [precedingNodeNames],
   );
+  // The declared variables the host binds beside `.` join the root menu in
+  // their own group — a variable is a valid root of a path just like `.` is.
   const rootGroups: SelectGroup[] | undefined = useMemo(() => {
-    if (ancestorFuncParams.length === 0) return undefined;
-    return [
-      { label: 'Path root', options: rootChoices },
-      { label: 'Parameters', options: ancestorFuncParams.map((p) => ({ value: p, label: p })) },
-    ];
-  }, [rootChoices, ancestorFuncParams]);
+    if (declaredVariables.length === 0 && ancestorFuncParams.length === 0) return undefined;
+    const groups: SelectGroup[] = [{ label: 'Path root', options: rootChoices }];
+    if (declaredVariables.length > 0) {
+      groups.push({
+        label: 'Variables',
+        options: declaredVariables.map((v) => ({ value: v, label: `$${v}` })),
+      });
+    }
+    if (ancestorFuncParams.length > 0) {
+      groups.push({
+        label: 'Parameters',
+        options: ancestorFuncParams.map((p) => ({ value: p, label: p })),
+      });
+    }
+    return groups;
+  }, [rootChoices, declaredVariables, ancestorFuncParams]);
 
   return (
     <div className="jqs-jq-path">

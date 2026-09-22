@@ -36,9 +36,11 @@ const dispatch: AstDispatch = {
   Null: (_astNode, context) => createValueNode(null, ValueType.Null, context),
   Path: (astNode, context) => createValueNode(astNode.value, ValueType.Path, context),
   // Variable reference — create a new Value node with the variable path. Each
-  // reference gets its own node (no multiple connections to the original).
+  // reference gets its own node (no multiple connections to the original). A
+  // reference resolves against the expression's own `as $name` bindings or a
+  // variable the host declared beside `.`; anything else is undefined.
   Variable: (astNode, context) => {
-    if (!context.variableMap.has(astNode.name)) {
+    if (!context.variableMap.has(astNode.name) && !context.declaredVariables.has(astNode.name)) {
       throw new Error(`Reference to undefined variable: $${astNode.name}`);
     }
     return createValueNode(`$${astNode.name}${astNode.path ?? ''}`, ValueType.Path, context);

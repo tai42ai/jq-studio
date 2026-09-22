@@ -18,6 +18,9 @@ interface TransformerContextType {
   addNode: AddNodeFn;
   /** The canvas registers (and, on unmount, clears) the real add-node handler. */
   registerAddNode: (fn: AddNodeFn | null) => void;
+  /** Names (without `$`) of the variables the host binds beside `.` — offered
+   *  as path roots alongside `.` and the preceding named nodes. */
+  declaredVariables: readonly string[];
 }
 
 const initialState: TransformerConnectionState = {
@@ -34,9 +37,11 @@ const TransformerContext = createContext<TransformerContextType | null>(null);
 export const TransformerProvider = ({
   children,
   readOnly = false,
+  declaredVariables = [],
 }: {
   children: ReactNode;
   readOnly?: boolean;
+  declaredVariables?: readonly string[];
 }) => {
   const [connectionState, setConnectionState] = useState<TransformerConnectionState>(initialState);
   const addNodeRef = useRef<AddNodeFn | null>(null);
@@ -66,6 +71,7 @@ export const TransformerProvider = ({
         readOnly,
         addNode,
         registerAddNode,
+        declaredVariables,
       }}
     >
       {children}
@@ -84,4 +90,11 @@ export const useTransformerConnection = () => {
 export const useTransformerReadOnly = () => {
   const context = useContext(TransformerContext);
   return context?.readOnly ?? false;
+};
+
+/** The variables the host binds beside `.`, offered as path roots. Empty
+ *  outside a provider or when the field declares none. */
+export const useDeclaredVariables = (): readonly string[] => {
+  const context = useContext(TransformerContext);
+  return context?.declaredVariables ?? [];
 };

@@ -25,6 +25,7 @@ import { JqRestingControl } from './components/JqRestingControl';
 import type {
   JqInputShapeDescriptor,
   SampleInputProvider,
+  SampleVariablesProvider,
   ServerValidateHook,
 } from './declaration';
 import { useEditorOpenNotifier } from './hooks/use-editor-open-notifier';
@@ -50,6 +51,10 @@ export interface JqFieldProps {
    *  lazily at Test-panel open), so keep it side-effect free.
    *  See {@link SampleInputProvider}. */
   readonly sampleInput?: SampleInputProvider;
+  /** A live sample-variables provider for the editor's Test panel. Its entries
+   *  take precedence over each declared variable's static `sample` when binding
+   *  the run's `$name`s. See {@link SampleVariablesProvider}. */
+  readonly sampleVariables?: SampleVariablesProvider;
   /** A pluggable server-validate hook surfaced in the editor's Test panel. */
   readonly serverValidate?: ServerValidateHook;
   /** Render a textarea instead of a single-line input for the resting control. */
@@ -111,6 +116,7 @@ export function JqField({
   onChange,
   shape,
   sampleInput,
+  sampleVariables,
   serverValidate,
   multiline = false,
   compact = false,
@@ -196,6 +202,7 @@ export function JqField({
         fieldLabel={label}
         shape={shape}
         sampleInput={sampleInput}
+        sampleVariables={sampleVariables}
         serverValidate={serverValidate}
         readOnly={readOnly}
         onSave={(expression) => {

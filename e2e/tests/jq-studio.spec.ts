@@ -58,6 +58,73 @@ test.describe('default JqField', () => {
   });
 });
 
+test.describe('declared variables', () => {
+  test('draws a `$variable` root, lists it in the legend, and binds its sample on Run', async ({
+    page,
+  }) => {
+    const field = page.locator('#variables').getByRole('textbox', { name: 'Route' });
+    await expect(field).toHaveValue('$account.tier');
+
+    // Open the editor: the expression reads `$account` as a path root, so it must
+    // draw a graph rather than fall back to text.
+    await page.locator('#variables').getByRole('button', { name: 'Visual editor' }).click();
+    const editor = page.getByRole('dialog', { name: /Route — Editor/ });
+    await expect(editor).toBeVisible();
+    await expect(page.locator('.react-flow__node').first()).toBeVisible();
+
+    // The legend names the declared variable beside `.`.
+    await editor.getByRole('button', { name: 'Legend' }).click();
+    const legend = page.getByRole('dialog', { name: 'Legend' });
+    await expect(legend).toBeVisible();
+    await expect(legend.getByText('$account')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(legend).toBeHidden();
+
+    // Drive the REAL path-root menu the PathSelector unit test stands in for:
+    // select the `$account.tier` Value node and open its root menu. Options are
+    // chosen by keyboard — the Radix popper can sit outside the small test
+    // viewport, but Radix selects on keydown regardless of scroll position.
+    await page.locator('.react-flow__node').filter({ hasText: 'Value' }).first().click();
+    const rootSelect = editor.getByRole('combobox', { name: 'Path root' });
+    await expect(rootSelect).toBeVisible();
+    const pathPreview = editor.locator('.jqs-jq-path__preview');
+
+    // Re-root to `.` so picking `$account` below genuinely drives a change through
+    // the menu rather than re-selecting the value already in place. The `$account`
+    // root is highlighted on open, so the option above it is `.`.
+    await rootSelect.click();
+    await expect(page.locator('.jqp-select-content')).toBeVisible();
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('Enter');
+    await expect(pathPreview).not.toContainText('$account');
+
+    // Reopen: the declared variable sits under its own "Variables" group; picking
+    // it (the option below `.`) roots the path back at `$account`.
+    await rootSelect.click();
+    const rootMenu = page.locator('.jqp-select-content');
+    await expect(rootMenu).toBeVisible();
+    await expect(rootMenu.getByText('Variables')).toBeVisible();
+    await expect(rootMenu.getByRole('option', { name: '$account' })).toBeVisible();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(pathPreview).toContainText('$account');
+
+    // Run the expression: `.` carries only the data the user types, and `$account`
+    // is bound from the declared sample.
+    await editor.getByRole('button', { name: 'Test', exact: true }).click();
+    const testDialog = page.getByRole('dialog', { name: /Test Expression/ });
+    await expect(testDialog).toBeVisible();
+    // The read-only Variables section names `$account` and shows the sample the
+    // run binds, so the bound value is not conjured from nowhere.
+    await expect(testDialog.getByText('Variables')).toBeVisible();
+    await expect(testDialog.locator('.jqs-jq-test-var__name')).toHaveText('$account');
+    await expect(testDialog.locator('.jqs-jq-test-var__sample')).toContainText('"tier": "gold"');
+    await testDialog.locator('textarea').fill('{"id": "r-1"}');
+    await testDialog.getByRole('button', { name: 'Run', exact: true }).click();
+    await expect(testDialog.locator('.jqs-jq-output--ok')).toContainText('gold');
+  });
+});
+
 test('a host can inject its own Button and still drive the editor', async ({ page }) => {
   const hostButton = page.locator('#injected [data-testid="host-button"]');
   await expect(hostButton).toBeVisible();

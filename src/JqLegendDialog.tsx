@@ -9,6 +9,7 @@ import { BookOpen } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import { useState } from 'react';
 
+import type { JqInputShapeDescriptor } from './declaration';
 import { JQNodeType } from './enums';
 import { JQ_KIND_REGISTRY, jqKindHasSharedHue, legendJqKindRows } from './jq-kind-registry';
 import { Button, Dialog } from './primitives';
@@ -36,7 +37,42 @@ const NOTATION_ROWS: { label: string; body: string }[] = [
   },
 ];
 
-export const JqLegendDialog = () => {
+/** One row per data source the expression can read: `.` (the data) and each
+ *  declared variable. Rendered only when the field declares a shape, so the
+ *  legend names what `$name` roots and `.` mean for THIS field. */
+const DataSources = ({ shape }: { shape: JqInputShapeDescriptor }) => {
+  const keyLine = (keys: JqInputShapeDescriptor['keys']): string =>
+    keys.map((k) => k.name).join(', ');
+  return (
+    <>
+      <div className="jqs-jq-legend__section-label">Data</div>
+      <div className="jqs-jq-legend__row">
+        <span className="jqs-jq-legend__data-name">
+          <code>.</code>
+        </span>
+        <div className="jqs-jq-legend__text">
+          <div className="jqs-jq-legend__caption">{shape.label}</div>
+          <div className="jqs-jq-legend__gloss">{shape.blurb}</div>
+        </div>
+      </div>
+      {(shape.variables ?? []).map((variable) => (
+        <div key={variable.name} className="jqs-jq-legend__row">
+          <span className="jqs-jq-legend__data-name">
+            <code>${variable.name}</code>
+          </span>
+          <div className="jqs-jq-legend__text">
+            <div className="jqs-jq-legend__caption">{variable.blurb}</div>
+            {variable.keys.length > 0 && (
+              <div className="jqs-jq-legend__gloss">Keys: {keyLine(variable.keys)}</div>
+            )}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+};
+
+export const JqLegendDialog = ({ shape }: { shape?: JqInputShapeDescriptor }) => {
   const [open, setOpen] = useState(false);
   const rows = legendJqKindRows();
 
@@ -58,6 +94,7 @@ export const JqLegendDialog = () => {
         contentClassName={EDITOR_ROOT_CLASS}
       >
         <div className="jqs-jq-legend">
+          {shape && <DataSources shape={shape} />}
           <div className="jqs-jq-legend__section-label">Node kinds</div>
           {rows.map((row) => {
             const Icon = row.icon;

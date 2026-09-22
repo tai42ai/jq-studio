@@ -504,6 +504,7 @@ EXPRESSION as $VARIABLE_NAME
 3. The `as $var` pattern must appear at the end of the expression (before the next `|`)
 4. In the visual graph, **named nodes automatically create variables** — any node with a non-empty name generates the `as $name | $name` pattern
 5. A reference may carry a **postfix path** — `$var.field`, `$var["key"]`, `$var.items[0].name` — which composes onto the reference exactly as it would onto `.`. It draws as the same Path value node a dot path draws, rooted at the variable, and round-trips back to the postfix form.
+6. A **declared variable** — one the embedding host binds beside `.` (see the field declaration's `shape.variables`) — is a valid path root too, even though nothing in the expression assigns it: `$account.tier` draws and round-trips rooted at `$account`. Only a reference that is neither assigned by an `as $name` nor declared is rejected as undefined.
 
 ### Variable Round-Trip Behavior
 

@@ -21,6 +21,7 @@
  * read as agreement. So a timeout is a THIRD outcome that agrees with nothing —
  * including another timeout — keeping the oracle honest and unfaithful-safe.
  */
+import { bindJqVariables } from '../jq-variable-binding';
 import { JqTimeoutError } from '../jq-worker-client';
 
 /**
@@ -113,13 +114,44 @@ type SampleOutcome =
   | { readonly kind: 'error' }
   | { readonly kind: 'timeout' };
 
+/**
+ * Binds each declared name to the sample value alongside `.`, through the same
+ * {@link bindJqVariables} seam the sample run uses, so an expression that reads a
+ * declared `$name` is compared over the SAME corpus that drives `.` — the
+ * variable is exercised with real values, never left undefined to compile-error
+ * identically on both texts. A `$name` therefore has exactly the discriminating
+ * power the corpus gives `.`: a difference the corpus can expose (given a sample
+ * carrying the relevant key) surfaces, and a field the corpus never carries is no
+ * more distinguished for `$name.x` than it is for `.x`. With no declared names
+ * the program and input pass through unchanged. A reserved or malformed declared
+ * name is refused by the binder and its error is raised — never masked as a
+ * sample error.
+ */
+function bindSample(
+  program: string,
+  input: unknown,
+  declaredVariables: readonly string[],
+): { program: string; input: unknown } {
+  if (declaredVariables.length === 0) return { program, input };
+  const { program: bound, input: envelope } = bindJqVariables(
+    program,
+    JSON.stringify(input),
+    Object.fromEntries(declaredVariables.map((name) => [name, input])),
+  );
+  return { program: bound, input: JSON.parse(envelope) as unknown };
+}
+
 async function runSample(
   exec: JqExecutor,
   program: string,
   input: unknown,
+  declaredVariables: readonly string[],
 ): Promise<SampleOutcome> {
+  // Bound OUTSIDE the try: a binder refusal of a reserved/malformed declared name
+  // is a loud configuration error that must propagate, not be counted as a jq error.
+  const { program: bound, input: boundInput } = bindSample(program, input, declaredVariables);
   try {
-    const output = await exec(wrapProgram(program), input);
+    const output = await exec(wrapProgram(bound), boundInput);
     return { kind: 'ok', json: JSON.stringify(output) };
   } catch (err) {
     // A deadline timeout is NOT an observable jq behaviour — it is the oracle
@@ -149,6 +181,9 @@ function outcomesAgree(a: SampleOutcome, b: SampleOutcome): boolean {
  * @param exprA - The first program (typically the original text)
  * @param exprB - The second program (typically the round-tripped text)
  * @param exec - The jq executor to run both programs through
+ * @param declaredVariables - Names (without `$`) of variables the host binds
+ *   beside `.`; each is bound to the sample value in both programs so a variable
+ *   read is compared, not left undefined
  * @param inputs - The inputs to compare over (defaults to the shared battery)
  * @returns `faithful` or `unfaithful` (never `unknown`; the caller owns the
  *   runtime-unavailable case, since it owns the executor)
@@ -157,12 +192,13 @@ export async function compareJqSemantics(
   exprA: string,
   exprB: string,
   exec: JqExecutor,
+  declaredVariables: readonly string[] = [],
   inputs: readonly unknown[] = FAITHFULNESS_SAMPLE_INPUTS,
 ): Promise<Exclude<FaithfulnessVerdict, 'unknown'>> {
   for (const input of inputs) {
     const [a, b] = await Promise.all([
-      runSample(exec, exprA, input),
-      runSample(exec, exprB, input),
+      runSample(exec, exprA, input, declaredVariables),
+      runSample(exec, exprB, input, declaredVariables),
     ]);
     if (!outcomesAgree(a, b)) return 'unfaithful';
   }

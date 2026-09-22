@@ -30,6 +30,8 @@
  */
 import type { JqModule } from 'jq-web';
 
+import { bindJqVariables } from './jq-variable-binding';
+
 export interface JqResult {
   success: boolean;
   output: string;
@@ -81,16 +83,32 @@ export type JqValidity = 'valid' | 'invalid';
  * malformed program fails on the same "compile error" line no matter the input,
  * while a well-formed one either yields a value or fails at RUNTIME — and a
  * runtime failure still means the jq itself is valid. The program is therefore
- * run against `null` purely to reach the compiler, and only a compile-time
- * failure counts as invalid.
+ * run purely to reach the compiler, and only a compile-time failure counts as
+ * invalid.
+ *
+ * `declaredVariables` names (without `$`) the variables the host binds beside
+ * `.`; each is bound (to `null`) through the same {@link bindJqVariables} seam
+ * the sample run uses, so an expression that reads a declared `$name` reaches
+ * the compiler as valid jq instead of failing with "$name is not defined". With
+ * no declared names the program and input are unchanged, so a plain expression
+ * is checked exactly as before. A reserved or malformed declared name is refused
+ * by the binder and its error propagates — never masked as `valid`.
  *
  * Best-effort by design: an empty expression is treated as valid (nothing to
  * reject), and a runtime that cannot even load is reported as `valid` too — the
  * check may not have PROVEN validity, but it has not disproven it, so the caller
  * must not raise a false "invalid" on a runtime-load failure.
  */
-export async function checkJqValidity(expression: string): Promise<JqValidity> {
+export async function checkJqValidity(
+  expression: string,
+  declaredVariables: readonly string[] = [],
+): Promise<JqValidity> {
   if (!expression.trim()) return 'valid';
+  const { program, input } = bindJqVariables(
+    expression,
+    'null',
+    Object.fromEntries(declaredVariables.map((name) => [name, null])),
+  );
   let jq: JqModule;
   try {
     jq = await getJq();
@@ -99,7 +117,7 @@ export async function checkJqValidity(expression: string): Promise<JqValidity> {
     return 'valid';
   }
   try {
-    jq.json(null, expression);
+    jq.json(JSON.parse(input), program);
     return 'valid';
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

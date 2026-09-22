@@ -40,12 +40,21 @@ export type RoundTripVerdict = 'faithful' | 'unfaithful' | 'unparseable';
 
 const verdictCache = new Map<string, RoundTripVerdict>();
 
-async function computeVerdict(expression: string): Promise<RoundTripVerdict> {
+/** The memo key: the verdict depends on the expression AND which variable names
+ *  the converter accepts as roots, so both ride the key. `\u0000` cannot appear
+ *  in a jq expression or a variable name, so it separates them unambiguously. */
+const verdictKey = (expression: string, declaredVariables: readonly string[]): string =>
+  `${[...declaredVariables].sort().join(',')}\u0000${expression}`;
+
+async function computeVerdict(
+  expression: string,
+  declaredVariables: readonly string[],
+): Promise<RoundTripVerdict> {
   if (!expression.trim()) return 'faithful';
 
   let regenerated: string;
   try {
-    const { nodes, edges } = convertJQToFlow(expression);
+    const { nodes, edges } = convertJQToFlow(expression, declaredVariables);
     regenerated = convertFlowToJQ(nodes, edges);
   } catch {
     // No graph was built — nothing to save over the text, so no corruption path.
@@ -63,7 +72,7 @@ async function computeVerdict(expression: string): Promise<RoundTripVerdict> {
   // safe without it). A per-input DEADLINE is the one exception: a runaway sample
   // times out and reads as unfaithful (fail-closed), so the guard falls back to
   // text rather than adopting a graph it cannot prove.
-  return compareJqSemantics(expression, regenerated, oracleExecutor);
+  return compareJqSemantics(expression, regenerated, oracleExecutor, declaredVariables);
 }
 
 /**
@@ -71,13 +80,19 @@ async function computeVerdict(expression: string): Promise<RoundTripVerdict> {
  * memoised per expression.
  *
  * @param expression - The original jq text the editor would load
+ * @param declaredVariables - Names (without `$`) of variables the host binds
+ *   beside `.`; each is accepted as a valid path root.
  * @returns The round-trip verdict for that text
  */
-export async function roundTripVerdict(expression: string): Promise<RoundTripVerdict> {
-  const cached = verdictCache.get(expression);
+export async function roundTripVerdict(
+  expression: string,
+  declaredVariables: readonly string[] = [],
+): Promise<RoundTripVerdict> {
+  const key = verdictKey(expression, declaredVariables);
+  const cached = verdictCache.get(key);
   if (cached !== undefined) return cached;
-  const verdict = await computeVerdict(expression);
-  verdictCache.set(expression, verdict);
+  const verdict = await computeVerdict(expression, declaredVariables);
+  verdictCache.set(key, verdict);
   return verdict;
 }
 

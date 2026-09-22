@@ -23,6 +23,14 @@ describe('agnostic field declaration', () => {
     ],
     returns: 'an object',
     caveats: ['.iterate is the enclosing loop, not this one'],
+    variables: [
+      {
+        name: 'parked',
+        blurb: 'The parked interactions this run can resume.',
+        keys: [{ name: 'ids', gloss: 'the ids waiting to resume' }],
+        sample: { ids: [] },
+      },
+    ],
   };
 
   it('accepts an arbitrary, host-namespaced input shape descriptor', () => {
@@ -31,23 +39,39 @@ describe('agnostic field declaration', () => {
     expect(shape.caveats).toHaveLength(1);
   });
 
-  it('carries a callable sample-input provider and server-validate hook', async () => {
+  it('describes the named variables the host binds beside `.`', () => {
+    expect(shape.variables?.map((v) => v.name)).toEqual(['parked']);
+    expect(shape.variables?.[0]?.keys.map((k) => k.name)).toEqual(['ids']);
+    expect(shape.variables?.[0]?.sample).toEqual({ ids: [] });
+  });
+
+  it('carries callable sample providers and a variable-aware server-validate hook', async () => {
     const validation: ServerValidationResult = { ok: true, compiles: true, singleEmit: true };
     const declaration: JqFieldDeclaration = {
       language: 'jq',
       shape,
       sampleInput: () => ({ result: null, prior_outputs: {} }),
-      serverValidate: ({ expression }) =>
-        Promise.resolve(expression.trim() ? validation : { ok: false, message: 'empty' }),
+      sampleVariables: () => ({ parked: { ids: ['a-1'] } }),
+      serverValidate: ({ expression, sampleVariables }) =>
+        Promise.resolve(
+          expression.trim() && 'parked' in sampleVariables
+            ? validation
+            : { ok: false, message: 'empty' },
+        ),
     };
 
     expect(declaration.language).toBe('jq');
     expect(declaration.sampleInput?.()).toEqual({ result: null, prior_outputs: {} });
+    expect(declaration.sampleVariables?.()).toEqual({ parked: { ids: ['a-1'] } });
     await expect(
-      declaration.serverValidate?.({ expression: '.result', sampleInput: {} }),
+      declaration.serverValidate?.({
+        expression: '$parked.ids',
+        sampleInput: {},
+        sampleVariables: { parked: { ids: [] } },
+      }),
     ).resolves.toEqual(validation);
     await expect(
-      declaration.serverValidate?.({ expression: '  ', sampleInput: {} }),
+      declaration.serverValidate?.({ expression: '  ', sampleInput: {}, sampleVariables: {} }),
     ).resolves.toEqual({ ok: false, message: 'empty' });
   });
 });

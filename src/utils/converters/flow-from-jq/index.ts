@@ -86,9 +86,15 @@ function processFunctionDeclarations(
  * 5. Applies perfect auto-layout algorithm
  *
  * @param jqExpression - The jq expression string to convert
+ * @param declaredVariables - Names (without `$`) of variables the host binds
+ *   beside `.`; each is accepted as a valid path root even though nothing in the
+ *   expression assigns it.
  * @returns Object containing nodes and edges arrays
  */
-export function convertJQToFlow(jqExpression: string): { nodes: JQNode[]; edges: JQEdge[] } {
+export function convertJQToFlow(
+  jqExpression: string,
+  declaredVariables: readonly string[] = [],
+): { nodes: JQNode[]; edges: JQEdge[] } {
   // Validate input
   if (!jqExpression.trim()) {
     throw new Error('JQ expression cannot be empty');
@@ -106,6 +112,7 @@ export function convertJQToFlow(jqExpression: string): { nodes: JQNode[]; edges:
     nodeIdCounter: 0,
     edgeIdCounter: 0,
     variableMap: new Map(),
+    declaredVariables: new Set(declaredVariables),
     functionDefinitions: new Map(),
     builtInFunctions: new Map(),
     operatorResultMap: new Map(),

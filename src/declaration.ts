@@ -51,12 +51,44 @@ export interface JqInputShapeDescriptor {
    *  declaration's {@link SampleInputProvider}; live samples are a later,
    *  additive concern. */
   readonly sample?: unknown;
+  /** The named variables the host binds beside `.` for this field. Each is
+   *  reachable anywhere in the expression as `$name` — inside `map(...)` /
+   *  `select(...)` where `.` is rebound too — and never collides with a key of
+   *  `.`. The editor lists them, its path hints offer `$name` as a root, and the
+   *  Test panel's local run binds their samples for evaluation. */
+  readonly variables?: readonly JqVariableDescriptor[];
+}
+
+/**
+ * One named jq variable the host binds beside `.`. It is described to the
+ * author with its own shape and a sample the local Test run binds it to.
+ */
+export interface JqVariableDescriptor {
+  /** The variable's name WITHOUT the leading `$` (e.g. `"parked"`, referenced as
+   *  `$parked`). Must be a jq identifier and may not be a reserved name. */
+  readonly name: string;
+  /** One sentence: what this variable holds. */
+  readonly blurb: string;
+  /** The top-level keys of the variable's value, each with a one-liner. Empty
+   *  when the value is a scalar. */
+  readonly keys: readonly JqInputKey[];
+  /** A static skeleton of the variable's value — the honest default the local
+   *  Test run binds it to. A host may override it dynamically via the
+   *  declaration's {@link SampleVariablesProvider}. */
+  readonly sample?: unknown;
 }
 
 /** A provider of a concrete sample input for the Test panel. A function (not a
  *  value) so a host can supply a static skeleton now and a live sample
  *  later without changing this API. */
 export type SampleInputProvider = () => unknown;
+
+/** A provider of concrete sample VALUES for the declared variables, keyed by
+ *  variable name (without the leading `$`). A function (not a value) so a host
+ *  can supply static skeletons now and live samples later without changing this
+ *  API; a name absent from the returned map falls back to that variable's own
+ *  {@link JqVariableDescriptor.sample}. */
+export type SampleVariablesProvider = () => Record<string, unknown>;
 
 /** The answer a pluggable validator gives for an expression against its declared
  *  shape. Mirrors a typical server validator's result WITHOUT importing its
@@ -75,6 +107,10 @@ export interface ServerValidationResult {
 export type ServerValidateHook = (args: {
   expression: string;
   sampleInput: unknown;
+  /** The sample VALUES of the field's declared variables, keyed by name (without
+   *  `$`) — what `.`'s companions hold for this run, so the host validator binds
+   *  them the same way. Empty when the field declares none. */
+  sampleVariables: Record<string, unknown>;
 }) => Promise<ServerValidationResult>;
 
 /**
@@ -87,5 +123,10 @@ export interface JqFieldDeclaration {
   readonly language: ExpressionLanguage;
   readonly shape?: JqInputShapeDescriptor;
   readonly sampleInput?: SampleInputProvider;
+  /** A live provider of sample values for the declared variables, mirroring
+   *  {@link sampleInput} for `.`. A returned value takes precedence over each
+   *  variable's static {@link JqVariableDescriptor.sample} when binding the
+   *  local Test run. */
+  readonly sampleVariables?: SampleVariablesProvider;
   readonly serverValidate?: ServerValidateHook;
 }

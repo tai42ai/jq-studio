@@ -18,6 +18,10 @@ import { convertJQToFlow } from '../utils/converters/flow-from-jq';
 
 interface InitialLoadParams {
   initialExpression: string | undefined;
+  /** Names (without `$`) of variables the host binds beside `.`; passed to
+   *  the converter and the faithfulness guard so an expression that reads one is
+   *  drawn rather than pushed to the text fallback. */
+  declaredVariables: readonly string[];
   setNodes: Dispatch<SetStateAction<Node<JQNodeData>[]>>;
   setEdges: Dispatch<SetStateAction<Edge[]>>;
   nodeCountersRef: RefObject<Record<string, number>>;
@@ -38,6 +42,7 @@ export interface InitialLoadState {
 
 export const useInitialLoad = ({
   initialExpression,
+  declaredVariables,
   setNodes,
   setEdges,
   nodeCountersRef,
@@ -59,7 +64,7 @@ export const useInitialLoad = ({
     }
     let loaded: { nodes: JQNode[]; edges: JQEdge[] };
     try {
-      loaded = convertJQToFlow(initialExpression);
+      loaded = convertJQToFlow(initialExpression, declaredVariables);
     } catch (e) {
       // A parse failure must NOT silently blank the canvas (a later one-node save
       // would overwrite the author's expression). Surface the fallback instead.
@@ -69,7 +74,7 @@ export const useInitialLoad = ({
       return;
     }
     let cancelled = false;
-    void roundTripVerdict(initialExpression)
+    void roundTripVerdict(initialExpression, declaredVariables)
       .then((verdict) => {
         if (cancelled) return;
         if (verdict === 'unfaithful') {

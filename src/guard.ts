@@ -27,7 +27,14 @@ import { roundTripVerdict } from './utils/converters/faithfulness-guard';
  * field editor to the Editor tab only when the current expression both parses
  * AND passes this guard. Memoisation is inherited from `roundTripVerdict`,
  * so repeated calls for the same text pay nothing.
+ *
+ * `declaredVariables` names (without `$`) the variables the host binds beside
+ * `.` for the field; each is accepted as a valid path root, so an expression
+ * that reads one still round-trips through the visual editor.
  */
-export async function canRepresentFaithfully(text: string): Promise<boolean> {
-  return (await roundTripVerdict(text)) === 'faithful';
+export async function canRepresentFaithfully(
+  text: string,
+  declaredVariables: readonly string[] = [],
+): Promise<boolean> {
+  return (await roundTripVerdict(text, declaredVariables)) === 'faithful';
 }
