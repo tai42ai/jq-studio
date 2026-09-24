@@ -14,6 +14,19 @@
  * The executor is injected so the same logic runs under the test's node-hosted
  * WASM and the browser's lazily-loaded WASM without either importing the other.
  *
+ * DETERMINISTIC CLOCK. The two texts are run as separate jq invocations, so a
+ * wall-clock builtin (`now`) is sampled independently for each and can land in
+ * different seconds — making even a faithful round-trip of a `now`-reading
+ * expression (e.g. `now | todate`) read as a corruption when the two runs
+ * straddle a second boundary. jq exposes no clock override, so the oracle pins
+ * the clock itself: it shadows `now` with one fixed epoch ({@link
+ * COMPARISON_CLOCK_EPOCH}) in front of every program it runs, identically for
+ * both texts. Both sides read the SAME fixed instant, so a difference in the
+ * clock arithmetic (say a rewrite that changes the offset added to `now`) still
+ * surfaces; a clock threshold both pinned reads fall on the same side of is
+ * missed, exactly as any single sample of any dimension can miss a difference.
+ * Only the wall-clock non-determinism is removed.
+ *
  * TIMEOUTS. When the executor is the worker-backed one (the browser guard), an
  * input that does not terminate is stopped at its deadline and the executor throws
  * a {@link JqTimeoutError}. That is NOT a jq error: two programs that both ERROR on
@@ -95,8 +108,26 @@ export const FAITHFULNESS_SAMPLE_INPUTS: readonly unknown[] = Object.freeze([
 const OUTPUT_LIMIT = 4096;
 
 /**
+ * The single instant every `now` read resolves to while the oracle compares two
+ * programs. Any fixed epoch works; this one is a plain, readable point in time.
+ */
+export const COMPARISON_CLOCK_EPOCH = 1_700_000_000;
+
+/**
+ * Shadows jq's wall-clock builtin `now` with {@link COMPARISON_CLOCK_EPOCH} so a
+ * `now`-reading program yields the same value on every run instead of sampling
+ * the live clock. Prepended to both texts alike, so the comparison stays about
+ * their behaviour, never about which second each run happened to fall in. A
+ * program that never calls `now` is unchanged in effect (the definition is
+ * simply unused).
+ */
+function withFixedClock(program: string): string {
+  return `def now: ${String(COMPARISON_CLOCK_EPOCH)}; ${program}`;
+}
+
+/**
  * Wraps a program so its full output stream is collected into ONE comparable,
- * bounded value.
+ * bounded value, with the clock pinned via {@link withFixedClock}.
  *
  * `jq`'s runtime collapses a multi-output stream ambiguously (one output comes
  * back bare, many come back as an array indistinguishable from a single array
@@ -105,7 +136,7 @@ const OUTPUT_LIMIT = 4096;
  * cannot hang or crash the runtime.
  */
 function wrapProgram(program: string): string {
-  return `[ limit(${String(OUTPUT_LIMIT)}; ${program}) ]`;
+  return withFixedClock(`[ limit(${String(OUTPUT_LIMIT)}; ${program}) ]`);
 }
 
 /** The outcome of running one wrapped program against one input. */

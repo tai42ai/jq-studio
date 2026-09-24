@@ -6,7 +6,11 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { compareJqSemantics, FAITHFULNESS_SAMPLE_INPUTS } from './faithfulness';
+import {
+  compareJqSemantics,
+  COMPARISON_CLOCK_EPOCH,
+  FAITHFULNESS_SAMPLE_INPUTS,
+} from './faithfulness';
 import { execJq } from './test-helpers';
 
 describe('faithfulness oracle: compareJqSemantics', () => {
@@ -122,5 +126,34 @@ describe('faithfulness oracle: declared variables', () => {
     await expect(compareJqSemantics('.', '.', execJq, ['not a name'])).rejects.toThrow(
       /valid jq variable/,
     );
+  });
+});
+
+describe('faithfulness oracle: the wall clock is pinned', () => {
+  it('resolves `now` to the fixed comparison epoch, not the live clock', async () => {
+    // With the clock pinned, `now` and the literal epoch are the same value, so a
+    // now-reading program compares faithful against that literal. Run live, `now`
+    // is the wall clock (never the epoch), so this would read unfaithful — the
+    // exact false corruption a `now`-reading corpus entry hit across a second tick.
+    expect(await compareJqSemantics('now', String(COMPARISON_CLOCK_EPOCH), execJq)).toBe(
+      'faithful',
+    );
+  });
+
+  it('classifies a `now | todate` round-trip faithful on every run', async () => {
+    // The two texts are run as separate jq invocations; unpinned, `now` is sampled
+    // twice and the `todate` strings differ whenever the runs straddle a second.
+    // Pinned, both read the same instant, so the reformat reads faithful — and does
+    // so deterministically, however the wall clock moves between iterations.
+    for (let i = 0; i < 8; i++) {
+      expect(await compareJqSemantics('now | todate', '((now) | todate)', execJq)).toBe('faithful');
+    }
+  });
+
+  it('still catches a real difference around the clock as unfaithful', async () => {
+    // Pinning removes the wall-clock jitter, not the oracle's power to see a genuine
+    // behaviour change: both sides read the same instant, so a different offset added
+    // to `now` still diverges.
+    expect(await compareJqSemantics('now + 10', 'now + 20', execJq)).toBe('unfaithful');
   });
 });
