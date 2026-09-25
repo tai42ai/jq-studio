@@ -15,7 +15,7 @@
     "@radix-ui/react-dialog": "^1.1.18",
     "@radix-ui/react-select": "^2.3.2",
     "@radix-ui/react-tooltip": "^1.2.11",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.2.0",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.469.0",
