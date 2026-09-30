@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+
+import { needs, test } from '../needs';
 
 /**
  * End-to-end against the SHIPPED artifact, driven like a consumer. The page
@@ -6,6 +8,10 @@ import { expect, test } from '@playwright/test';
  * open the real editor, evaluate jq through the real wasm runtime, prove the
  * primitives-injection seam, and prove the theme contract.
  */
+
+// Every test drives this suite's own fixture page, which no external stack serves, so a run
+// against a target skips them all.
+needs('fixture-page');
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -82,30 +88,40 @@ test.describe('declared variables', () => {
 
     // Drive the REAL path-root menu the PathSelector unit test stands in for:
     // select the `$account.tier` Value node and open its root menu. Options are
-    // chosen by keyboard — the Radix popper can sit outside the small test
-    // viewport, but Radix selects on keydown regardless of scroll position.
+    // chosen by keyboard because the Radix popper can sit outside the small test
+    // viewport, where a click cannot scroll it into reach. Radix marks the
+    // focused option `data-highlighted`; keyboard navigation steps relative to
+    // it and defers each focus move to a task, so before each key press wait for
+    // the option the step reads from — and after it, for the option the step
+    // lands on — to hold the highlight, keeping the sequence deterministic.
     await page.locator('.react-flow__node').filter({ hasText: 'Value' }).first().click();
     const rootSelect = editor.getByRole('combobox', { name: 'Path root' });
     await expect(rootSelect).toBeVisible();
     const pathPreview = editor.locator('.jqs-jq-path__preview');
+    const rootMenu = page.locator('.jqp-select-content');
+    const rootOption = (name: string) => rootMenu.getByRole('option', { name, exact: true });
+    const highlighted = '';
 
     // Re-root to `.` so picking `$account` below genuinely drives a change through
     // the menu rather than re-selecting the value already in place. The `$account`
     // root is highlighted on open, so the option above it is `.`.
     await rootSelect.click();
-    await expect(page.locator('.jqp-select-content')).toBeVisible();
+    await expect(rootMenu).toBeVisible();
+    await expect(rootOption('$account')).toHaveAttribute('data-highlighted', highlighted);
     await page.keyboard.press('ArrowUp');
+    await expect(rootOption('.')).toHaveAttribute('data-highlighted', highlighted);
     await page.keyboard.press('Enter');
     await expect(pathPreview).not.toContainText('$account');
 
     // Reopen: the declared variable sits under its own "Variables" group; picking
     // it (the option below `.`) roots the path back at `$account`.
     await rootSelect.click();
-    const rootMenu = page.locator('.jqp-select-content');
     await expect(rootMenu).toBeVisible();
     await expect(rootMenu.getByText('Variables')).toBeVisible();
-    await expect(rootMenu.getByRole('option', { name: '$account' })).toBeVisible();
+    await expect(rootOption('$account')).toBeVisible();
+    await expect(rootOption('.')).toHaveAttribute('data-highlighted', highlighted);
     await page.keyboard.press('ArrowDown');
+    await expect(rootOption('$account')).toHaveAttribute('data-highlighted', highlighted);
     await page.keyboard.press('Enter');
     await expect(pathPreview).toContainText('$account');
 

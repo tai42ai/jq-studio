@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      e2e_target:
+        description: Run the e2e against this running stack (an origin, or the name of a file in e2e/targets) instead of building one
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -113,6 +118,11 @@ jobs:
     needs: [changes, verify]
     if: ${{ needs.changes.outputs.version_only != 'true' }}
     runs-on: ubuntu-24.04
+    env:
+      # The e2e target: set the TAI_E2E_TARGET repository variable (or pass e2e_target on a
+      # manual run) to drive a running stack instead of building one. This suite drives its
+      # own fixture page, so with a target set every test skips; unset, it builds and runs.
+      TAI_E2E_TARGET: ${{ inputs.e2e_target || vars.TAI_E2E_TARGET }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -120,8 +130,11 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - name: Install workspace deps (for the library build)
+        if: env.TAI_E2E_TARGET == ''
+        run: pnpm install --frozen-lockfile
       - name: Build the library (the artifact the e2e page imports)
+        if: env.TAI_E2E_TARGET == ''
         run: pnpm build
       - name: Install e2e deps
         working-directory: e2e
@@ -132,6 +145,18 @@ jobs:
       - name: Run e2e
         working-directory: e2e
         run: pnpm test
+      - name: Upload the JUnit report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-junit
+          path: e2e/junit*.xml
+          if-no-files-found: error
+      - name: Summarize the JUnit report
+        if: ${{ !cancelled() }}
+        uses: test-summary/action@37b508cfee6d4d080eedd00b5bb240a6a784a6a5 # v2.6
+        with:
+          paths: e2e/junit*.xml
       - name: Upload e2e report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
