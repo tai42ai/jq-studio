@@ -43,6 +43,13 @@ pnpm exec playwright install --with-deps chromium
 pnpm test                                    # or: pnpm dev, to open the example
 ```
 
+Set `TAI_E2E_TARGET` to drive a running stack instead of building one. This suite
+tests its own fixture page, which no external stack serves, so with `TAI_E2E_TARGET`
+set every test is skipped with a reason naming `fixture-page` (visible in the JUnit
+report) and no server is started. Unset, it builds `dist/` and boots its own Vite
+server as shown, and runs as always. Every run writes a JUnit report to
+`e2e/junit.xml`, uploaded as a CI artifact and shown in the job summary.
+
 ## Conventions
 
 - **Commits** follow [Conventional Commits](https://www.conventionalcommits.org/)
