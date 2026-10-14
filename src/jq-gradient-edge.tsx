@@ -16,7 +16,7 @@ import { type EdgeProps, getBezierPath, Position } from '@xyflow/react';
 import { memo, useState } from 'react';
 
 import { jqNodeColorVar } from './colors';
-import { JQNodeType } from './enums';
+import { isJqNodeType } from './enums';
 
 /** The React Flow edge `type` value this renderer registers under. */
 export const JQ_GRADIENT_EDGE_TYPE = 'gradient';
@@ -52,9 +52,6 @@ export const resolveExitPosition = (
   if (Math.abs(dy) >= Math.abs(dx)) return dy >= 0 ? Position.Bottom : Position.Top;
   return dx >= 0 ? Position.Right : Position.Left;
 };
-
-const isJqNodeType = (value: unknown): value is JQNodeType =>
-  typeof value === 'string' && (Object.values(JQNodeType) as string[]).includes(value);
 
 /** Resolve an end's colour: from its node type via the registry, else a legacy
  *  baked token string, else muted. */

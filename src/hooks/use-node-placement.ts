@@ -9,7 +9,7 @@ import type { Edge, Node, NodeChange, ReactFlowInstance } from '@xyflow/react';
 import type { Dispatch, DragEvent, RefObject, SetStateAction } from 'react';
 import { useCallback, useEffect } from 'react';
 
-import { JQNodeType } from '../enums';
+import { isJqNodeType, JQNodeType } from '../enums';
 import { createDefaultNodeData, NODE_TYPE_LABELS } from '../nodes/node-factory';
 import { useTransformerConnection } from '../TransformerContext';
 import type { JQEdge, JQNode, JQNodeData } from '../types';
@@ -85,10 +85,12 @@ const useNodeCreation = ({
     (event: DragEvent) => {
       event.preventDefault();
 
-      const rawType = event.dataTransfer.getData('application/transformer-node-type');
+      const type = event.dataTransfer.getData('application/transformer-node-type');
       const instance = instanceRef.current;
-      if (!rawType || !instance || !reactFlowWrapper.current) return;
-      const type = rawType as JQNodeType;
+      // A drag with no node type (a file, plain text) is not the palette's.
+      if (!type) return;
+      if (!isJqNodeType(type)) throw new Error(`Unknown node type: ${type}`);
+      if (!instance || !reactFlowWrapper.current) return;
 
       const bounds = reactFlowWrapper.current.getBoundingClientRect();
       const position = instance.screenToFlowPosition({

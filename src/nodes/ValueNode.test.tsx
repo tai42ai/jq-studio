@@ -1,13 +1,16 @@
 /**
  * @fileoverview Number Value node input keeps the raw typed string and only
  * commits a finite parse — an empty or partial entry must never write `0`/`NaN`
- * into the node data.
+ * into the node data. The value-type select switches the node's type, and a
+ * value outside `ValueType` is rejected with an error before any state change.
  */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { type NodeTypes, ReactFlow, useNodes } from '@xyflow/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { JQNodeType } from '../enums';
+import { JQNodeType, ValueType } from '../enums';
+import type { AnySelectProps } from '../primitives';
+import { PrimitivesProvider } from '../primitives';
 import { SnapshotProvider } from '../SnapshotContext';
 import { TransformerProvider } from '../TransformerContext';
 import type { JQNode } from '../types';
@@ -77,5 +80,65 @@ describe('ValueNode string summary bidi isolation', () => {
     expect(bdi?.textContent).toBe('مرحبا');
     // The quotes live OUTSIDE the isolate, so the visible summary is still quoted.
     expect(bdi?.parentElement?.textContent).toBe('"مرحبا"');
+  });
+});
+
+describe('ValueNode value-type select', () => {
+  /** Renders the node with a host Select that hands back the node's change handler. */
+  const renderWithHostSelect = (node: JQNode) => {
+    const takeSnapshot = vi.fn();
+    let changeValueType: ((value: string) => void) | undefined;
+    const HostSelect = (props: AnySelectProps) => {
+      if (props['aria-label'] === 'Value type') changeValueType = props.onValueChange;
+      return null;
+    };
+    const StoredValueType = () => {
+      const nodes = useNodes();
+      return <span data-testid="stored-type">{String(nodes[0]?.data.valueType)}</span>;
+    };
+    render(
+      <PrimitivesProvider primitives={{ Select: HostSelect }}>
+        <TransformerProvider>
+          <ValidationProvider value={new Map()}>
+            <SnapshotProvider value={takeSnapshot}>
+              <div style={{ width: 800, height: 600 }}>
+                <ReactFlow defaultNodes={[node]} defaultEdges={[]} nodeTypes={nodeTypes} fitView>
+                  <StoredValueType />
+                </ReactFlow>
+              </div>
+            </SnapshotProvider>
+          </ValidationProvider>
+        </TransformerProvider>
+      </PrimitivesProvider>,
+    );
+    const select = (value: string): void => {
+      if (!changeValueType) throw new Error('value-type select not rendered');
+      changeValueType(value);
+    };
+    return { takeSnapshot, select };
+  };
+
+  it('switches the node to the chosen value type', async () => {
+    const { takeSnapshot, select } = renderWithHostSelect(selectedNumber(5));
+    expect((await screen.findByTestId('stored-type')).textContent).toBe(ValueType.Number);
+
+    act(() => {
+      select(ValueType.Boolean);
+    });
+
+    expect(takeSnapshot).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('stored-type').textContent).toBe(ValueType.Boolean);
+  });
+
+  it('rejects a value outside ValueType before any state change', async () => {
+    const { takeSnapshot, select } = renderWithHostSelect(selectedNumber(5));
+    expect((await screen.findByTestId('stored-type')).textContent).toBe(ValueType.Number);
+
+    expect(() => {
+      select('notAValueType');
+    }).toThrow(new Error('Unknown value type: notAValueType'));
+
+    expect(takeSnapshot).not.toHaveBeenCalled();
+    expect(screen.getByTestId('stored-type').textContent).toBe(ValueType.Number);
   });
 });

@@ -3,7 +3,7 @@ import { Position, useReactFlow } from '@xyflow/react';
 import { Hash } from 'lucide-react';
 import { memo, useCallback, useMemo } from 'react';
 
-import { JQHandleIdPrefix, JQNodeType, ValueType } from '../enums';
+import { isValueType, JQHandleIdPrefix, JQNodeType, ValueType } from '../enums';
 import type { SelectOption } from '../primitives';
 import { Select } from '../primitives';
 import { useSnapshot } from '../SnapshotContext';
@@ -46,8 +46,9 @@ export const ValueNode = memo(({ id, data, selected }: ValueNodeProps) => {
 
   const onTypeChange = useCallback(
     (value: string) => {
+      if (!isValueType(value)) throw new Error(`Unknown value type: ${value}`);
       takeSnapshot();
-      updateData(valueTypeBase(value as ValueType));
+      updateData(valueTypeBase(value));
     },
     [updateData, takeSnapshot],
   );

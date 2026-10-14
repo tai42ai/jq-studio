@@ -9,6 +9,9 @@ export enum JQNodeType {
   Comment = 'jqComment',
 }
 
+export const isJqNodeType = (value: unknown): value is JQNodeType =>
+  typeof value === 'string' && (Object.values(JQNodeType) as string[]).includes(value);
+
 /** Node types that can be operands in operator chains. */
 export const OPERAND_NODE_TYPES: JQNodeType[] = [JQNodeType.Value, JQNodeType.FunctionCall];
 
@@ -21,6 +24,9 @@ export enum ValueType {
   Path = 'path',
   Null = 'null',
 }
+
+export const isValueType = (value: unknown): value is ValueType =>
+  typeof value === 'string' && (Object.values(ValueType) as string[]).includes(value);
 
 export const VALID_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 

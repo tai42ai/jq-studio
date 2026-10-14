@@ -6,14 +6,15 @@
 import type { Edge, Node } from '@xyflow/react';
 import { useMemo } from 'react';
 
-import { JQNodeType } from '../enums';
+import type { JQNodeType } from '../enums';
+import { isJqNodeType } from '../enums';
 import type { JQNodeData } from '../types';
 
 export const useEdgeGradients = (nodes: Node<JQNodeData>[], edges: Edge[]): Edge[] => {
   const nodeTypeById = useMemo(() => {
     const map = new Map<string, JQNodeType>();
     for (const node of nodes) {
-      if (node.type) map.set(node.id, node.type as JQNodeType);
+      if (isJqNodeType(node.type)) map.set(node.id, node.type);
     }
     return map;
   }, [nodes]);

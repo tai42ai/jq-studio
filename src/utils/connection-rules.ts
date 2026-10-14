@@ -53,7 +53,7 @@ export const classifyHandle = (handleId: string | null): HandleKind => {
   ) {
     return 'conditionBranch';
   }
-  if ([JQHandleIdPrefix.Try, JQHandleIdPrefix.Catch].includes(handleId as JQHandleIdPrefix)) {
+  if (([JQHandleIdPrefix.Try, JQHandleIdPrefix.Catch] as string[]).includes(handleId)) {
     return 'tryCatch';
   }
   if (startsWithAny(handleId, [JQHandleIdPrefix.OperatorLeft, JQHandleIdPrefix.OperatorRight])) {
@@ -179,14 +179,16 @@ export const TARGET_DRAG_SOURCES: Partial<Record<JQNodeType, JQNodeType[]>> = {
 /** Whether a handle id reads as a SOURCE endpoint of a would-be connection. */
 export const isSourceHandleId = (handleId: string): boolean =>
   handleId.includes('source') ||
-  [
-    JQHandleIdPrefix.Bottom,
-    JQHandleIdPrefix.Flow,
-    JQHandleIdPrefix.Functions,
-    JQHandleIdPrefix.Else,
-    JQHandleIdPrefix.Try,
-    JQHandleIdPrefix.Catch,
-  ].includes(handleId as JQHandleIdPrefix) ||
+  (
+    [
+      JQHandleIdPrefix.Bottom,
+      JQHandleIdPrefix.Flow,
+      JQHandleIdPrefix.Functions,
+      JQHandleIdPrefix.Else,
+      JQHandleIdPrefix.Try,
+      JQHandleIdPrefix.Catch,
+    ] as string[]
+  ).includes(handleId) ||
   startsWithAny(handleId, [
     `${JQHandleIdPrefix.Logic}:`,
     `${JQHandleIdPrefix.Param}:`,
@@ -202,9 +204,13 @@ export const isSourceHandleId = (handleId: string): boolean =>
 /** Whether a handle id reads as a TARGET endpoint of a would-be connection. */
 export const isTargetHandleId = (handleId: string): boolean =>
   handleId.includes('target') ||
-  [JQHandleIdPrefix.Top, JQHandleIdPrefix.OperatorLeft, JQHandleIdPrefix.OperatorRight].includes(
-    handleId as JQHandleIdPrefix,
-  );
+  (
+    [
+      JQHandleIdPrefix.Top,
+      JQHandleIdPrefix.OperatorLeft,
+      JQHandleIdPrefix.OperatorRight,
+    ] as string[]
+  ).includes(handleId);
 
 /**
  * Whether a source handle may fan out to more than one wire. Every jq source
